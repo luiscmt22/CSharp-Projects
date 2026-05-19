@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="ConsoleAppAdventureGame.Engine/ConsoleAppAdventureGame.Engine.csproj" />
+  <Project Path="ConsoleAppAdventureGame.Tests/ConsoleAppAdventureGame.Tests.csproj" />
+  <Project Path="ConsoleAppAdventureGame/ConsoleAppAdventureGame.csproj" />
+</Solution>
