@@ -42,9 +42,22 @@ do
     if (node.Choices.Length == 0)
     {
         Console.WriteLine("The end.");
-        Console.WriteLine("Press any key to exit.");
-        Console.ReadLine();
-        return;
+        Console.WriteLine("Want to play again? (y/n)");
+        var playAgain = Console.ReadLine();
+
+        if (playAgain?.ToLower() == "y")
+        {
+            adventure.CurrentNode = adventure.GetNode("Start");
+            continue;
+        }        
+
+        else if (playAgain?.ToLower() != "n")
+        {
+            Console.WriteLine("Invalid input, exiting.");
+        }
+
+        Console.WriteLine("Thanks for playing!");
+        break;
     }
 
     foreach (Choice choice in node.Choices)
@@ -68,9 +81,27 @@ do
     }
     var option = node.Choices.First(c => c.Text.Equals(input, StringComparison.OrdinalIgnoreCase));
 
+    foreach (string line in option.WhenChosen)
+    {
+        Console.WriteLine(line);
+        Loading();
+    }
+
     adventure.CurrentNode = adventure.GetNode(option.NextNodeId);
 
 } while (true);
+
+return;
+
+void Loading()
+{
+    Console.Write("Loading");
+    for (int i = 0; i < 3; i++)
+    {
+        Console.Write(".");
+        Thread.Sleep(500);
+    }
+}
 
 public class StoryNode(string id)
 {
@@ -99,3 +130,5 @@ public class Adventure
         CurrentNode = _nodes[startNodeId];
     }
 }
+
+public class ConsoleAdventureRenderer
