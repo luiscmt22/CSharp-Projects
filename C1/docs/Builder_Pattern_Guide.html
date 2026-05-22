@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Builder Pattern Guide &mdash; Adventure Game</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {
+  --bg: #0b1220;
+  --surface: #111a2e;
+  --surface-2: #16223c;
+  --border: #243352;
+  --text: #e6ecf5;
+  --text-dim: #9aa7c0;
+  --accent: #6aa6ff;
+  --accent-2: #b06aff;
+  --code-bg: #0a1120;
+  --ok: #4ade80;
+  --warn: #fbbf24;
+  --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg); color: var(--text);
+  font: 16px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif;
+}
+.wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px; margin-bottom: 28px;
+}
+header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
+header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
+header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
+header.doc-head .meta a { color: var(--accent); text-decoration: none; }
+header.doc-head .meta a:hover { text-decoration: underline; }
+h1, h2, h3, h4 { color: var(--text); margin-top: 1.6em; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+a { color: var(--accent); }
+code, pre, code.il { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; border: 1px solid var(--border); }
+pre {
+  background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55;
+}
+pre code { background: transparent; border: 0; padding: 0; }
+blockquote {
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+  padding: 10px 16px; margin: 12px 0;
+  color: var(--text-dim);
+  border-radius: 0 6px 6px 0;
+}
+.diagram-box {
+  background: #1e293b; border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px; overflow-x: auto;
+}
+.diagram-box pre { background: transparent; border: 0; padding: 0; color: #e6ecf5; }
+.tbl-wrap { overflow-x: auto; margin: 14px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+th { background: var(--surface-2); }
+tr:nth-child(even) td { background: var(--surface); }
+.callout {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-2);
+  padding: 12px 16px;
+  margin: 14px 0;
+  border-radius: 0 6px 6px 0;
+}
+.callout.warn { border-left-color: var(--warn); }
+.callout.ok   { border-left-color: var(--ok); }
+.callout.bad  { border-left-color: var(--bad); }
+.kw   { color: #c792ea; }
+.type { color: #82aaff; }
+.str  { color: #c3e88d; }
+.num  { color: #f78c6c; }
+.cmt  { color: #6c7a96; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">C1 &rsaquo; docs</div>
+  <h1>Building the Builder pattern, step by step</h1>
+  <div class="meta">A guided walk-through of <code class="il">AdventureBuilder</code>, <code class="il">NodeBuilder</code>, and <code class="il">ChoiceBuilder</code> &mdash; the part the book skipped.</div>
+</header>
+
+<p>Good &mdash; the book skipping this is actually a gift, because Builder is one of those patterns that <em>makes more sense once you've felt the pain it solves</em>. Look at the current <code class="il">SampleAdventure.BuildAdventure()</code> and let's diagnose that pain first.</p>
+
+<h2 id="part-1">Part 1 &mdash; Why a Builder? (the &ldquo;when&rdquo;)</h2>
+
+<p>Look at the current setup code:</p>
+
+<pre><code><span class="type">StoryNode</span> start = <span class="kw">new</span>(<span class="str">"Start"</span>)
+{
+    Text = [<span class="str">"..."</span>, <span class="str">"..."</span>],
+    Choices = [
+        <span class="kw">new</span> <span class="type">Choice</span>(<span class="str">"Turn it on"</span>)
+        {
+            WhenChosen = [<span class="str">"..."</span>],
+            NextNodeId = stranded.Id    <span class="cmt">// &larr; string ID, must match exactly</span>
+        },
+        <span class="kw">new</span> <span class="type">Choice</span>(<span class="str">"Destroy it!"</span>)
+        {
+            WhenChosen = [<span class="str">"..."</span>],
+            NextNodeId = destroy.Id     <span class="cmt">// &larr; what if I typo this?</span>
+        },
+    ]
+};</code></pre>
+
+<p>Three pain points are baked in here:</p>
+
+<ol>
+  <li><strong>Order coupling.</strong> You must declare <code class="il">stranded</code> and <code class="il">destroy</code> <em>before</em> <code class="il">start</code>, because <code class="il">start</code> references their <code class="il">.Id</code>. If your story branches forward (start &rarr; middle &rarr; end), you have to write it backwards (end &rarr; middle &rarr; start). Try authoring a 30-node adventure that way.</li>
+  <li><strong>No validation.</strong> What happens if you write <code class="il">NextNodeId = "Stradned"</code> (typo)? The compiler accepts it. Your game runs. The user picks that option and gets a <code class="il">KeyNotFoundException</code> at runtime from <code class="il">_nodes[NextNodeId]</code>. Far away from the typo, with no useful error message.</li>
+  <li><strong>Nested initializer hell.</strong> As stories grow, indentation depth grows. With 10 choices and 5 lines of text each, the curly-brace pile becomes unreadable.</li>
+</ol>
+
+<p>A Builder solves all three by separating <strong>describing the story</strong> (declarative, in any order) from <strong>constructing the immutable result</strong> (with validation, all at once at the end).</p>
+
+<blockquote><strong>The pattern's promise:</strong> if <code class="il">.Build()</code> returns a value, that value is guaranteed valid. The validation gates live in <code class="il">.Build()</code>. Until then, you're just collecting intentions.</blockquote>
+
+<h2 id="part-2">Part 2 &mdash; The three roles (the &ldquo;what&rdquo;)</h2>
+
+<p>For an adventure, the natural breakdown is three builders, each owning one concept:</p>
+
+<div class="diagram-box"><pre>AdventureBuilder  &rarr;  composes a whole Adventure (many nodes)
+   &#9492;&#9472;&#9472; NodeBuilder    &rarr;  composes one StoryNode  (text + choices)
+          &#9492;&#9472;&#9472; ChoiceBuilder  &rarr;  composes one Choice (text + target + when-chosen)</pre></div>
+
+<p>The hierarchy mirrors the domain. Each builder knows how to assemble <em>its</em> piece and how to spawn child builders for nested pieces.</p>
+
+<p>The target API (this is what calling code should look like) is:</p>
+
+<pre><code><span class="type">Adventure</span> adventure = <span class="kw">new</span> <span class="type">AdventureBuilder</span>()
+    .WithStartNode(node =&gt;
+    {
+        node.HasText(<span class="str">"Your time machine is ready."</span>, <span class="str">"Turn it on?"</span>);
+        node.HasChoice(<span class="str">"Turn it on"</span>)
+            .WithText(<span class="str">"You drift in space."</span>)
+            .ThatLeadsTo(<span class="str">"Stranded"</span>);
+        node.HasChoice(<span class="str">"Destroy it!"</span>)
+            .WithText(<span class="str">"You smash it."</span>)
+            .ThatLeadsTo(<span class="str">"Destroy"</span>);
+    })
+    .WithNode(<span class="str">"Stranded"</span>, n =&gt; n.HasText(<span class="str">"Lost forever."</span>))
+    .WithNode(<span class="str">"Destroy"</span>, n =&gt; n.HasText(<span class="str">"Time collapses."</span>))
+    .Build();</code></pre>
+
+<p>Read it aloud &mdash; it sounds like English. <strong>That's the goal.</strong> No magic strings (well, the IDs still are &mdash; we'll come back to that), no order dependency, no nested object initializers.</p>
+
+<h2 id="part-3">Part 3 &mdash; Build it (the &ldquo;how&rdquo;)</h2>
+
+<p>Let me walk you through each builder. Read each one, then think about <em>why</em> it's shaped that way before reading my notes.</p>
+
+<h3 id="choicebuilder">ChoiceBuilder &mdash; the leaf</h3>
+
+<pre><code><span class="kw">public class</span> <span class="type">ChoiceBuilder</span>(<span class="kw">string</span> text)
+{
+    <span class="kw">private readonly</span> <span class="type">List</span>&lt;<span class="kw">string</span>&gt; _lines = <span class="kw">new</span>();
+    <span class="kw">private string</span>? _target;
+
+    <span class="kw">public string</span>? NextNodeId =&gt; _target;
+    <span class="kw">public string</span> Text =&gt; text;
+
+    <span class="kw">public</span> <span class="type">ChoiceBuilder</span> <span class="type">WithText</span>(<span class="kw">params string</span>[] lines)
+    {
+        <span class="kw">if</span> (lines.Length == <span class="num">0</span>)
+            <span class="kw">throw new</span> <span class="type">ArgumentException</span>(<span class="str">"Must provide at least one line of text"</span>, <span class="kw">nameof</span>(lines));
+
+        _lines.AddRange(lines);
+        <span class="kw">return this</span>;     <span class="cmt">// &larr; fluent: return self</span>
+    }
+
+    <span class="kw">public</span> <span class="type">ChoiceBuilder</span> <span class="type">ThatLeadsTo</span>(<span class="kw">string</span> targetId)
+    {
+        _target = targetId;
+        <span class="kw">return this</span>;     <span class="cmt">// &larr; fluent: return self</span>
+    }
+
+    <span class="kw">public</span> <span class="type">Choice</span> <span class="type">Build</span>()
+    {
+        <span class="kw">if</span> (<span class="kw">string</span>.IsNullOrWhiteSpace(_target))
+            <span class="kw">throw new</span> <span class="type">InvalidOperationException</span>(<span class="str">"Must specify a target node for the choice"</span>);
+
+        <span class="kw">return new</span> <span class="type">Choice</span>(text)
+        {
+            WhenChosen = _lines.ToArray(),
+            NextNodeId = _target
+        };
+    }
+}</code></pre>
+
+<p>Things worth noticing:</p>
+<ul>
+  <li><strong>Primary constructor</strong> takes <code class="il">text</code> (the choice's display text) &mdash; required, must be passed at construction.</li>
+  <li><strong>Mutable state in fields</strong> &mdash; <code class="il">_lines</code> and <code class="il">_target</code> accumulate as you call the With/ThatLeadsTo methods.</li>
+  <li><strong>Fluent methods return <code class="il">this</code></strong> so calls can chain: <code class="il">.WithText(...).ThatLeadsTo(...)</code>.</li>
+  <li><strong><code class="il">Build()</code> validates before producing the immutable <code class="il">Choice</code>.</strong> If <code class="il">_target</code> is still null, you screwed up &mdash; the exception tells you so. Crucially, this fires at construction time, not later when the player picks the choice.</li>
+  <li><strong>Public read-only properties</strong> (<code class="il">Text</code>, <code class="il">NextNodeId</code>) &mdash; these exist for the <em>parent</em> builder to peek at the choice's intent during validation (see <code class="il">AdventureBuilder.Validate</code>).</li>
+</ul>
+
+<h3 id="nodebuilder">NodeBuilder &mdash; the middle layer</h3>
+
+<pre><code><span class="kw">public class</span> <span class="type">NodeBuilder</span>(<span class="kw">string</span> id)
+{
+    <span class="kw">private readonly</span> <span class="type">List</span>&lt;<span class="kw">string</span>&gt; _text = <span class="kw">new</span>();
+    <span class="kw">private readonly</span> <span class="type">List</span>&lt;<span class="type">ChoiceBuilder</span>&gt; _choices = <span class="kw">new</span>();
+
+    <span class="kw">public string</span> Id =&gt; id;
+    <span class="kw">internal</span> <span class="type">IEnumerable</span>&lt;<span class="type">ChoiceBuilder</span>&gt; Choices =&gt; _choices;
+
+    <span class="kw">public void</span> <span class="type">HasText</span>(<span class="kw">params string</span>[] lines)
+    {
+        <span class="kw">if</span> (lines.Length == <span class="num">0</span>)
+            <span class="kw">throw new</span> <span class="type">ArgumentException</span>(<span class="str">"Must provide at least one line of text"</span>, <span class="kw">nameof</span>(lines));
+
+        _text.AddRange(lines);
+        <span class="cmt">// &#9888; NOTE: void on purpose &mdash; see Part 4</span>
+    }
+
+    <span class="kw">public</span> <span class="type">ChoiceBuilder</span> <span class="type">HasChoice</span>(<span class="kw">string</span> text)
+    {
+        <span class="type">ChoiceBuilder</span> choiceBuilder = <span class="kw">new</span>(text);
+        _choices.Add(choiceBuilder);
+        <span class="kw">return</span> choiceBuilder;     <span class="cmt">// &larr; returns a CHILD builder, not 'this'</span>
+    }
+
+    <span class="kw">public</span> <span class="type">StoryNode</span> <span class="type">Build</span>()
+    {
+        <span class="kw">return new</span> <span class="type">StoryNode</span>(id)
+        {
+            Text = _text.ToArray(),
+            Choices = _choices.Select(c =&gt; c.Build()).ToArray()  <span class="cmt">// &larr; recursively build kids</span>
+        };
+    }
+
+    <span class="kw">internal void</span> <span class="type">Validate</span>()
+    {
+        <span class="kw">if</span> (<span class="kw">string</span>.IsNullOrWhiteSpace(Id))
+            <span class="kw">throw new</span> <span class="type">InvalidOperationException</span>(<span class="str">"Node must have an ID"</span>);
+
+        <span class="kw">if</span> (_text.Count == <span class="num">0</span>)
+            <span class="kw">throw new</span> <span class="type">InvalidOperationException</span>(<span class="str">$"Node '{id}' must have text"</span>);
+    }
+}</code></pre>
+
+<p>Key differences from <code class="il">ChoiceBuilder</code>:</p>
+<ul>
+  <li><strong><code class="il">HasChoice</code> returns the child <code class="il">ChoiceBuilder</code>, not <code class="il">this</code>.</strong> This is <em>spawning a context</em> &mdash; &ldquo;now you're configuring a Choice.&rdquo; Critical for the chained-call feel.</li>
+  <li><strong><code class="il">Choices</code> is <code class="il">internal</code>.</strong> It's exposed so the parent <code class="il">AdventureBuilder.Validate()</code> can peek and cross-check that every <code class="il">NextNodeId</code> points at a real node &mdash; but consumers outside the assembly shouldn't be poking at it.</li>
+  <li><strong><code class="il">HasText</code> returns <code class="il">void</code></strong> &mdash; this is the controversial decision the author explains in the comment. Hold that thought; we'll dissect it in Part 4.</li>
+</ul>
+
+<h3 id="adventurebuilder">AdventureBuilder &mdash; the orchestrator</h3>
+
+<pre><code><span class="kw">public class</span> <span class="type">AdventureBuilder</span>
+{
+    <span class="kw">private readonly</span> <span class="type">List</span>&lt;<span class="type">NodeBuilder</span>&gt; _nodes = <span class="kw">new</span>();
+
+    <span class="kw">public</span> <span class="type">AdventureBuilder</span> <span class="type">WithNode</span>(<span class="kw">string</span> id, <span class="type">Action</span>&lt;<span class="type">NodeBuilder</span>&gt; configure)
+    {
+        <span class="type">NodeBuilder</span> nodeBuilder = <span class="kw">new</span>(id);
+        configure(nodeBuilder);
+        _nodes.Add(nodeBuilder);
+        <span class="kw">return this</span>;
+    }
+
+    <span class="kw">public</span> <span class="type">AdventureBuilder</span> <span class="type">WithStartNode</span>(<span class="type">Action</span>&lt;<span class="type">NodeBuilder</span>&gt; configure)
+        =&gt; <span class="type">WithNode</span>(<span class="type">Adventure</span>.StartNodeId, configure);
+
+    <span class="kw">public</span> <span class="type">Adventure</span> <span class="type">Build</span>()
+    {
+        <span class="type">Validate</span>();
+
+        <span class="type">IEnumerable</span>&lt;<span class="type">StoryNode</span>&gt; nodes = _nodes.Select(n =&gt; n.Build());
+        <span class="kw">return new</span> <span class="type">Adventure</span>(nodes);
+    }
+
+    <span class="kw">private void</span> <span class="type">Validate</span>()
+    {
+        <span class="kw">foreach</span> (<span class="kw">var</span> node <span class="kw">in</span> _nodes)
+        {
+            node.<span class="type">Validate</span>();
+
+            <span class="kw">foreach</span> (<span class="kw">var</span> choice <span class="kw">in</span> node.Choices)
+            {
+                <span class="kw">if</span> (!<span class="kw">string</span>.IsNullOrWhiteSpace(choice.NextNodeId)
+                    &amp;&amp; _nodes.All(n =&gt; n.Id != choice.NextNodeId))
+                {
+                    <span class="kw">throw new</span> <span class="type">InvalidOperationException</span>(
+                        <span class="str">$"Node '{node.Id}' references a non-existent node "</span> +
+                        <span class="str">$"'{choice.NextNodeId}' in choice '{choice.Text}'"</span>);
+                }
+            }
+        }
+    }
+}</code></pre>
+
+<p>Key ideas:</p>
+<ul>
+  <li><strong><code class="il">Action&lt;NodeBuilder&gt; configure</code></strong> &mdash; instead of returning a <code class="il">NodeBuilder</code> to chain on, <code class="il">WithNode</code> takes a <strong>lambda</strong> that configures the child. This contains the child's lifecycle: it can't escape the lambda, can't be reused, can't be mutated after the parent moves on. The author trades chainable child-builder access for cleaner scoping.</li>
+  <li><strong>Centralized cross-validation in <code class="il">Build()</code>.</strong> This is where the &ldquo;missing node&rdquo; check lives &mdash; <em>because only AdventureBuilder sees all the nodes at once</em>. Individual NodeBuilders can't do this; they only know themselves.</li>
+  <li><strong><code class="il">WithStartNode</code> is sugar.</strong> It calls <code class="il">WithNode("Start", ...)</code> so the calling code reads naturally.</li>
+</ul>
+
+<blockquote><strong>The big lesson:</strong> validation lives where the <em>context</em> lives. Self-checks in each builder; cross-checks in the parent that sees the whole picture.</blockquote>
+
+<h2 id="part-4">Part 4 &mdash; The author's comment, explained</h2>
+
+<p>The comment in <code class="il">NodeBuilder.HasText</code>:</p>
+
+<blockquote>This method could return a <code class="il">NodeBuilder</code> and return <code class="il">this</code> to enable fluent-style method chaining. However, in combination with the <code class="il">HasChoice</code> method which returned a <code class="il">ChoiceBuilder</code>, I found this to be confusing and potentially error-prone so I elected to make this void instead at the risk of being inconvenient instead of confusing or buggy.</blockquote>
+
+<p>Here's the trap. If <code class="il">HasText</code> returned <code class="il">NodeBuilder</code>, this would compile:</p>
+
+<pre><code>node.HasText(<span class="str">"Line 1"</span>, <span class="str">"Line 2"</span>)
+    .HasChoice(<span class="str">"Pick me"</span>)
+    .WithText(<span class="str">"You picked"</span>)     <span class="cmt">// &larr; method on ChoiceBuilder</span>
+    .HasText(<span class="str">"More node lines"</span>); <span class="cmt">// &larr; WAIT &mdash; is this on the Choice or the Node?</span></code></pre>
+
+<p>The reader's eye expects a chain to flow forward on one object. But <code class="il">HasChoice</code> <em>switches context</em> from <code class="il">NodeBuilder</code> to <code class="il">ChoiceBuilder</code>. If <code class="il">HasText</code> <em>also</em> existed on a return-<code class="il">this</code>-style <code class="il">NodeBuilder</code>, you'd have two <code class="il">.HasText</code> methods at different layers, and the chain would silently hop between them depending on what came before.</p>
+
+<p>Worse &mdash; a typo like this would compile cleanly:</p>
+
+<pre><code>node.HasChoice(<span class="str">"Pick me"</span>)
+    .WithText(<span class="str">"Picked it."</span>)
+    .ThatLeadsTo(<span class="str">"End"</span>)
+    .HasText(<span class="str">"..."</span>);           <span class="cmt">// accidental &mdash; this would belong to the choice's parent context</span></code></pre>
+
+<p>(<code class="il">ChoiceBuilder</code> wouldn't have <code class="il">HasText</code>, so this specific example fails, but variants do &mdash; the author saw enough near-misses that he made the safe choice.)</p>
+
+<p>By making <code class="il">HasText</code> return <code class="il">void</code>, the author <strong>forces a new statement</strong>:</p>
+
+<pre><code>node.HasText(<span class="str">"Line 1"</span>, <span class="str">"Line 2"</span>);                    <span class="cmt">// statement ends here</span>
+node.HasChoice(<span class="str">"Pick me"</span>)                            <span class="cmt">// new statement on 'node'</span>
+    .WithText(<span class="str">"You picked"</span>)
+    .ThatLeadsTo(<span class="str">"End"</span>);</code></pre>
+
+<p>You <strong>lose convenience</strong> (the call can't be part of a longer chain) but <strong>gain clarity</strong> (each statement targets exactly one builder, and the chain only ever flows downward into children).</p>
+
+<div class="callout">
+<strong>The principle:</strong> when a fluent API can return <em>either</em> &ldquo;myself&rdquo; or &ldquo;a child,&rdquo; only do one. Mixing them is where bugs come from. Pick child-returning for nested concepts (<code class="il">HasChoice</code> &rarr; <code class="il">ChoiceBuilder</code>), and either skip self-chaining entirely (<code class="il">void</code>) or use child-only-fluent style throughout.
+</div>
+
+<h2 id="part-5">Part 5 &mdash; Step Builders: should you?</h2>
+
+<p>A <strong>step builder</strong> (aka <strong>staged builder</strong>) forces a <em>specific order</em> on method calls using a chain of interfaces. Each method returns the <em>next</em> interface &mdash; exposing only the methods you're allowed to call next.</p>
+
+<p>For a <code class="il">Choice</code>, a step builder would look like this:</p>
+
+<pre><code><span class="kw">public interface</span> <span class="type">INeedText</span>   { <span class="type">INeedTarget</span> <span class="type">WithText</span>(<span class="kw">params string</span>[] lines); }
+<span class="kw">public interface</span> <span class="type">INeedTarget</span> { <span class="type">ICanBuild</span>   <span class="type">ThatLeadsTo</span>(<span class="kw">string</span> targetId); }
+<span class="kw">public interface</span> <span class="type">ICanBuild</span>   { <span class="type">Choice</span>      <span class="type">Build</span>(); }
+
+<span class="kw">public class</span> <span class="type">ChoiceBuilder</span> : <span class="type">INeedText</span>, <span class="type">INeedTarget</span>, <span class="type">ICanBuild</span>
+{
+    <span class="kw">public static</span> <span class="type">INeedText</span> <span class="type">Start</span>(<span class="kw">string</span> text) =&gt; <span class="kw">new</span> <span class="type">ChoiceBuilder</span>(text);
+    <span class="kw">public</span> <span class="type">INeedTarget</span> <span class="type">WithText</span>(...)    { ...; <span class="kw">return this</span>; }
+    <span class="kw">public</span> <span class="type">ICanBuild</span>   <span class="type">ThatLeadsTo</span>(...) { ...; <span class="kw">return this</span>; }
+    <span class="kw">public</span> <span class="type">Choice</span> <span class="type">Build</span>()                { ... }
+}
+
+<span class="cmt">// Usage &mdash; compile-time enforcement of the order:</span>
+<span class="type">Choice</span> c = <span class="type">ChoiceBuilder</span>.<span class="type">Start</span>(<span class="str">"Turn it on"</span>)
+    .WithText(<span class="str">"You drift."</span>)         <span class="cmt">// INeedText  &rarr; INeedTarget</span>
+    .ThatLeadsTo(<span class="str">"Stranded"</span>)         <span class="cmt">// INeedTarget &rarr; ICanBuild</span>
+    .Build();                       <span class="cmt">// ICanBuild  &rarr; Choice</span></code></pre>
+
+<p>If you tried to call <code class="il">.Build()</code> before <code class="il">.ThatLeadsTo()</code>, it wouldn't compile &mdash; the interface in your hand doesn't expose <code class="il">.Build()</code> yet.</p>
+
+<h3 id="step-vs-regular">Step Builder vs Regular Builder</h3>
+
+<div class="tbl-wrap"><table>
+<thead><tr><th></th><th>Regular</th><th>Step</th></tr></thead>
+<tbody>
+<tr><td>Required calls enforced</td><td>At runtime in <code class="il">Build()</code></td><td>At compile time</td></tr>
+<tr><td>Optional calls</td><td>Trivial &mdash; just add a method</td><td>Tricky &mdash; must branch interface chains</td></tr>
+<tr><td>Reads naturally</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>Number of types</td><td>1 builder</td><td>1 class + N interfaces</td></tr>
+<tr><td>Refactor cost</td><td>Low</td><td>High &mdash; interfaces lock the chain shape</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="should-you">Should you use it for the adventure game?</h3>
+
+<p><strong>No, and here's why.</strong></p>
+
+<p>The adventure builders have <strong>optional</strong> behavior:</p>
+<ul>
+  <li>A <code class="il">Choice</code>'s <code class="il">WithText</code> is optional (some choices have no narrative &mdash; see <code class="il">LargerStorySample.cs</code> line 99: <code class="il">node.HasChoice("Continue to serve").ThatLeadsTo(DragonEndingNodeId);</code> &mdash; no <code class="il">WithText</code> call).</li>
+  <li>A <code class="il">NodeBuilder</code>'s <code class="il">HasChoice</code> may or may not be called (terminal nodes have zero choices).</li>
+  <li><code class="il">HasText</code> could be repeated or single-call.</li>
+</ul>
+
+<p>Step builders shine when:</p>
+<ul>
+  <li><strong>Order genuinely matters semantically</strong> (configure connection &rarr; open &rarr; query &rarr; close).</li>
+  <li><strong>Forgetting a required step is a high-cost runtime bug</strong> that you really want the compiler to catch.</li>
+  <li><strong>The graph of &ldquo;allowed nexts&rdquo; is small and stable.</strong></li>
+</ul>
+
+<p>For an authoring DSL like this story builder, optional pieces dominate. Encoding them as step builders means many tiny interfaces (<code class="il">ICanBuildOrAddChoice</code>, <code class="il">ICanBuildOrAddChoiceOrAddText</code>, ...) &mdash; combinatorial explosion. The runtime validation in <code class="il">Build()</code> is cheaper and the API stays inviting for newcomers.</p>
+
+<div class="callout">
+<strong>Rule of thumb:</strong> Step Builder for <em>machinery</em> (factories, connection-builders, query-builders with rigid flows). Regular Builder for <em>content authoring</em> where the user picks-and-mixes.
+</div>
+
+<p>The Choice builder is the <em>one</em> place where a Step Builder might be defensible (<code class="il">WithText</code> optional, <code class="il">ThatLeadsTo</code> required, then <code class="il">Build</code>) &mdash; but applying it inconsistently across the three builders would be more confusing than the runtime validation is.</p>
+
+<h2 id="exercise">Your turn &mdash; three things to think about before you code</h2>
+<ol>
+  <li>Which methods on each builder return <code class="il">this</code> vs return a child vs return <code class="il">void</code>? Sketch the table before looking at the guide's code.</li>
+  <li>What validations live in each builder, and what <em>cross-builder</em> validations live in <code class="il">AdventureBuilder.Validate()</code>?</li>
+  <li>After you've got it building, try writing a small invalid adventure (typo a <code class="il">NextNodeId</code>) &mdash; does the failure message land where it should?</li>
+</ol>
+
+</div>
+</body>
+</html>

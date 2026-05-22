@@ -1,6 +1,6 @@
 namespace ConsoleAppAdventureGame.Engine.Builder;
 
-public class ChoiceBuilder
+public class ChoiceBuilder(string text)
 {
     
 }

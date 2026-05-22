@@ -1,6 +1,6 @@
 namespace ConsoleAppAdventureGame.Engine.Builder;
 
-public class NodeBuilder
+public class NodeBuilder(string id)
 {
     
 }

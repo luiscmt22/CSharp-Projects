@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Outside-In Design &mdash; A Five-Step Thinking Recipe</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {
+  --bg: #0b1220;
+  --surface: #111a2e;
+  --surface-2: #16223c;
+  --border: #243352;
+  --text: #e6ecf5;
+  --text-dim: #9aa7c0;
+  --accent: #6aa6ff;
+  --accent-2: #b06aff;
+  --code-bg: #0a1120;
+  --ok: #4ade80;
+  --warn: #fbbf24;
+  --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg); color: var(--text);
+  font: 16px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif;
+}
+.wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px; margin-bottom: 28px;
+}
+header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
+header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
+header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
+header.doc-head .meta a { color: var(--accent); text-decoration: none; }
+header.doc-head .meta a:hover { text-decoration: underline; }
+h1, h2, h3, h4 { color: var(--text); margin-top: 1.6em; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+a { color: var(--accent); }
+code, pre, code.il { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; border: 1px solid var(--border); }
+pre {
+  background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55;
+}
+pre code { background: transparent; border: 0; padding: 0; }
+blockquote {
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+  padding: 10px 16px; margin: 12px 0;
+  color: var(--text-dim);
+  border-radius: 0 6px 6px 0;
+}
+.diagram-box {
+  background: #1e293b; border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px; overflow-x: auto;
+}
+.diagram-box pre { background: transparent; border: 0; padding: 0; color: #e6ecf5; }
+.tbl-wrap { overflow-x: auto; margin: 14px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+th { background: var(--surface-2); }
+tr:nth-child(even) td { background: var(--surface); }
+.callout {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-2);
+  padding: 12px 16px;
+  margin: 14px 0;
+  border-radius: 0 6px 6px 0;
+}
+.callout.warn { border-left-color: var(--warn); }
+.callout.ok   { border-left-color: var(--ok); }
+.callout.bad  { border-left-color: var(--bad); }
+.kw   { color: #c792ea; }
+.type { color: #82aaff; }
+.str  { color: #c3e88d; }
+.num  { color: #f78c6c; }
+.cmt  { color: #6c7a96; font-style: italic; }
+.step-pill {
+  display: inline-block;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 12px;
+  font-size: 12px;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">C1 &rsaquo; docs</div>
+  <h1>Outside-In Design &mdash; A Five-Step Thinking Recipe</h1>
+  <div class="meta">A transferable method for breaking down a design problem before you write a single class. Applied to the Adventure Builder as a worked example.</div>
+</header>
+
+<p>What you're feeling isn't &ldquo;I'm bad at this.&rdquo; It's &ldquo;I haven't been shown the procedure.&rdquo; There is one, and once you see it, you'll have it forever.</p>
+
+<h2 id="the-shift">The single most important shift</h2>
+
+<p><strong>Don't start from &ldquo;what class do I need?&rdquo;</strong> Start from <strong>&ldquo;what should the caller's code look like when this is done?&rdquo;</strong></p>
+
+<p>Most beginners' instinct is the opposite &mdash; open the file, start typing <code class="il">public class Foo</code>, and <em>then</em> figure out what goes inside. That's backwards. It leads to designs that are convenient for the implementer but awkward for the user. Design <strong>outside-in</strong>: caller first, internals second.</p>
+
+<p>This is a learnable skill, not a talent. The procedure has steps. Here are five.</p>
+
+<h2 id="the-recipe">A five-step recipe</h2>
+
+<div class="tbl-wrap"><table>
+<thead><tr><th>#</th><th>Step</th><th>The question you ask</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><strong>Wish</strong></td><td>&ldquo;If I had a magic wand, what would the caller's code look like?&rdquo;</td></tr>
+<tr><td>2</td><td><strong>Spot</strong></td><td>&ldquo;What nouns and verbs appear in that wished code?&rdquo;</td></tr>
+<tr><td>3</td><td><strong>Group</strong></td><td>&ldquo;Which nouns own which nouns? Which verbs belong to which noun?&rdquo;</td></tr>
+<tr><td>4</td><td><strong>Shape</strong></td><td>&ldquo;After each verb is called, what should the caller naturally want to do next?&rdquo;</td></tr>
+<tr><td>5</td><td><strong>Guard</strong></td><td>&ldquo;What can go wrong, and which noun has enough context to catch it?&rdquo;</td></tr>
+</tbody>
+</table></div>
+
+<p>Each step takes a vague idea and turns it into a more concrete decision. Let's walk all five for the adventure problem <strong>as if we know nothing</strong>.</p>
+
+<hr>
+
+<h2 id="step-1"><span class="step-pill">Step 1</span><br>Wish</h2>
+
+<p><strong>Forget the code that exists. Pretend you've never heard of Builders.</strong></p>
+
+<p>Your job: I'm an author. I want to write an adventure game story. The current code makes me declare nodes in reverse order, reference IDs as raw strings, and indent five levels deep. <em>I hate it.</em> Write me the code you wish you could write.</p>
+
+<p>Don't worry whether it's possible. Don't worry about types. Just write the prose you'd love to write:</p>
+
+<div class="diagram-box"><pre>Start with a node called "Start".
+  Its text is: "You wake in a forest. A path leads north."
+  It has a choice "Go north", which leads to "Cave".
+  It has a choice "Stay put", which leads to "Lost".
+
+Then a node "Cave".
+  Its text is: "Dark and damp."
+  It has a choice "Light a torch" which says "You see a dragon" and leads to "Dragon".
+
+Then a node "Lost". Its text is: "You die of hunger."</pre></div>
+
+<p>That's prose, but it has a <em>shape</em>. Now translate it into pseudo-code that feels close to that prose:</p>
+
+<div class="diagram-box"><pre>adventure
+    start with node "Start"
+        text "You wake in a forest. A path leads north."
+        choice "Go north" leads to "Cave"
+        choice "Stay put" leads to "Lost"
+    then node "Cave"
+        text "Dark and damp."
+        choice "Light a torch" says "You see a dragon" leads to "Dragon"
+    then node "Lost"
+        text "You die of hunger."
+build</pre></div>
+
+<p>That's not C# yet, but it's the <strong>wish</strong>. Notice we haven't typed a single class name. We're not &ldquo;designing&rdquo; &mdash; we're <em>describing what good would look like</em>.</p>
+
+<div class="callout warn">
+<strong>The Step 1 trap:</strong> wishing for something that mimics what you already know. If you already know <code class="il">new Node("Start") { Text = [...], Choices = [...] }</code>, you'll wish for that. Force yourself to be a beginner. Imagine you've never seen object initializers.
+</div>
+
+<h2 id="step-2"><span class="step-pill">Step 2</span><br>Spot</h2>
+
+<p>Now circle the <strong>nouns</strong> (things) and underline the <strong>verbs</strong> (actions) in your wish.</p>
+
+<p>Nouns in our wish:</p>
+<ul>
+  <li><strong>Adventure</strong> (the whole thing)</li>
+  <li><strong>Node</strong> (each scene)</li>
+  <li><strong>Choice</strong> (each option in a node)</li>
+  <li><strong>Text</strong> (lines of narration)</li>
+  <li><strong>Target</strong> (where a choice leads)</li>
+</ul>
+
+<p>Verbs:</p>
+<ul>
+  <li>&ldquo;start with node&rdquo; / &ldquo;then node&rdquo; &mdash; <em>adding a node</em></li>
+  <li>&ldquo;text&rdquo; &mdash; <em>setting node text</em></li>
+  <li>&ldquo;choice ... leads to ...&rdquo; &mdash; <em>adding a choice</em> and <em>targeting it</em></li>
+  <li>&ldquo;says&rdquo; &mdash; <em>setting choice text</em></li>
+  <li>&ldquo;build&rdquo; &mdash; <em>finishing</em></li>
+</ul>
+
+<p>Already you've extracted the design vocabulary without designing anything. Nouns are candidates for <strong>classes</strong>. Verbs are candidates for <strong>methods</strong>.</p>
+
+<h2 id="step-3"><span class="step-pill">Step 3</span><br>Group</h2>
+
+<p>Now ask: which verbs belong to which noun? Think &ldquo;this verb only makes sense in the context of <em>what</em>?&rdquo;</p>
+
+<ul>
+  <li>&ldquo;set the text&rdquo; &mdash; makes sense for either a <strong>Node</strong> or a <strong>Choice</strong> (both have text). So both nouns get a &ldquo;set text&rdquo; verb.</li>
+  <li>&ldquo;add a choice&rdquo; &mdash; only makes sense inside a Node. Nodes own choices.</li>
+  <li>&ldquo;lead to&rdquo; &mdash; only makes sense for a Choice. Choices own a target.</li>
+  <li>&ldquo;add a node&rdquo; &mdash; only makes sense for an Adventure. Adventures own nodes.</li>
+  <li>&ldquo;build&rdquo; &mdash; makes sense at every level: Choice builds itself, Node builds itself, Adventure builds itself.</li>
+</ul>
+
+<p>Sketch a table &mdash; pen and paper is fine:</p>
+
+<div class="tbl-wrap"><table>
+<thead><tr><th>Verb</th><th>Lives on</th></tr></thead>
+<tbody>
+<tr><td>Add node</td><td>Adventure</td></tr>
+<tr><td>Set node text</td><td>Node</td></tr>
+<tr><td>Add choice</td><td>Node</td></tr>
+<tr><td>Set choice text</td><td>Choice</td></tr>
+<tr><td>Lead to</td><td>Choice</td></tr>
+<tr><td>Build</td><td>All three</td></tr>
+</tbody>
+</table></div>
+
+<p>Now you have three classes (Adventure builder, Node builder, Choice builder) and you know what methods each one has. <strong>You didn't pull this out of thin air &mdash; you derived it from your wish.</strong></p>
+
+<h2 id="step-4"><span class="step-pill">Step 4</span><br>Shape</h2>
+
+<p>Now the <em>interesting</em> design question: <strong>after the caller calls a verb, what do they want to do next?</strong></p>
+
+<p>Walk through your wish, line by line, and ask after each verb:</p>
+
+<ul>
+  <li><code class="il">adventure</code> ... &mdash; fresh start. The next thing they want to say is &ldquo;start with node...&rdquo;. So <code class="il">new AdventureBuilder()</code> returns an <code class="il">AdventureBuilder</code>.</li>
+  <li>After <code class="il">adventure.WithStartNode("Start")</code> ... &mdash; what comes next? <strong>Configure the node</strong> (text, choices). They want to be &ldquo;inside&rdquo; the node now. &rarr; return <em>something node-shaped</em>.</li>
+  <li>After <code class="il">node.HasText(...)</code> ... &mdash; what comes next? Either more node setup (<code class="il">HasChoice</code>), or move on to a new node. They're still &ldquo;on the node.&rdquo; &rarr; return <em>the same node-shaped thing</em> (or <code class="il">void</code>, accepting that they'll re-type <code class="il">node.HasChoice</code>).</li>
+  <li>After <code class="il">node.HasChoice("Go")</code> ... &mdash; what comes next? Configure the choice (<code class="il">leads to</code>, <code class="il">says</code>). They want to be &ldquo;inside&rdquo; the choice now. &rarr; return <em>something choice-shaped</em>.</li>
+  <li>After <code class="il">choice.ThatLeadsTo("Cave")</code> ... &mdash; what comes next? Either more choice setup, or move on to another choice/node. &rarr; return <em>the same choice-shaped thing</em> (so they can chain <code class="il">.WithText(...)</code> next).</li>
+  <li>After <code class="il">Build()</code> ... &mdash; they're done. Return the final immutable object.</li>
+</ul>
+
+<p>Each of those &ldquo;what comes next?&rdquo; answers picks a return type. <strong>You don't memorize a rule &mdash; you derive the return type from the next action.</strong></p>
+
+<p>Drop those into a table:</p>
+
+<div class="tbl-wrap"><table>
+<thead><tr><th>Verb</th><th>Returns</th><th>Because next action is...</th></tr></thead>
+<tbody>
+<tr><td><code class="il">AdventureBuilder.WithNode</code></td><td>AdventureBuilder</td><td>another <code class="il">.WithNode</code> or <code class="il">.Build</code></td></tr>
+<tr><td><code class="il">NodeBuilder.HasText</code></td><td><code class="il">void</code> <em>or</em> NodeBuilder</td><td>another statement on <code class="il">node</code></td></tr>
+<tr><td><code class="il">NodeBuilder.HasChoice</code></td><td>ChoiceBuilder</td><td>configure the choice</td></tr>
+<tr><td><code class="il">ChoiceBuilder.WithText</code></td><td>ChoiceBuilder</td><td>another <code class="il">.ThatLeadsTo</code></td></tr>
+<tr><td><code class="il">ChoiceBuilder.ThatLeadsTo</code></td><td>ChoiceBuilder</td><td>usually nothing &mdash; chain ends</td></tr>
+<tr><td><code class="il">Build</code></td><td>Choice / Node / Adventure</td><td>done</td></tr>
+</tbody>
+</table></div>
+
+<p><strong>Now you've designed the API.</strong> Notice the only ambiguous one is <code class="il">NodeBuilder.HasText</code> &mdash; <code class="il">void</code> or <code class="il">NodeBuilder</code>? The author picked <code class="il">void</code> to prevent the &ldquo;is this on node or choice?&rdquo; confusion. That was a <em>judgment call</em>, not a rule.</p>
+
+<h2 id="step-5"><span class="step-pill">Step 5</span><br>Guard</h2>
+
+<p>Last step. For every operation, ask: <strong>what's the worst that could go wrong, and where do I have enough information to catch it?</strong></p>
+
+<ul>
+  <li>A choice with no <code class="il">ThatLeadsTo</code> &rarr; would crash when the player picks it. Catchable in <code class="il">ChoiceBuilder.Build()</code> (the ChoiceBuilder knows whether its target was set).</li>
+  <li>A node with no text &rarr; would render as a blank scene. Catchable in <code class="il">NodeBuilder.Validate()</code>.</li>
+  <li>A choice pointing at a node that doesn't exist &rarr; only catchable when you can see <em>all</em> nodes. So it lives in <code class="il">AdventureBuilder.Validate()</code>. <strong>A single builder can't catch this &mdash; only the orchestrator can.</strong></li>
+</ul>
+
+<p>That's the rule: <strong>validation lives where the relevant context lives</strong>.</p>
+
+<div class="callout">
+<strong>The general lesson, transferable everywhere:</strong> any time you have a &ldquo;rule&rdquo; that requires looking at multiple parts of a system, the check belongs at the layer that can see all those parts. Don't try to enforce it at a lower level &mdash; you'll fight the data flow.
+</div>
+
+<h2 id="recap">What you just did</h2>
+
+<p>Without writing a single C# class, you derived:</p>
+
+<ul>
+  <li><strong>The number of classes</strong> (3 &mdash; from Step 2's nouns).</li>
+  <li><strong>The methods on each</strong> (from Step 3's grouping).</li>
+  <li><strong>The return types</strong> (from Step 4's &ldquo;what's next?&rdquo;).</li>
+  <li><strong>The validation hooks</strong> (from Step 5's &ldquo;who can see this?&rdquo;).</li>
+</ul>
+
+<p>The actual C# code is now mechanical translation. <em>That</em> part is the easy bit. The thinking happened in Steps 1&ndash;5.</p>
+
+<h2 id="meta-lesson">The meta-lesson</h2>
+
+<p>You started this conversation feeling stuck because you were trying to <em>understand someone else's code</em> before you understood the <em>problem they were solving</em>. That's the hard order. The easier order is:</p>
+
+<ol>
+  <li>Understand the problem.</li>
+  <li>Design the API from the caller's perspective.</li>
+  <li>Then read the code &mdash; it'll look obvious because you'd have written something similar.</li>
+</ol>
+
+<p>When you next face an opaque piece of code, use the steps <strong>in reverse</strong>:</p>
+
+<ul>
+  <li><em>What's the caller's code that would use this?</em> (Step 1, recovered)</li>
+  <li><em>What nouns and verbs are at play?</em> (Step 2)</li>
+  <li><em>Where do they live?</em> (Step 3)</li>
+  <li><em>Why this return type and not another?</em> (Step 4)</li>
+  <li><em>Where are the validation gates and why here?</em> (Step 5)</li>
+</ul>
+
+<p>That gives you a way to <em>interrogate</em> any code, not just write it.</p>
+
+<h2 id="exercise">A small exercise to make it stick</h2>
+
+<p>Don't touch your project yet. On paper, do Steps 1 and 2 for a <strong>totally different</strong> problem:</p>
+
+<blockquote>&ldquo;I want to query a database with filters. The current API forces me to write <code class="il">new Query { Table = &quot;users&quot;, Where = &quot;age &gt; 18 AND name LIKE 'A%'&quot;, OrderBy = &quot;name&quot;, Limit = 10 }</code>. I want something cleaner.&rdquo;</blockquote>
+
+<p>Write the wish. Spot the nouns and verbs. <strong>Don't go further than Step 2.</strong></p>
+
+<p>This is the muscle. The more times you exercise it on different problems, the more naturally Step 1 starts feeling like <em>&ldquo;of course that's where I'd start.&rdquo;</em></p>
+
+<h2 id="cheatsheet">One-page cheatsheet</h2>
+
+<div class="callout ok">
+<strong>Wish.</strong> Write the caller's dream code in plain language. No types.<br>
+<strong>Spot.</strong> Underline nouns and verbs. Nouns &rarr; classes. Verbs &rarr; methods.<br>
+<strong>Group.</strong> Decide which verbs belong on which noun. That's your method placement.<br>
+<strong>Shape.</strong> For each method, ask &ldquo;what comes next?&rdquo;. The answer is the return type.<br>
+<strong>Guard.</strong> List every way it can go wrong; place the check where enough context exists.
+</div>
+
+</div>
+</body>
+</html>
