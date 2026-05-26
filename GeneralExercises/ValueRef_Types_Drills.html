@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Value vs Reference Types &mdash; Blank-Page Drills</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root { --bg:#0b1220; --surface:#111a2e; --surface-2:#16223c; --border:#243352; --text:#e6ecf5; --text-dim:#9aa7c0; --accent:#6aa6ff; --accent-2:#b06aff; --code-bg:#0a1120; --ok:#4ade80; --warn:#fbbf24; --bad:#f87171; }
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font:16px/1.65 -apple-system,"Segoe UI",system-ui,sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:32px 24px 80px}
+header.doc-head{border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:28px}
+header.doc-head .crumbs{color:var(--text-dim);font-size:13px}
+header.doc-head h1{margin:6px 0 4px;font-size:28px;line-height:1.2}
+header.doc-head .meta{color:var(--text-dim);font-size:13px}
+h1,h2,h3,h4{color:var(--text);margin-top:1.6em}
+h2{border-bottom:1px solid var(--border);padding-bottom:6px}
+a{color:var(--accent)}
+code,pre,code.il{font-family:"JetBrains Mono","Cascadia Code",Consolas,monospace}
+code.il{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em;border:1px solid var(--border)}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:14px 16px;overflow-x:auto;font-size:13px;line-height:1.55}
+pre code{background:transparent;border:0;padding:0}
+blockquote{border-left:3px solid var(--accent);background:var(--surface);padding:10px 16px;margin:12px 0;color:var(--text-dim);border-radius:0 6px 6px 0}
+.callout{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent-2);padding:12px 16px;margin:14px 0;border-radius:0 6px 6px 0}
+.callout.warn{border-left-color:var(--warn)}
+.kw{color:#c792ea} .type{color:#82aaff} .str{color:#c3e88d} .num{color:#f78c6c} .cmt{color:#6c7a96;font-style:italic}
+.drill{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin:20px 0}
+.drill h3{margin-top:0;font-size:17px}
+.drill .meta-row{display:flex;flex-wrap:wrap;gap:8px;font-size:12px;color:var(--text-dim);margin-bottom:8px}
+.drill .meta-row span.tag{background:var(--surface-2);border:1px solid var(--border);padding:2px 8px;border-radius:4px}
+.drill .meta-row span.tag.time{color:var(--accent)}
+.drill .meta-row span.tag.topic{color:var(--accent-2)}
+.section-label{text-transform:uppercase;font-size:10px;letter-spacing:.08em;color:var(--text-dim);margin:14px 0 4px;font-weight:600}
+.checklist{list-style:none;padding-left:0;margin:4px 0}
+.checklist li{padding:3px 0 3px 26px;position:relative;font-size:14px}
+.checklist li::before{content:"";position:absolute;left:0;top:8px;width:13px;height:13px;border:1.5px solid var(--text-dim);border-radius:3px;background:var(--code-bg)}
+details{background:var(--code-bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;margin:10px 0}
+details>summary{cursor:pointer;color:var(--accent);font-weight:500;user-select:none;font-size:13px}
+details[open]>summary{margin-bottom:8px}
+.toc{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px 18px;margin:18px 0 28px;font-size:14px}
+.toc ol{margin:6px 0;padding-left:22px}
+.toc li{margin:2px 0}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.section-anchor{padding-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">GeneralExercises &rsaquo; Value vs Reference types</div>
+  <h1>Value vs reference types &mdash; blank-page drills</h1>
+  <div class="meta">15 drills covering the most foundational mental model in .NET: where things live (stack vs heap), what gets copied when, struct vs class, and modern nullable reference types. Companion: <code class="il">_Organized/01-Basics/CSharp_Stack_and_Heap_Guide.html</code>.</div>
+</header>
+
+<h2 id="why">Why this</h2>
+
+<p>If you don't know whether <code class="il">a = b</code> copies the value or shares a reference, you can't reason about bugs reliably. This is the most-skipped topic in C# courses because it &ldquo;feels theoretical&rdquo; &mdash; until you're staring at a bug where mutating one object accidentally mutated another.</p>
+
+<blockquote>Read <code class="il">_Organized/01-Basics/CSharp_Stack_and_Heap_Guide.html</code> before starting. The drills test what the guide explains.</blockquote>
+
+<div class="toc">
+  <strong>Drill index</strong>
+  <ol>
+    <li><a href="#sec-copy">What gets copied (drills 1&ndash;4)</a></li>
+    <li><a href="#sec-struct">struct vs class (drills 5&ndash;9)</a></li>
+    <li><a href="#sec-null">Nullable reference types (drills 10&ndash;13)</a></li>
+    <li><a href="#sec-design">Design (drills 14&ndash;15)</a></li>
+  </ol>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-copy" class="section-anchor">1 &mdash; What gets copied</h2>
+
+<div class="drill">
+<h3>Drill 1 &mdash; Int assignment</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">value type copy</span></div>
+<div class="section-label">Goal</div>
+<p>Predict, then run:</p>
+<pre><code><span class="kw">int</span> a = <span class="num">5</span>;
+<span class="kw">int</span> b = a;
+b = <span class="num">10</span>;
+<span class="type">Console</span>.WriteLine(a);
+<span class="type">Console</span>.WriteLine(b);</code></pre>
+<p>Now do the same with <code class="il">List&lt;int&gt;</code>:</p>
+<pre><code><span class="kw">var</span> x = <span class="kw">new</span> <span class="type">List</span>&lt;<span class="kw">int</span>&gt; { <span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span> };
+<span class="kw">var</span> y = x;
+y.Add(<span class="num">4</span>);
+<span class="type">Console</span>.WriteLine(x.Count);
+<span class="type">Console</span>.WriteLine(y.Count);</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I predicted both before running.</li>
+  <li>I can articulate: int is a value type &mdash; assignment copies the value. List is a reference type &mdash; assignment copies the <em>reference</em> to the same object.</li>
+  <li>Both <code class="il">x.Count</code> and <code class="il">y.Count</code> are 4 in the second case.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 2 &mdash; Pass by value (predict)</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">parameter passing</span></div>
+<div class="section-label">Goal</div>
+<p>Predict each:</p>
+<pre><code><span class="kw">static void</span> SetInt(<span class="kw">int</span> n)    { n = <span class="num">99</span>; }
+<span class="kw">static void</span> AddTo(<span class="type">List</span>&lt;<span class="kw">int</span>&gt; list) { list.Add(<span class="num">99</span>); }
+<span class="kw">static void</span> ReplaceList(<span class="type">List</span>&lt;<span class="kw">int</span>&gt; list) { list = <span class="kw">new</span>() { <span class="num">99</span> }; }
+
+<span class="kw">int</span> a = <span class="num">5</span>;            SetInt(a);       <span class="type">Console</span>.WriteLine(a);
+<span class="kw">var</span> b = <span class="kw">new</span> <span class="type">List</span>&lt;<span class="kw">int</span>&gt; { <span class="num">1</span> };  AddTo(b);        <span class="type">Console</span>.WriteLine(b.Count);
+<span class="kw">var</span> c = <span class="kw">new</span> <span class="type">List</span>&lt;<span class="kw">int</span>&gt; { <span class="num">1</span> };  ReplaceList(c);  <span class="type">Console</span>.WriteLine(c.Count);</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I got all three right.</li>
+  <li>I can explain why <code class="il">AddTo</code> changes the caller's list (mutating the object the reference points to) but <code class="il">ReplaceList</code> doesn't (reassigning the local <em>reference variable</em>, which is a copy).</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 3 &mdash; ref parameters</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">ref / out</span></div>
+<div class="section-label">Goal</div>
+<p>Rewrite <code class="il">SetInt</code> from Drill 2 with <code class="il">ref</code>. Now it changes the caller's variable. Do the same for <code class="il">ReplaceList</code> &mdash; now reassignment <em>does</em> reach the caller.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I know <code class="il">ref</code> means &ldquo;pass the variable, not its value&rdquo; &mdash; even for reference types.</li>
+  <li>I know <code class="il">out</code> is like <code class="il">ref</code> but caller doesn't need to initialise the variable first.</li>
+  <li>I can name a real-world reason for <code class="il">ref</code>: <code class="il">TryParse</code>'s <code class="il">out</code> result, <code class="il">Interlocked.Exchange</code>, struct mutation helpers.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 4 &mdash; Shared reference bug</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">aliasing bug</span></div>
+<div class="section-label">Goal</div>
+<p>Write a class <code class="il">Settings</code> with a <code class="il">List&lt;string&gt; AllowedHosts</code> property. Create two instances:</p>
+<pre><code><span class="kw">var</span> defaults = <span class="kw">new</span> <span class="type">Settings</span> { AllowedHosts = <span class="kw">new</span>() { <span class="str">"localhost"</span> } };
+<span class="kw">var</span> prod     = <span class="kw">new</span> <span class="type">Settings</span> { AllowedHosts = defaults.AllowedHosts };
+
+prod.AllowedHosts.Add(<span class="str">"prod.example.com"</span>);
+
+<span class="type">Console</span>.WriteLine(<span class="kw">string</span>.Join(<span class="str">", "</span>, defaults.AllowedHosts));</code></pre>
+<p>Predict, then run, then fix.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li><code class="il">defaults.AllowedHosts</code> now contains <code class="il">prod.example.com</code> too &mdash; not what you wanted.</li>
+  <li>I fixed it by copying the list: <code class="il">AllowedHosts = new List&lt;string&gt;(defaults.AllowedHosts)</code>.</li>
+  <li>I now know to be paranoid about shared references in &ldquo;duplicating&rdquo; or &ldquo;copying&rdquo; code.</li>
+</ul>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-struct" class="section-anchor">2 &mdash; struct vs class</h2>
+
+<div class="drill">
+<h3>Drill 5 &mdash; PointStruct</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">struct basics</span></div>
+<div class="section-label">Goal</div>
+<p>Declare <code class="il">PointStruct</code> as a struct with <code class="il">int X, Y</code>. Then:</p>
+<pre><code><span class="kw">var</span> a = <span class="kw">new</span> <span class="type">PointStruct</span> { X = <span class="num">1</span>, Y = <span class="num">2</span> };
+<span class="kw">var</span> b = a;
+b.X = <span class="num">99</span>;
+
+<span class="type">Console</span>.WriteLine(a.X);  <span class="cmt">// ?</span>
+<span class="type">Console</span>.WriteLine(b.X);  <span class="cmt">// ?</span></code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I predicted: <code class="il">a.X == 1, b.X == 99</code>.</li>
+  <li>I know structs are value types &mdash; assignment copies the whole struct.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 6 &mdash; Mutating struct trap (predict)</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">struct in collection</span></div>
+<div class="section-label">Goal</div>
+<p>Predict:</p>
+<pre><code><span class="kw">var</span> points = <span class="kw">new</span> <span class="type">List</span>&lt;<span class="type">PointStruct</span>&gt; { <span class="kw">new</span>() { X = <span class="num">1</span>, Y = <span class="num">2</span> } };
+points[<span class="num">0</span>].X = <span class="num">99</span>;
+<span class="type">Console</span>.WriteLine(points[<span class="num">0</span>].X);</code></pre>
+<p>Try to compile. Then read the error. What does it tell you about structs in collections?</p>
+<details><summary>Hint</summary>
+<p>Compile error: &ldquo;Cannot modify the return value of <code class="il">'List&lt;PointStruct&gt;.this[int]'</code> because it is not a variable&rdquo;. The indexer returns a copy of the struct &mdash; mutating the copy would be pointless. The compiler prevents you from doing it accidentally.</p>
+<p>To &ldquo;modify&rdquo; an element: <code class="il">points[0] = points[0] with { X = 99 };</code> &mdash; replace the whole entry. Or use a class. This is the canonical &ldquo;why structs are dangerous if mutable&rdquo; lesson.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 7 &mdash; readonly struct</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">readonly struct</span></div>
+<div class="section-label">Goal</div>
+<p>Rewrite <code class="il">PointStruct</code> as <code class="il">readonly struct</code>. Make X and Y init-only. Verify you can't accidentally mutate the struct.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The struct compiles with <code class="il">readonly struct</code>.</li>
+  <li>Once constructed, X and Y cannot change &mdash; the compiler enforces it.</li>
+  <li>I know the rule: <strong>structs should be immutable</strong> unless you have a very specific perf reason.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 8 &mdash; record struct</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">record struct</span></div>
+<div class="section-label">Goal</div>
+<p>Rewrite <code class="il">PointStruct</code> one more time as <code class="il">public readonly record struct PointStruct(int X, int Y);</code>. Confirm it works the same and now you get value equality for free.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The whole declaration is one line.</li>
+  <li><code class="il">new PointStruct(1, 2) == new PointStruct(1, 2)</code> is true.</li>
+  <li>I now know the modern way to write &ldquo;small immutable value type with value equality&rdquo;.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 9 &mdash; When struct, when class? (no code)</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">judgment</span></div>
+<div class="section-label">Goal</div>
+<p>For each, pick struct or class:</p>
+<ol>
+  <li>A 2D point with X and Y coordinates.</li>
+  <li>An entity representing a user.</li>
+  <li>A date range (Start, End).</li>
+  <li>A configuration object with 20 fields.</li>
+  <li>An RGB colour.</li>
+</ol>
+<details><summary>Hint &mdash; my picks</summary>
+<ol>
+  <li>Struct (record struct) &mdash; small, value semantics, immutable.</li>
+  <li>Class &mdash; identity matters (the user has an Id), it may grow fields, value semantics aren't right.</li>
+  <li>Struct (record struct) &mdash; two DateOnly fields, value semantics.</li>
+  <li>Class &mdash; large; structs over ~16&ndash;24 bytes start to hurt due to copying. Also, this likely needs to flow through APIs unchanged.</li>
+  <li>Struct &mdash; 4 bytes, value semantics, immutable.</li>
+</ol>
+<p>Rule of thumb from Microsoft: structs should be small (~16 bytes), immutable, and represent a single value (a point, a money, a colour, a duration). Default to class otherwise.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-null" class="section-anchor">3 &mdash; Nullable reference types</h2>
+
+<div class="drill">
+<h3>Drill 10 &mdash; Nullable annotations</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">? annotation</span></div>
+<div class="section-label">Goal</div>
+<p>Write two method signatures:</p>
+<pre><code><span class="kw">public</span> <span class="type">string</span> GetName();      <span class="cmt">// never returns null</span>
+<span class="kw">public</span> <span class="type">string</span>? FindEmail();    <span class="cmt">// may return null</span></code></pre>
+<p>Now write a third that takes a nullable param:</p>
+<pre><code><span class="kw">public void</span> LogMaybe(<span class="type">string</span>? message);</code></pre>
+<p>For each, write 2 lines of caller code: one that respects the nullability, one that violates it. Observe the compiler warnings.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I confirmed the project has <code class="il">&lt;Nullable&gt;enable&lt;/Nullable&gt;</code> in the csproj.</li>
+  <li>I get a warning when I deref a nullable without checking.</li>
+  <li>I know the annotation is documentation &mdash; the compiler enforces it but it doesn't change runtime behaviour.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 11 &mdash; The null-forgiving operator</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">! operator</span></div>
+<div class="section-label">Goal</div>
+<p>Find a place to use the null-forgiving operator (<code class="il">!</code>) legitimately. Example:</p>
+<pre><code><span class="kw">var</span> dict = <span class="kw">new</span> <span class="type">Dictionary</span>&lt;<span class="type">string</span>, <span class="type">string</span>&gt; { [<span class="str">"a"</span>] = <span class="str">"alpha"</span> };
+<span class="kw">if</span> (dict.TryGetValue(<span class="str">"a"</span>, <span class="kw">out var</span> value))
+{
+    <span class="cmt">// here, value is non-null, but the compiler can't always prove it</span>
+    <span class="type">Console</span>.WriteLine(value!.Length);
+}</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used <code class="il">!</code> only when I knew more than the compiler.</li>
+  <li>I considered: every <code class="il">!</code> is a place that <em>could</em> throw at runtime. Treat each like a load-bearing assumption.</li>
+  <li>I know the lazy use of <code class="il">!</code> &mdash; sprinkling it to silence warnings &mdash; defeats the entire nullable system.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 12 &mdash; The default(T) trap</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">default for generic T</span></div>
+<div class="section-label">Goal</div>
+<p>Write a generic method that returns <code class="il">default(T)</code> for any T. Call it with <code class="il">int</code>, <code class="il">DateTime</code>, <code class="il">string</code>, <code class="il">List&lt;int&gt;</code>. Predict each result.</p>
+<details><summary>Hint</summary>
+<p><code class="il">int</code> &rarr; 0. <code class="il">DateTime</code> &rarr; <code class="il">DateTime.MinValue</code>. <code class="il">string</code> &rarr; null. <code class="il">List&lt;int&gt;</code> &rarr; null. The trap: <code class="il">default(string)</code> is null even though string is a reference type &mdash; the compiler accepts it without a warning <em>inside a generic method</em>, but the value is null. If the caller assumed non-null T, you've planted a null reference.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 13 &mdash; Defensive against null at boundary</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">ArgumentNullException.ThrowIfNull</span></div>
+<div class="section-label">Goal</div>
+<p>Write a public service method that takes a <code class="il">string name</code> parameter. Use the modern guard:</p>
+<pre><code><span class="type">ArgumentException</span>.ThrowIfNullOrWhiteSpace(name);</code></pre>
+<p>Confirm what it throws for null vs empty vs whitespace.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I know <code class="il">ArgumentException.ThrowIfNullOrWhiteSpace</code> is the modern one-liner (since .NET 8).</li>
+  <li>I prefer it over the manual <code class="il">if (...) throw ...</code> pattern.</li>
+  <li>I use these guards <em>at public boundaries only</em>, not in every private helper (see Exception drills #15).</li>
+</ul>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-design" class="section-anchor">4 &mdash; Design</h2>
+
+<div class="drill">
+<h3>Drill 14 &mdash; The boxing cost</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">boxing</span></div>
+<div class="section-label">Goal</div>
+<p>Write a loop that adds 1,000,000 ints to a <code class="il">List&lt;object&gt;</code>. Time it.</p>
+<p>Write a loop that adds 1,000,000 ints to a <code class="il">List&lt;int&gt;</code>. Time it.</p>
+<p>Compare. Explain the difference using the word &ldquo;box&rdquo;.</p>
+<details><summary>Hint</summary>
+<p><code class="il">List&lt;object&gt;</code> stores each int as a boxed object on the heap &mdash; allocation per element. <code class="il">List&lt;int&gt;</code> stores them packed in an array of int. The first is slower, allocates more, and pressures the GC. This is the original motivation for generics in .NET 2.0 &mdash; pre-generics collections were all <code class="il">object</code>-based.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 15 &mdash; Reading a method signature (no code)</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">signature literacy</span></div>
+<div class="section-label">Goal</div>
+<p>For each signature, answer:</p>
+<ol>
+  <li>Is the return type a value or reference type? How do you know?</li>
+  <li>Is the input passed by value or by reference?</li>
+  <li>Can the input be null?</li>
+  <li>Can the return be null?</li>
+</ol>
+<pre><code>public <span class="type">User</span>? Find(<span class="type">int</span> id);
+public <span class="type">decimal</span> CalculateTotal(<span class="type">Order</span> order);
+public <span class="kw">void</span> Update(<span class="kw">ref</span> <span class="type">int</span> value);
+public <span class="type">IReadOnlyList</span>&lt;<span class="type">string</span>&gt; Tokenize(<span class="type">string</span>? input);
+public <span class="kw">bool</span> TryParse(<span class="type">string</span> input, <span class="kw">out</span> <span class="type">DateTime</span> result);</code></pre>
+<p>If you can answer those four questions for every signature you encounter, you're reading C# fluently.</p>
+</div>
+
+<h2 id="after">After these</h2>
+
+<p>You can now answer the question every senior dev expects you to: &ldquo;when you do <code class="il">a = b</code>, what really happens?&rdquo; That's the bedrock of debugging memory bugs and writing predictable code.</p>
+
+</div>
+</body>
+</html>

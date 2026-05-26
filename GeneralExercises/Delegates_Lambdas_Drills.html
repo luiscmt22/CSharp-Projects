@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Delegates &amp; Lambdas &mdash; Blank-Page Drills</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {
+  --bg: #0b1220; --surface: #111a2e; --surface-2: #16223c;
+  --border: #243352; --text: #e6ecf5; --text-dim: #9aa7c0;
+  --accent: #6aa6ff; --accent-2: #b06aff; --code-bg: #0a1120;
+  --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 28px; }
+header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
+header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
+header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
+h1, h2, h3, h4 { color: var(--text); margin-top: 1.6em; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+a { color: var(--accent); }
+code, pre, code.il { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; border: 1px solid var(--border); }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55; }
+pre code { background: transparent; border: 0; padding: 0; }
+blockquote { border-left: 3px solid var(--accent); background: var(--surface);
+  padding: 10px 16px; margin: 12px 0; color: var(--text-dim); border-radius: 0 6px 6px 0; }
+.callout { background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-2); padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; }
+.callout.warn { border-left-color: var(--warn); }
+.callout.bad  { border-left-color: var(--bad); }
+.kw   { color: #c792ea; }
+.type { color: #82aaff; }
+.str  { color: #c3e88d; }
+.num  { color: #f78c6c; }
+.cmt  { color: #6c7a96; font-style: italic; }
+.drill { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 20px; margin: 20px 0; }
+.drill h3 { margin-top: 0; font-size: 17px; }
+.drill .meta-row { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-dim); margin-bottom: 8px; }
+.drill .meta-row span.tag { background: var(--surface-2); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; }
+.drill .meta-row span.tag.time { color: var(--accent); }
+.drill .meta-row span.tag.topic { color: var(--accent-2); }
+.section-label { text-transform: uppercase; font-size: 10px; letter-spacing: 0.08em;
+  color: var(--text-dim); margin: 14px 0 4px; font-weight: 600; }
+.checklist { list-style: none; padding-left: 0; margin: 4px 0; }
+.checklist li { padding: 3px 0 3px 26px; position: relative; font-size: 14px; }
+.checklist li::before { content: ""; position: absolute; left: 0; top: 8px; width: 13px; height: 13px;
+  border: 1.5px solid var(--text-dim); border-radius: 3px; background: var(--code-bg); }
+details { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 8px 12px; margin: 10px 0; }
+details > summary { cursor: pointer; color: var(--accent); font-weight: 500; user-select: none; font-size: 13px; }
+details[open] > summary { margin-bottom: 8px; }
+.toc { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 18px; margin: 18px 0 28px; font-size: 14px; }
+.toc ol { margin: 6px 0; padding-left: 22px; }
+.toc li { margin: 2px 0; }
+.toc a { text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+.section-anchor { padding-top: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">GeneralExercises &rsaquo; Delegates &amp; lambdas</div>
+  <h1>Delegates &amp; lambdas &mdash; blank-page drills</h1>
+  <div class="meta">16 drills covering Func/Action/Predicate, custom delegate types, the lambda capture rules that bite everyone, and expression-bodied members. Same rules: no AI, learn.microsoft.com only.</div>
+</header>
+
+<h2 id="why">Why this</h2>
+
+<p>You use lambdas every day &mdash; <code class="il">.Where(x =&gt; x.IsActive)</code>, <code class="il">.OrderBy(...)</code>, event handlers, async callbacks. But there's a gap between &ldquo;I can read a lambda&rdquo; and &ldquo;I can design an API that takes one as a parameter.&rdquo; That second skill is what makes you a programmer who designs, not just one who consumes. These drills target it.</p>
+
+<blockquote>Companion guide: <code class="il">_Organized/04-CSharp-Language/delegates-lambdas-expression-bodies.html</code>.</blockquote>
+
+<p>Key mental model: <strong>a delegate is a typed function pointer.</strong> <code class="il">Func&lt;int, int&gt;</code> means &ldquo;any method that takes an int and returns an int&rdquo;. A lambda is just shorthand syntax for creating a method that fits a delegate type. That's it.</p>
+
+<div class="toc">
+  <strong>Drill index</strong>
+  <ol>
+    <li><a href="#sec-funcaction">Func, Action, Predicate (drills 1&ndash;5)</a></li>
+    <li><a href="#sec-custom">Custom delegate types (drills 6&ndash;7)</a></li>
+    <li><a href="#sec-capture">Lambda capture / closures (drills 8&ndash;11)</a></li>
+    <li><a href="#sec-expr">Expression-bodied members (drills 12&ndash;13)</a></li>
+    <li><a href="#sec-api">API design with delegates (drills 14&ndash;16)</a></li>
+  </ol>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-funcaction" class="section-anchor">1 &mdash; Func, Action, Predicate</h2>
+
+<div class="drill">
+<h3>Drill 1 &mdash; Apply</h3>
+<div class="meta-row"><span class="tag time">4 min</span><span class="tag topic">Func&lt;T,T&gt;</span></div>
+<div class="section-label">Goal</div>
+<p>Write a method that takes an <code class="il">int</code> and a function. Apply the function to the int and return the result.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">int</span> Apply(<span class="type">int</span> value, <span class="type">Func</span>&lt;<span class="type">int</span>, <span class="type">int</span>&gt; func)</code></pre>
+<div class="section-label">Examples</div>
+<pre><code>Apply(<span class="num">3</span>, x =&gt; x * x);       <span class="cmt">// 9</span>
+Apply(<span class="num">5</span>, x =&gt; x + <span class="num">1</span>);       <span class="cmt">// 6</span>
+Apply(<span class="num">10</span>, <span class="type">Math</span>.Abs);        <span class="cmt">// 10 &mdash; method group passed where Func is expected</span></code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The method body is one line.</li>
+  <li>I called it three ways: a lambda, an expression-bodied method, and a method group (<code class="il">Math.Abs</code>).</li>
+  <li>I know <code class="il">Func&lt;T1, T2, TResult&gt;</code> means &ldquo;takes T1 and T2, returns TResult&rdquo;. The <em>last</em> generic parameter is always the return type.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 2 &mdash; ForEachPrint</h3>
+<div class="meta-row"><span class="tag time">4 min</span><span class="tag topic">Action&lt;T&gt;</span></div>
+<div class="section-label">Goal</div>
+<p>Write a method that takes a <code class="il">List&lt;string&gt;</code> and an <code class="il">Action&lt;string&gt;</code>, and invokes the action for each element. (Yes, it's roughly <code class="il">List&lt;T&gt;.ForEach</code> &mdash; write it from scratch.)</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static void</span> Each(<span class="type">List</span>&lt;<span class="type">string</span>&gt; items, <span class="type">Action</span>&lt;<span class="type">string</span>&gt; action)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I called the method with <code class="il">Each(list, Console.WriteLine);</code> &mdash; method group syntax, no lambda needed.</li>
+  <li>I know <code class="il">Action&lt;T&gt;</code> is &ldquo;Func but returns nothing&rdquo;.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 3 &mdash; PredicateFilter</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">Predicate vs Func</span></div>
+<div class="section-label">Goal</div>
+<p>Write a method that filters a list using a <code class="il">Predicate&lt;T&gt;</code>. Then write the <em>same</em> method using <code class="il">Func&lt;T, bool&gt;</code>. Compare.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I can articulate why <code class="il">Predicate&lt;T&gt;</code> and <code class="il">Func&lt;T, bool&gt;</code> are <em>not</em> the same type, even though they have the same shape.</li>
+  <li>I know which one LINQ uses (<code class="il">Func&lt;T, bool&gt;</code>) and which is older (<code class="il">Predicate&lt;T&gt;</code>, used by <code class="il">List&lt;T&gt;.Find</code>).</li>
+  <li>I know which to reach for in new code.</li>
+</ul>
+<details><summary>Hint</summary>
+<p><code class="il">Predicate&lt;T&gt;</code> is a named delegate from .NET 2.0. <code class="il">Func&lt;T, bool&gt;</code> is the generic equivalent that LINQ adopted in .NET 3.5. They're not interchangeable as parameters &mdash; the type names differ &mdash; but they describe the same shape. Default to <code class="il">Func&lt;T, bool&gt;</code> in new code; you'll mesh with LINQ. Use <code class="il">Predicate&lt;T&gt;</code> only when interoperating with an old API that demands it.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 4 &mdash; Compose</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">function composition</span></div>
+<div class="section-label">Goal</div>
+<p>Write a method that takes two <code class="il">Func&lt;int, int&gt;</code> and returns a new <code class="il">Func&lt;int, int&gt;</code> that applies the first, then the second.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">Func</span>&lt;<span class="type">int</span>, <span class="type">int</span>&gt; Compose(<span class="type">Func</span>&lt;<span class="type">int</span>, <span class="type">int</span>&gt; first, <span class="type">Func</span>&lt;<span class="type">int</span>, <span class="type">int</span>&gt; second)</code></pre>
+<div class="section-label">Examples</div>
+<pre><code><span class="kw">var</span> incrementThenDouble = Compose(x =&gt; x + <span class="num">1</span>, x =&gt; x * <span class="num">2</span>);
+incrementThenDouble(<span class="num">3</span>);  <span class="cmt">// (3+1)*2 = 8</span></code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I returned a lambda from a method &mdash; that's the new bit.</li>
+  <li>The body is one line: <code class="il">=&gt; x =&gt; second(first(x));</code>.</li>
+  <li>I can read that line aloud: &ldquo;a function from x to second of first of x&rdquo;.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 5 &mdash; Retry</h3>
+<div class="meta-row"><span class="tag time">12 min</span><span class="tag topic">delegate-as-API</span></div>
+<div class="section-label">Goal</div>
+<p>Write a method that retries an operation up to N times if it throws. The operation is supplied as a delegate.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">T</span> Retry&lt;<span class="type">T</span>&gt;(<span class="type">Func</span>&lt;<span class="type">T</span>&gt; operation, <span class="type">int</span> attempts)</code></pre>
+<div class="section-label">Examples</div>
+<pre><code><span class="kw">var</span> result = Retry(() =&gt; SomeFlakyCall(), attempts: <span class="num">3</span>);</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used a <code class="il">Func&lt;T&gt;</code> (zero-arg, returns T) for the operation.</li>
+  <li>If all attempts fail, I rethrow the last exception. <strong>Use <code class="il">throw;</code> not <code class="il">throw lastEx;</code></strong> (drill 5 from exception drills).</li>
+  <li>I made a decision about what to do if attempts &lt;= 0. Documented or asserted.</li>
+</ul>
+<details><summary>Hint &mdash; this is the killer drill</summary>
+<p>This is the bread and butter of why delegates exist: you write the &ldquo;structure&rdquo; (loop, try/catch, sleep), the caller supplies the &ldquo;variable behaviour&rdquo;. The same Retry works for HTTP calls, database queries, file IO &mdash; anything.</p>
+<pre><code><span class="kw">public static</span> <span class="type">T</span> Retry&lt;<span class="type">T</span>&gt;(<span class="type">Func</span>&lt;<span class="type">T</span>&gt; operation, <span class="type">int</span> attempts)
+{
+    <span class="type">Exception</span>? last = <span class="kw">null</span>;
+    <span class="kw">for</span> (<span class="kw">var</span> i = <span class="num">0</span>; i &lt; attempts; i++)
+    {
+        <span class="kw">try</span> { <span class="kw">return</span> operation(); }
+        <span class="kw">catch</span> (<span class="type">Exception</span> ex) { last = ex; }
+    }
+    <span class="kw">throw</span> last!;  <span class="cmt">// or a custom RetryFailedException wrapping it</span>
+}</code></pre>
+<p>Better version: take a <code class="il">Predicate&lt;Exception&gt;</code> too, so the caller decides which exceptions are retryable.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-custom" class="section-anchor">2 &mdash; Custom delegate types</h2>
+
+<div class="drill">
+<h3>Drill 6 &mdash; PriceCalculator</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">delegate keyword</span></div>
+<div class="section-label">Goal</div>
+<p>Declare a custom delegate type (using the <code class="il">delegate</code> keyword) called <code class="il">PriceCalculator</code> that takes a <code class="il">decimal basePrice</code> and an <code class="il">int quantity</code>, returns a <code class="il">decimal</code>. Use it as a parameter in a method that calculates a total.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used <code class="il">public delegate decimal PriceCalculator(decimal basePrice, int quantity);</code> at the namespace or class level.</li>
+  <li>I can articulate why I'd choose a custom delegate over <code class="il">Func&lt;decimal, int, decimal&gt;</code>: the custom name <em>documents intent</em>. <code class="il">Func&lt;decimal, int, decimal&gt;</code> tells you nothing about meaning.</li>
+  <li>I know the trade-off: custom delegates don't compose with LINQ as naturally, and they're more verbose.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 7 &mdash; When custom, when Func? (no code &mdash; explain)</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">judgment</span></div>
+<div class="section-label">Goal</div>
+<p>Write 3&ndash;5 sentences: when should you declare a custom delegate vs use <code class="il">Func</code>/<code class="il">Action</code>?</p>
+<details><summary>Hint &mdash; my rule</summary>
+<p>Default to <code class="il">Func</code>/<code class="il">Action</code>. Use a custom delegate when (a) the signature is conceptually a single thing in your domain (e.g. <code class="il">PriceCalculator</code>, <code class="il">EventHandler</code>) and you want callers to read it as such, or (b) the signature has so many parameters that <code class="il">Func&lt;string, int, decimal, bool, DateTime, Result&gt;</code> becomes unreadable. Both reasons are about <em>communication</em>, not capability.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-capture" class="section-anchor">3 &mdash; Lambda capture / closures</h2>
+
+<p class="callout warn"><strong>This section is where most "weird bugs" live.</strong> Lambdas capture variables, not values. The difference is subtle and lethal.</p>
+
+<div class="drill">
+<h3>Drill 8 &mdash; CounterLambda</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">closure over local</span></div>
+<div class="section-label">Goal</div>
+<p>Write a method that returns a function. Each time the returned function is called, it returns the next integer starting from 0.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">Func</span>&lt;<span class="type">int</span>&gt; MakeCounter()</code></pre>
+<div class="section-label">Examples</div>
+<pre><code><span class="kw">var</span> next = MakeCounter();
+next();  <span class="cmt">// 0</span>
+next();  <span class="cmt">// 1</span>
+next();  <span class="cmt">// 2</span>
+
+<span class="kw">var</span> other = MakeCounter();
+other(); <span class="cmt">// 0 &mdash; independent counter</span></code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used a local <code class="il">int</code> variable inside <code class="il">MakeCounter</code> that the returned lambda captures.</li>
+  <li>Each call to <code class="il">MakeCounter</code> produces a counter that's <em>independent</em> of others.</li>
+  <li>I know the variable's lifetime is now tied to the lambda's lifetime &mdash; it doesn't disappear when MakeCounter returns.</li>
+</ul>
+<details><summary>Hint</summary>
+<p>This is the magic of closures. The compiler hoists the local int onto a hidden object on the heap, so it can outlive the method that declared it. Each call to MakeCounter makes a fresh hidden object &mdash; that's why counters are independent.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 9 &mdash; The loop-variable trap</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">classic closure bug</span></div>
+<div class="section-label">Goal</div>
+<p>Predict the output of this code <strong>before running</strong>. (Trust your gut, then verify.)</p>
+<pre><code><span class="kw">var</span> actions = <span class="kw">new</span> <span class="type">List</span>&lt;<span class="type">Action</span>&gt;();
+
+<span class="kw">for</span> (<span class="kw">var</span> i = <span class="num">0</span>; i &lt; <span class="num">3</span>; i++)
+{
+    actions.Add(() =&gt; <span class="type">Console</span>.WriteLine(i));
+}
+
+<span class="kw">foreach</span> (<span class="kw">var</span> a <span class="kw">in</span> actions) a();</code></pre>
+<p>Then change <code class="il">for</code> to <code class="il">foreach (var i in Enumerable.Range(0, 3))</code> and predict again.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I predicted both before running.</li>
+  <li>I can explain why <code class="il">for</code> prints <code class="il">3 3 3</code> but <code class="il">foreach</code> prints <code class="il">0 1 2</code>.</li>
+  <li>I can also explain why this would have been a famous gotcha in older C# (foreach used to print <code class="il">3 3 3</code> too, before C# 5 changed the spec).</li>
+</ul>
+<details><summary>Hint &mdash; after predicting</summary>
+<p>For-loop <code class="il">i</code> is a single variable that's mutated &mdash; all three lambdas capture the <em>same</em> variable. By the time you invoke them, <code class="il">i</code> is 3. <code class="il">foreach</code> in modern C# declares a fresh variable each iteration &mdash; each lambda captures a different one.</p>
+<p>Fix the for-loop version: copy <code class="il">i</code> into a fresh local each iteration: <code class="il">var copy = i; actions.Add(() =&gt; Console.WriteLine(copy));</code>.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 10 &mdash; CapturedReference</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">capture by reference</span></div>
+<div class="section-label">Goal</div>
+<p>Write a method that creates a <code class="il">List&lt;int&gt;</code>, then returns a lambda that adds an item to the list. Demonstrate that calling the lambda multiple times mutates the same list.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I confirmed: the lambda captures the <em>list reference</em>, not a snapshot.</li>
+  <li>Mutations made by the lambda are visible to anyone else holding the same reference.</li>
+  <li>I know this is sometimes what you want and sometimes a bug. Name a scenario for each.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 11 &mdash; Closure heap allocation (no code &mdash; explain)</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">cost of closures</span></div>
+<div class="section-label">Goal</div>
+<p>Read about closure allocation behaviour in C#. Then answer:</p>
+<ol>
+  <li>What hidden object does the compiler create for a lambda that captures a local?</li>
+  <li>Why does <code class="il">.Where(x =&gt; x &gt; 0)</code> in a hot loop sometimes get flagged by performance tools, even though it looks innocent?</li>
+</ol>
+<details><summary>Hint</summary>
+<p>The compiler creates a hidden class (often visible as <code class="il">&lt;&gt;c__DisplayClass0_0</code> in stack traces) holding the captured variables as fields. The lambda becomes a method on that class. Each invocation that creates a closure allocates one of these. In a tight loop, that's GC pressure. The fix is usually to lift the lambda to a static method, or to use a struct-based alternative. Don't optimise unless a profiler tells you to.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-expr" class="section-anchor">4 &mdash; Expression-bodied members</h2>
+
+<div class="drill">
+<h3>Drill 12 &mdash; OneLiners</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">=&gt; member syntax</span></div>
+<div class="section-label">Goal</div>
+<p>Take this code and rewrite every member using expression-bodied syntax where possible:</p>
+<pre><code><span class="kw">public class</span> <span class="type">Rectangle</span>
+{
+    <span class="kw">public</span> <span class="type">double</span> Width  { <span class="kw">get</span>; }
+    <span class="kw">public</span> <span class="type">double</span> Height { <span class="kw">get</span>; }
+
+    <span class="kw">public</span> <span class="type">Rectangle</span>(<span class="type">double</span> w, <span class="type">double</span> h)
+    {
+        Width = w; Height = h;
+    }
+
+    <span class="kw">public</span> <span class="type">double</span> Area()
+    {
+        <span class="kw">return</span> Width * Height;
+    }
+
+    <span class="kw">public</span> <span class="type">double</span> Perimeter
+    {
+        <span class="kw">get</span> { <span class="kw">return</span> <span class="num">2</span> * (Width + Height); }
+    }
+
+    <span class="kw">public override</span> <span class="type">string</span> ToString()
+    {
+        <span class="kw">return</span> <span class="str">$"{Width}x{Height}"</span>;
+    }
+}</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Methods that returned an expression now use <code class="il">=&gt;</code>.</li>
+  <li>Read-only property uses expression-bodied getter.</li>
+  <li>I considered: does the constructor become expression-bodied? (It can, but is it clearer?)</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 13 &mdash; When NOT to use =&gt; (no code)</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">judgment</span></div>
+<div class="section-label">Goal</div>
+<p>Expression bodies are tempting. Name three cases where the longer, block-bodied form is more readable.</p>
+<details><summary>Hint</summary>
+<ul>
+  <li>When the expression is long enough to wrap to multiple lines.</li>
+  <li>When the body has any branching or short-circuit logic that you want visually separated.</li>
+  <li>When you'll likely add a log line or guard in the next commit. Pre-emptively writing the block-bodied form saves a noisy diff.</li>
+</ul>
+</details>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-api" class="section-anchor">5 &mdash; API design with delegates</h2>
+
+<div class="drill">
+<h3>Drill 14 &mdash; WhereLike</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">accepting a predicate</span></div>
+<div class="section-label">Goal</div>
+<p>Write your own <code class="il">Where</code> &mdash; a generic method that takes an <code class="il">IEnumerable&lt;T&gt;</code> and a predicate, and yields only the matching items. Use <code class="il">yield return</code>.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">IEnumerable</span>&lt;<span class="type">T</span>&gt; WhereLike&lt;<span class="type">T</span>&gt;(<span class="type">IEnumerable</span>&lt;<span class="type">T</span>&gt; source, <span class="type">Func</span>&lt;<span class="type">T</span>, <span class="type">bool</span>&gt; predicate)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used <code class="il">yield return</code>, not a <code class="il">List&lt;T&gt;</code> accumulator.</li>
+  <li>I now understand deferred execution from the inside &mdash; the method body doesn't run until you enumerate.</li>
+  <li>I tested with: a real list, an empty list, a predicate that matches nothing.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 15 &mdash; WithTransform</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">accepting a Func</span></div>
+<div class="section-label">Goal</div>
+<p>Write a method that takes a <code class="il">List&lt;Order&gt;</code> and a <code class="il">Func&lt;Order, decimal&gt;</code> &ldquo;total selector&rdquo;. It returns the sum of the totals. <em>Don't use LINQ.</em> Then write the LINQ version. Compare.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The non-LINQ version is a foreach loop calling <code class="il">selector(order)</code> and accumulating.</li>
+  <li>I now understand what <code class="il">Sum(o =&gt; o.Total)</code> is doing inside &mdash; it's exactly this method, generalised.</li>
+  <li>I can articulate: any LINQ method that takes a lambda is just calling that lambda for each element.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 16 &mdash; Configure (no fresh code &mdash; identify pattern)</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">pattern recognition</span></div>
+<div class="section-label">Goal</div>
+<p>Look at this code (from your C1 Adventure code or any DI setup):</p>
+<pre><code>services.AddDbContext&lt;<span class="type">MyContext</span>&gt;(options =&gt; options.UseSqlServer(connectionString));</code></pre>
+<p>The lambda <em>configures</em> something. The caller never invokes it directly &mdash; the framework does, internally. Write 3 sentences explaining:</p>
+<ol>
+  <li>Why is this pattern (<code class="il">Action&lt;TBuilder&gt; configure</code>) so common in .NET APIs?</li>
+  <li>How does it relate to your <code class="il">AdventureBuilder</code>'s <code class="il">WithStartNode(node =&gt; ...)</code> nested builder pattern?</li>
+</ol>
+<details><summary>Hint</summary>
+<p>This is the &ldquo;configure-via-lambda&rdquo; idiom: the API creates a configurable object, hands it to your lambda, you configure it, the API uses the result. It's the same shape as your nested builder &mdash; <code class="il">AdventureBuilder.WithStartNode</code> takes an <code class="il">Action&lt;NodeBuilder&gt;</code> and does exactly this internally. Recognising it in DI, EF Core, OpenAPI setup, etc. is one of those &ldquo;feel like a programmer&rdquo; moments.</p>
+</details>
+</div>
+
+<h2 id="after">After these</h2>
+
+<p>You now have: Func/Action/Predicate fluency, the ability to declare custom delegates and justify it, deep understanding of lambda capture (and its bugs), expression-bodied members, and the skill to <em>design</em> APIs that take lambdas as parameters &mdash; not just consume them. That last one is the line between a developer and a programmer.</p>
+
+<p>Bring me your captured questions.</p>
+
+</div>
+</body>
+</html>

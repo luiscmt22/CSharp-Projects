@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Design Patterns &mdash; Blank-Page Drills</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root { --bg:#0b1220; --surface:#111a2e; --surface-2:#16223c; --border:#243352; --text:#e6ecf5; --text-dim:#9aa7c0; --accent:#6aa6ff; --accent-2:#b06aff; --code-bg:#0a1120; --ok:#4ade80; --warn:#fbbf24; --bad:#f87171; }
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font:16px/1.65 -apple-system,"Segoe UI",system-ui,sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:32px 24px 80px}
+header.doc-head{border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:28px}
+header.doc-head .crumbs{color:var(--text-dim);font-size:13px}
+header.doc-head h1{margin:6px 0 4px;font-size:28px;line-height:1.2}
+header.doc-head .meta{color:var(--text-dim);font-size:13px}
+h1,h2,h3,h4{color:var(--text);margin-top:1.6em}
+h2{border-bottom:1px solid var(--border);padding-bottom:6px}
+a{color:var(--accent)}
+code,pre,code.il{font-family:"JetBrains Mono","Cascadia Code",Consolas,monospace}
+code.il{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em;border:1px solid var(--border)}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:14px 16px;overflow-x:auto;font-size:13px;line-height:1.55}
+pre code{background:transparent;border:0;padding:0}
+blockquote{border-left:3px solid var(--accent);background:var(--surface);padding:10px 16px;margin:12px 0;color:var(--text-dim);border-radius:0 6px 6px 0}
+.callout{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent-2);padding:12px 16px;margin:14px 0;border-radius:0 6px 6px 0}
+.callout.warn{border-left-color:var(--warn)}
+.kw{color:#c792ea} .type{color:#82aaff} .str{color:#c3e88d} .num{color:#f78c6c} .cmt{color:#6c7a96;font-style:italic}
+.drill{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin:20px 0}
+.drill h3{margin-top:0;font-size:17px}
+.drill .meta-row{display:flex;flex-wrap:wrap;gap:8px;font-size:12px;color:var(--text-dim);margin-bottom:8px}
+.drill .meta-row span.tag{background:var(--surface-2);border:1px solid var(--border);padding:2px 8px;border-radius:4px}
+.drill .meta-row span.tag.time{color:var(--accent)}
+.drill .meta-row span.tag.topic{color:var(--accent-2)}
+.section-label{text-transform:uppercase;font-size:10px;letter-spacing:.08em;color:var(--text-dim);margin:14px 0 4px;font-weight:600}
+.checklist{list-style:none;padding-left:0;margin:4px 0}
+.checklist li{padding:3px 0 3px 26px;position:relative;font-size:14px}
+.checklist li::before{content:"";position:absolute;left:0;top:8px;width:13px;height:13px;border:1.5px solid var(--text-dim);border-radius:3px;background:var(--code-bg)}
+details{background:var(--code-bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;margin:10px 0}
+details>summary{cursor:pointer;color:var(--accent);font-weight:500;user-select:none;font-size:13px}
+details[open]>summary{margin-bottom:8px}
+.toc{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px 18px;margin:18px 0 28px;font-size:14px}
+.toc ol{margin:6px 0;padding-left:22px}
+.toc li{margin:2px 0}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.section-anchor{padding-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">GeneralExercises &rsaquo; Design patterns</div>
+  <h1>Design patterns &mdash; blank-page drills</h1>
+  <div class="meta">12 drills across the three patterns you'll use most in real code: Strategy, Adapter, Chain of Responsibility. Builder has its own dedicated doc in C1/docs/. Companion concept guides: <code class="il">_Organized/02-Architecture-and-Patterns/03</code>, <code class="il">29</code>, <code class="il">31</code>.</div>
+</header>
+
+<h2 id="why">Why this</h2>
+
+<p>Design patterns are vocabulary. Recognising &ldquo;this code is doing Strategy&rdquo; in a code review compresses a paragraph of explanation into one word. The three picked here are the ones you'll literally see every week:</p>
+
+<ul>
+  <li><strong>Strategy</strong> &mdash; swap the algorithm. Used everywhere: sorting, validation, pricing, export formats.</li>
+  <li><strong>Adapter</strong> &mdash; make A look like B. Used for: third-party SDKs, legacy code, test doubles.</li>
+  <li><strong>Chain of Responsibility</strong> &mdash; pass a request along a chain until someone handles it. Used for: validators, middleware, event handlers.</li>
+</ul>
+
+<blockquote>Before each section, skim the corresponding concept guide in <code class="il">_Organized/02-Architecture-and-Patterns/</code>. The drills assume you've read it.</blockquote>
+
+<div class="toc">
+  <strong>Drill index</strong>
+  <ol>
+    <li><a href="#sec-strategy">Strategy (drills 1&ndash;4)</a></li>
+    <li><a href="#sec-adapter">Adapter (drills 5&ndash;7)</a></li>
+    <li><a href="#sec-chain">Chain of Responsibility (drills 8&ndash;11)</a></li>
+    <li><a href="#sec-recognize">Pattern recognition (drill 12)</a></li>
+  </ol>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-strategy" class="section-anchor">1 &mdash; Strategy</h2>
+
+<p><strong>Concept guide:</strong> <code class="il">_Organized/02-Architecture-and-Patterns/31-Strategy-Pattern-Pluggable-Algorithms.html</code></p>
+
+<div class="drill">
+<h3>Drill 1 &mdash; ISortStrategy</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">basic strategy</span></div>
+<div class="section-label">Goal</div>
+<p>Define an interface <code class="il">ISortStrategy</code> with one method: <code class="il">int[] Sort(int[] input);</code>. Implement two strategies: <code class="il">AscendingSort</code> and <code class="il">DescendingSort</code>.</p>
+<p>Write a <code class="il">Sorter</code> class that takes an <code class="il">ISortStrategy</code> in its constructor and exposes a <code class="il">Run(int[] input)</code> method that delegates.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I can swap strategies at runtime without modifying <code class="il">Sorter</code>.</li>
+  <li>I can add a third strategy (e.g. <code class="il">RandomShuffleSort</code>) without changing existing code.</li>
+  <li>I named the pattern. The interface is the &ldquo;strategy&rdquo;. The class that uses it is the &ldquo;context&rdquo;. The concrete implementations are the &ldquo;concrete strategies&rdquo;.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 2 &mdash; Strategy via delegate</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">delegate as strategy</span></div>
+<div class="section-label">Goal</div>
+<p>Now do Drill 1 again, but instead of an interface, use a <code class="il">Func&lt;int[], int[]&gt;</code>. The Sorter takes a delegate, not an interface.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Both approaches work. I can articulate the trade-off.</li>
+  <li>Interface wins when: the strategy has state, multiple methods, or you want DI to pick it.</li>
+  <li>Delegate wins when: it's a single operation, callers want to use lambdas, you don't need DI to pick.</li>
+</ul>
+<details><summary>Hint</summary>
+<p>In .NET code: <code class="il">List&lt;T&gt;.Sort(Comparison&lt;T&gt; comparison)</code> is delegate-based Strategy. <code class="il">List&lt;T&gt;.Sort(IComparer&lt;T&gt; comparer)</code> is interface-based Strategy. Same pattern, two flavours.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 3 &mdash; ExportStrategy</h3>
+<div class="meta-row"><span class="tag time">15 min</span><span class="tag topic">strategy with DI</span></div>
+<div class="section-label">Goal</div>
+<p>Define <code class="il">IExportStrategy</code> with one method: <code class="il">byte[] Export(List&lt;Person&gt; people);</code>. Implement <code class="il">CsvExport</code> and <code class="il">JsonExport</code>. Then write an <code class="il">ExportService</code> that picks the right strategy based on a format string ("csv" or "json").</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The service has no <code class="il">if (format == "csv") ... else if ...</code> branching the actual export logic &mdash; only at the strategy-selection step.</li>
+  <li>I used a <code class="il">Dictionary&lt;string, IExportStrategy&gt;</code> for the lookup. Or DI-injected all strategies and picked at runtime.</li>
+  <li>Adding <code class="il">XmlExport</code> requires: a new class, one registration line. <strong>No existing code changes.</strong> That's Open-Closed.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 4 &mdash; Strategy or polymorphism? (no code)</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">judgment</span></div>
+<div class="section-label">Goal</div>
+<p>Strategy and polymorphism look similar. Both involve interfaces. When is Strategy the right framing vs &ldquo;just polymorphism on the entity&rdquo;?</p>
+<details><summary>Hint</summary>
+<p>Polymorphism: the behaviour is intrinsic to the object. A <code class="il">Circle</code> knows its own area &mdash; <code class="il">circle.Area()</code> lives on Circle. Strategy: the behaviour is <em>chosen by the caller</em>. A <code class="il">Sorter</code> doesn't know how to sort; the caller picks a strategy and supplies it.</p>
+<p>Rule: if the same data type can be processed in <em>multiple swappable ways</em> that callers decide, that's Strategy. If different data types each have their own version of an operation, that's polymorphism.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-adapter" class="section-anchor">2 &mdash; Adapter</h2>
+
+<p><strong>Concept guide:</strong> <code class="il">_Organized/02-Architecture-and-Patterns/03-Adapter-Pattern-Explained.html</code></p>
+
+<div class="drill">
+<h3>Drill 5 &mdash; LegacyLogger adapter</h3>
+<div class="meta-row"><span class="tag time">12 min</span><span class="tag topic">adapter basics</span></div>
+<div class="section-label">Goal</div>
+<p>You have a legacy class you can't modify:</p>
+<pre><code><span class="kw">public class</span> <span class="type">OldLogger</span>
+{
+    <span class="kw">public void</span> WriteLog(<span class="type">string</span> level, <span class="type">string</span> message) { <span class="cmt">/* writes to a file */</span> }
+}</code></pre>
+<p>Your code wants to use the standard <code class="il">ILogger</code>:</p>
+<pre><code><span class="kw">public interface</span> <span class="type">ILogger</span>
+{
+    <span class="kw">void</span> Info(<span class="type">string</span> message);
+    <span class="kw">void</span> Warning(<span class="type">string</span> message);
+    <span class="kw">void</span> Error(<span class="type">string</span> message);
+}</code></pre>
+<p>Write a <code class="il">LegacyLoggerAdapter : ILogger</code> that wraps an <code class="il">OldLogger</code> and translates calls.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The adapter takes an <code class="il">OldLogger</code> in its constructor.</li>
+  <li>Each interface method calls <code class="il">_old.WriteLog(level, message)</code> with the right level string.</li>
+  <li>The rest of my code talks to <code class="il">ILogger</code>; the adapter is the only place that knows about the legacy class.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 6 &mdash; DictionaryStorage adapter</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">adapter for tests</span></div>
+<div class="section-label">Goal</div>
+<p>Define <code class="il">IKeyValueStore</code>:</p>
+<pre><code><span class="kw">public interface</span> <span class="type">IKeyValueStore</span>
+{
+    <span class="type">string</span>? Get(<span class="type">string</span> key);
+    <span class="kw">void</span> Set(<span class="type">string</span> key, <span class="type">string</span> value);
+}</code></pre>
+<p>Production code might implement this with Redis. Write an in-memory <code class="il">DictionaryStore : IKeyValueStore</code> for use in unit tests. The adapter wraps a <code class="il">Dictionary&lt;string, string&gt;</code>.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>This is the Adapter pattern applied for testing: making a simple object (Dictionary) look like a complex interface (IKeyValueStore).</li>
+  <li>Production swaps in <code class="il">RedisStore</code>; tests use my <code class="il">DictionaryStore</code>. Nothing else changes.</li>
+  <li>I just discovered why &ldquo;program to an interface&rdquo; is good advice: it lets you adapt.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 7 &mdash; Stream adapters (no code &mdash; identify)</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">recognise the pattern</span></div>
+<div class="section-label">Goal</div>
+<p>The .NET <code class="il">Stream</code> hierarchy is full of adapters. Look up <code class="il">StreamReader</code>, <code class="il">BufferedStream</code>, <code class="il">GZipStream</code>. For each, answer: what does it adapt FROM, and what does it adapt TO?</p>
+<details><summary>Hint</summary>
+<ul>
+  <li><code class="il">StreamReader</code> adapts <code class="il">Stream</code> (byte-oriented) to <code class="il">TextReader</code> (char-oriented).</li>
+  <li><code class="il">BufferedStream</code> adapts a <code class="il">Stream</code> to a <em>buffered</em> Stream &mdash; same interface, different behaviour. (This is closer to Decorator than Adapter, but the distinction is fuzzy.)</li>
+  <li><code class="il">GZipStream</code> adapts an underlying Stream to a compressed/decompressed view.</li>
+</ul>
+<p>Adapter and Decorator overlap. Don't lose sleep over the distinction &mdash; if the wrapper changes the <em>interface</em>, it's Adapter; if it adds behaviour with the <em>same interface</em>, it's Decorator. Both wrap something. Both are useful.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-chain" class="section-anchor">3 &mdash; Chain of Responsibility</h2>
+
+<p><strong>Concept guide:</strong> <code class="il">_Organized/02-Architecture-and-Patterns/29-Validator-Pipeline-Chain-Of-Responsibility.html</code></p>
+
+<div class="drill">
+<h3>Drill 8 &mdash; ValidatorChain</h3>
+<div class="meta-row"><span class="tag time">15 min</span><span class="tag topic">chain basics</span></div>
+<div class="section-label">Goal</div>
+<p>You have a <code class="il">RegistrationRequest(string Email, string Password, int Age)</code> and several validation rules:</p>
+<ul>
+  <li>Email must contain <code class="il">@</code>.</li>
+  <li>Password must be at least 8 characters.</li>
+  <li>Age must be &ge; 18.</li>
+</ul>
+<p>Build a chain of validators. Each validator implements <code class="il">IValidator</code> with one method: <code class="il">ValidationResult Validate(RegistrationRequest req);</code>. A chain runs them in order; the first failure stops the chain (or you can collect all errors &mdash; pick one approach).</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Each validator is one class, one responsibility.</li>
+  <li>The chain (a <code class="il">List&lt;IValidator&gt;</code> or a linked list) wires them together.</li>
+  <li>Adding a new rule = one new class + one line of registration. No existing code changes.</li>
+</ul>
+<details><summary>Hint &mdash; two shapes</summary>
+<p><strong>List-based:</strong> <code class="il">var validators = new List&lt;IValidator&gt; { ... }; foreach (var v in validators) { var result = v.Validate(req); if (!result.Ok) return result; }</code>. Simple, no recursion. This is how FluentValidation works under the hood.</p>
+<p><strong>Linked-chain:</strong> each validator holds a reference to the next one. Each validator decides whether to call the next. More flexible (some validators might skip others) but more complex. This is the original GoF shape.</p>
+<p>Most modern .NET code uses the list-based shape. Use the linked shape only if rules need to decide what comes next.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 9 &mdash; Pipeline as middleware</h3>
+<div class="meta-row"><span class="tag time">12 min</span><span class="tag topic">middleware shape</span></div>
+<div class="section-label">Goal</div>
+<p>ASP.NET Core middleware is Chain of Responsibility. Write a minimal version:</p>
+<pre><code><span class="kw">public delegate</span> <span class="type">Task</span> RequestDelegate(<span class="type">HttpContextLite</span> context);
+
+<span class="kw">public class</span> <span class="type">HttpContextLite</span>
+{
+    <span class="kw">public</span> <span class="type">string</span> Url { <span class="kw">get</span>; <span class="kw">set</span>; } = <span class="str">""</span>;
+    <span class="kw">public</span> <span class="type">int</span> StatusCode { <span class="kw">get</span>; <span class="kw">set</span>; } = <span class="num">200</span>;
+}</code></pre>
+<p>Write three middlewares: <code class="il">LoggingMiddleware</code>, <code class="il">AuthMiddleware</code>, <code class="il">EndpointMiddleware</code>. Each takes the next delegate in its constructor, and either calls it or short-circuits.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Each middleware decides whether to call <code class="il">_next(context)</code> or short-circuit (e.g. AuthMiddleware sets <code class="il">401</code> and returns).</li>
+  <li>I composed them in order: Logging &rarr; Auth &rarr; Endpoint. I can rearrange just by changing the composition.</li>
+  <li>I see why ASP.NET's <code class="il">app.Use(...)</code> pipeline works this way.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 10 &mdash; Short-circuit vs collect</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">design choice</span></div>
+<div class="section-label">Goal</div>
+<p>Take Drill 8 and rewrite the chain in two modes:</p>
+<ol>
+  <li><strong>Short-circuit:</strong> stop at the first failure.</li>
+  <li><strong>Collect all:</strong> run every validator, return all failures.</li>
+</ol>
+<p>Pick one as the &ldquo;default&rdquo; for your service. Defend the choice.</p>
+<details><summary>Hint</summary>
+<p>For a UI form: collect all &mdash; user wants to see every error at once, not fix-and-retry-fix-and-retry. For an API guard / auth pipeline: short-circuit &mdash; if auth fails, don't bother checking the request body. Choose by use case.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 11 &mdash; CheckInValidator pipeline (no code &mdash; analyse)</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">real example</span></div>
+<div class="section-label">Goal</div>
+<p>Read the linked guide on the validator pipeline. Then answer:</p>
+<ol>
+  <li>What was the &ldquo;before&rdquo; shape that motivated the chain?</li>
+  <li>What does adding a new rule cost in the new shape?</li>
+  <li>If the chain is in a DI container, how do you register multiple validators and have the chain pick them all up automatically?</li>
+</ol>
+<details><summary>Hint &mdash; on DI</summary>
+<p>You register each validator as an <code class="il">IValidator</code>, and inject <code class="il">IEnumerable&lt;IValidator&gt;</code> into the chain. <code class="il">services.AddSingleton&lt;IValidator, EmailValidator&gt;();</code> repeated per validator. The DI container gives you all of them as a list.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-recognize" class="section-anchor">4 &mdash; Pattern recognition</h2>
+
+<div class="drill">
+<h3>Drill 12 &mdash; Name the pattern (no code)</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">recognition</span></div>
+<div class="section-label">Goal</div>
+<p>For each snippet description, name the pattern:</p>
+<ol>
+  <li>An order processor accepts a <code class="il">IDiscountCalculator</code> in its constructor; concrete calculators handle &ldquo;black friday&rdquo; vs &ldquo;loyalty&rdquo; vs &ldquo;none&rdquo;.</li>
+  <li>A class wraps a third-party PDF library to expose a simpler <code class="il">IDocumentRenderer</code> interface.</li>
+  <li>A request goes through Authentication &rarr; RateLimiting &rarr; Logging &rarr; Handler; each step decides whether to continue.</li>
+  <li>A class assembles a <code class="il">Pizza</code> object via <code class="il">.WithCrust(...).AddTopping(...).Build()</code>.</li>
+  <li>A button click in a UI notifies multiple subscribers (Logging, Analytics, UI update) without the button knowing who's listening.</li>
+  <li>A method takes an <code class="il">Action&lt;ConfigBuilder&gt;</code> lambda so callers can configure a service.</li>
+</ol>
+<details><summary>Hint &mdash; my picks</summary>
+<ol>
+  <li>Strategy.</li>
+  <li>Adapter.</li>
+  <li>Chain of Responsibility (specifically, middleware).</li>
+  <li>Builder.</li>
+  <li>Observer (events / pub-sub).</li>
+  <li>Builder with an Action delegate &mdash; the &ldquo;configure-via-lambda&rdquo; idiom. (See Delegates drill 16.)</li>
+</ol>
+<p>Recognising these instantly in code review is a senior-developer skill. Now you have it.</p>
+</details>
+</div>
+
+<h2 id="after">After these</h2>
+
+<p>You can: spot Strategy in production code, write an Adapter when you need to make A look like B, and build a Chain of Responsibility for validators or middleware. Combined with the Builder exercises in <code class="il">C1/docs/</code>, you've got the four most-used GoF patterns under your fingers.</p>
+
+<p>Patterns deliberately skipped (ask later if you want them):</p>
+<ul>
+  <li>Observer (events) &mdash; you've used it via SignalR; we can drill it as a primitive if needed.</li>
+  <li>Decorator &mdash; close cousin of Adapter, covered implicitly.</li>
+  <li>Factory / Abstract Factory &mdash; useful but not as common as the four above.</li>
+  <li>Mediator / CQRS &mdash; advanced; better as a separate doc once the basics are reflex.</li>
+  <li>Singleton &mdash; deliberately skipped; DI containers make it largely obsolete.</li>
+</ul>
+
+</div>
+</body>
+</html>

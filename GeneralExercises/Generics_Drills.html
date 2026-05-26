@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Generics &mdash; Blank-Page Drills</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {
+  --bg: #0b1220; --surface: #111a2e; --surface-2: #16223c;
+  --border: #243352; --text: #e6ecf5; --text-dim: #9aa7c0;
+  --accent: #6aa6ff; --accent-2: #b06aff; --code-bg: #0a1120;
+  --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 28px; }
+header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
+header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
+header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
+h1, h2, h3, h4 { color: var(--text); margin-top: 1.6em; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+a { color: var(--accent); }
+code, pre, code.il { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; border: 1px solid var(--border); }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55; }
+pre code { background: transparent; border: 0; padding: 0; }
+blockquote { border-left: 3px solid var(--accent); background: var(--surface);
+  padding: 10px 16px; margin: 12px 0; color: var(--text-dim); border-radius: 0 6px 6px 0; }
+.callout { background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-2); padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; }
+.callout.warn { border-left-color: var(--warn); }
+.kw   { color: #c792ea; }
+.type { color: #82aaff; }
+.str  { color: #c3e88d; }
+.num  { color: #f78c6c; }
+.cmt  { color: #6c7a96; font-style: italic; }
+.drill { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 20px; margin: 20px 0; }
+.drill h3 { margin-top: 0; font-size: 17px; }
+.drill .meta-row { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-dim); margin-bottom: 8px; }
+.drill .meta-row span.tag { background: var(--surface-2); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; }
+.drill .meta-row span.tag.time { color: var(--accent); }
+.drill .meta-row span.tag.topic { color: var(--accent-2); }
+.section-label { text-transform: uppercase; font-size: 10px; letter-spacing: 0.08em;
+  color: var(--text-dim); margin: 14px 0 4px; font-weight: 600; }
+.checklist { list-style: none; padding-left: 0; margin: 4px 0; }
+.checklist li { padding: 3px 0 3px 26px; position: relative; font-size: 14px; }
+.checklist li::before { content: ""; position: absolute; left: 0; top: 8px; width: 13px; height: 13px;
+  border: 1.5px solid var(--text-dim); border-radius: 3px; background: var(--code-bg); }
+details { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 8px 12px; margin: 10px 0; }
+details > summary { cursor: pointer; color: var(--accent); font-weight: 500; user-select: none; font-size: 13px; }
+details[open] > summary { margin-bottom: 8px; }
+.toc { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 18px; margin: 18px 0 28px; font-size: 14px; }
+.toc ol { margin: 6px 0; padding-left: 22px; }
+.toc li { margin: 2px 0; }
+.toc a { text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+.section-anchor { padding-top: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">GeneralExercises &rsaquo; Generics</div>
+  <h1>Generics &mdash; blank-page drills</h1>
+  <div class="meta">17 drills covering generic methods, generic types, constraints, generic interfaces, and variance. Companion to your two existing guides &mdash; read those first.</div>
+</header>
+
+<h2 id="prereq">Read these first</h2>
+
+<ul>
+  <li><code class="il">_Organized/01-Basics/CSharp_Generics_Guide.html</code> &mdash; the foundation.</li>
+  <li><code class="il">_Organized/04-CSharp-Language/generics-builders-deep-dive.html</code> &mdash; advanced uses.</li>
+</ul>
+
+<p>The drills assume you understand: &ldquo;<code class="il">List&lt;T&gt;</code> means a list of <em>some</em> type T, decided by the caller&rdquo;. If that sentence feels solid, you're ready.</p>
+
+<h2 id="why">Why this</h2>
+
+<p>Generics are how you write code <em>once</em> that works for <em>many</em> types &mdash; without giving up type safety. They're the single biggest difference between modern strongly-typed code and 2000s &ldquo;<code class="il">object</code>-soup&rdquo; code.</p>
+
+<p>The four skills these drills target:</p>
+<ol>
+  <li>Writing a generic method.</li>
+  <li>Writing a generic class.</li>
+  <li>Constraining generic parameters with <code class="il">where</code>.</li>
+  <li>Knowing when generics are the wrong answer (overkill, abstraction without purpose).</li>
+</ol>
+
+<div class="toc">
+  <strong>Drill index</strong>
+  <ol>
+    <li><a href="#sec-method">Generic methods (drills 1&ndash;4)</a></li>
+    <li><a href="#sec-type">Generic types (drills 5&ndash;7)</a></li>
+    <li><a href="#sec-constraint">Constraints (drills 8&ndash;12)</a></li>
+    <li><a href="#sec-interface">Generic interfaces (drills 13&ndash;14)</a></li>
+    <li><a href="#sec-variance">Variance: in / out (drills 15&ndash;16)</a></li>
+    <li><a href="#sec-design">When NOT to use generics (drill 17)</a></li>
+  </ol>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-method" class="section-anchor">1 &mdash; Generic methods</h2>
+
+<div class="drill">
+<h3>Drill 1 &mdash; Identity</h3>
+<div class="meta-row"><span class="tag time">3 min</span><span class="tag topic">basic syntax</span></div>
+<div class="section-label">Goal</div>
+<p>Write a generic method that returns its argument unchanged. This is the simplest possible generic method &mdash; useful for learning the syntax.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">T</span> Identity&lt;<span class="type">T</span>&gt;(<span class="type">T</span> value)</code></pre>
+<div class="section-label">Examples</div>
+<pre><code>Identity(<span class="num">5</span>);             <span class="cmt">// 5     &mdash; T inferred as int</span>
+Identity(<span class="str">"hi"</span>);          <span class="cmt">// "hi"  &mdash; T inferred as string</span>
+Identity&lt;<span class="type">double</span>&gt;(<span class="num">3</span>);   <span class="cmt">// 3.0   &mdash; T explicit; the int is promoted</span></code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I called it three ways: with type inference, with explicit type argument, and with a type that forces conversion.</li>
+  <li>I know that the <code class="il">&lt;T&gt;</code> after the method name is the <em>declaration</em>, and the <code class="il">&lt;double&gt;</code> at the call site is the <em>specification</em>.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 2 &mdash; Swap</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">generic with ref</span></div>
+<div class="section-label">Goal</div>
+<p>Write a generic method that swaps the values of two variables.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static void</span> Swap&lt;<span class="type">T</span>&gt;(<span class="kw">ref</span> <span class="type">T</span> a, <span class="kw">ref</span> <span class="type">T</span> b)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used <code class="il">ref</code> on both parameters.</li>
+  <li>I tested with two different types: <code class="il">int</code>s and <code class="il">string</code>s. Same method, both work.</li>
+  <li>Tuple swap (<code class="il">(a, b) = (b, a)</code>) is the modern one-liner. I tried both.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 3 &mdash; FirstOrThrow</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">generic with IEnumerable</span></div>
+<div class="section-label">Goal</div>
+<p>Write a generic method that returns the first element of an <code class="il">IEnumerable&lt;T&gt;</code>, or throws <code class="il">InvalidOperationException</code> if empty.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">T</span> FirstOrThrow&lt;<span class="type">T</span>&gt;(<span class="type">IEnumerable</span>&lt;<span class="type">T</span>&gt; source)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used <code class="il">.GetEnumerator()</code> and <code class="il">.MoveNext()</code> directly &mdash; not LINQ's <code class="il">.First()</code>.</li>
+  <li>I disposed the enumerator (<code class="il">using var e = source.GetEnumerator()</code>).</li>
+  <li>I considered the case of <code class="il">source</code> being <code class="il">null</code>: I throw <code class="il">ArgumentNullException</code> at the top.</li>
+</ul>
+<details><summary>Hint</summary>
+<pre><code><span class="kw">public static</span> <span class="type">T</span> FirstOrThrow&lt;<span class="type">T</span>&gt;(<span class="type">IEnumerable</span>&lt;<span class="type">T</span>&gt; source)
+{
+    <span class="type">ArgumentNullException</span>.ThrowIfNull(source);
+    <span class="kw">using var</span> e = source.GetEnumerator();
+    <span class="kw">if</span> (!e.MoveNext()) <span class="kw">throw new</span> <span class="type">InvalidOperationException</span>(<span class="str">"empty"</span>);
+    <span class="kw">return</span> e.Current;
+}</code></pre>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 4 &mdash; Cast helper</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">generic with as</span></div>
+<div class="section-label">Goal</div>
+<p>Write a generic method that takes an <code class="il">object?</code> and tries to cast it to <code class="il">T</code>. Return the cast value, or <code class="il">default(T)</code> if the cast fails.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">T</span>? CastOrDefault&lt;<span class="type">T</span>&gt;(<span class="type">object</span>? value)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used the pattern-matching cast: <code class="il">value is T t ? t : default</code>.</li>
+  <li>I tested with <code class="il">CastOrDefault&lt;string&gt;(42)</code> &mdash; returns <code class="il">null</code> without throwing.</li>
+  <li>I noted that this returns <code class="il">default(T)</code> which is <code class="il">null</code> for reference types and <code class="il">0</code>/<code class="il">false</code>/etc. for value types &mdash; sometimes ambiguous. Why might that be a problem?</li>
+</ul>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-type" class="section-anchor">2 &mdash; Generic types</h2>
+
+<div class="drill">
+<h3>Drill 5 &mdash; Box&lt;T&gt;</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">generic class</span></div>
+<div class="section-label">Goal</div>
+<p>Write a generic class <code class="il">Box&lt;T&gt;</code> that holds a single value. Constructor takes the value; one read-only property exposes it.</p>
+<div class="section-label">Behaviour</div>
+<pre><code><span class="kw">var</span> a = <span class="kw">new</span> <span class="type">Box</span>&lt;<span class="type">int</span>&gt;(<span class="num">42</span>);
+a.Value;  <span class="cmt">// 42</span>
+
+<span class="kw">var</span> b = <span class="kw">new</span> <span class="type">Box</span>&lt;<span class="type">string</span>&gt;(<span class="str">"hello"</span>);
+b.Value;  <span class="cmt">// "hello"</span></code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The class declaration is <code class="il">public class Box&lt;T&gt;</code>.</li>
+  <li>I used a primary constructor (modern C# 12+) <em>or</em> a classic explicit constructor. Either is fine.</li>
+  <li>I tested with two different T types.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 6 &mdash; Pair&lt;TFirst, TSecond&gt;</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">multiple type parameters</span></div>
+<div class="section-label">Goal</div>
+<p>Write a generic class <code class="il">Pair&lt;TFirst, TSecond&gt;</code> that holds two values of potentially different types. Make it a <code class="il">record</code> so equality is automatic.</p>
+<div class="section-label">Behaviour</div>
+<pre><code><span class="kw">var</span> p = <span class="kw">new</span> <span class="type">Pair</span>&lt;<span class="type">string</span>, <span class="type">int</span>&gt;(<span class="str">"age"</span>, <span class="num">30</span>);
+p.First;   <span class="cmt">// "age"</span>
+p.Second;  <span class="cmt">// 30</span>
+
+<span class="kw">new</span> <span class="type">Pair</span>&lt;<span class="type">string</span>, <span class="type">int</span>&gt;(<span class="str">"x"</span>, <span class="num">1</span>) == <span class="kw">new</span> <span class="type">Pair</span>&lt;<span class="type">string</span>, <span class="type">int</span>&gt;(<span class="str">"x"</span>, <span class="num">1</span>);  <span class="cmt">// true</span></code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The record is one line: <code class="il">public sealed record Pair&lt;TFirst, TSecond&gt;(TFirst First, TSecond Second);</code></li>
+  <li>I know this is essentially what a tuple is &mdash; but with a meaningful name. When would a named <code class="il">Pair</code> be better than <code class="il">(string, int)</code>?</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 7 &mdash; Stack&lt;T&gt;</h3>
+<div class="meta-row"><span class="tag time">15 min</span><span class="tag topic">generic data structure</span></div>
+<div class="section-label">Goal</div>
+<p>Write your own <code class="il">MyStack&lt;T&gt;</code> &mdash; a LIFO stack with <code class="il">Push</code>, <code class="il">Pop</code>, <code class="il">Peek</code>, and <code class="il">Count</code>. Back it with a <code class="il">List&lt;T&gt;</code> internally.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li><code class="il">Pop</code> on an empty stack throws <code class="il">InvalidOperationException</code>.</li>
+  <li><code class="il">Peek</code> on an empty stack throws <code class="il">InvalidOperationException</code>.</li>
+  <li>I wrote at least three tests covering: push/pop one item, push three pop in order, peek doesn't remove.</li>
+  <li>I now appreciate why the standard <code class="il">Stack&lt;T&gt;</code> exists.</li>
+</ul>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-constraint" class="section-anchor">3 &mdash; Constraints</h2>
+
+<p class="callout"><strong>Constraints answer: &ldquo;what can I do with a <code class="il">T</code> inside the method?&rdquo;</strong> Without constraints, <code class="il">T</code> is <em>only</em> the things every object can do: ToString, GetHashCode, Equals, GetType. To call <code class="il">.Length</code>, <code class="il">.CompareTo</code>, <code class="il">.SomeProperty</code>, you must tell the compiler T has those.</p>
+
+<div class="drill">
+<h3>Drill 8 &mdash; MaxOf</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">IComparable constraint</span></div>
+<div class="section-label">Goal</div>
+<p>Write a generic method that returns the larger of two values. <strong>Use a constraint</strong> &mdash; not a non-generic version per type.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">T</span> MaxOf&lt;<span class="type">T</span>&gt;(<span class="type">T</span> a, <span class="type">T</span> b) <span class="kw">where</span> <span class="type">T</span> : <span class="type">IComparable</span>&lt;<span class="type">T</span>&gt;</code></pre>
+<div class="section-label">Examples</div>
+<pre><code>MaxOf(<span class="num">3</span>, <span class="num">7</span>);                <span class="cmt">// 7</span>
+MaxOf(<span class="str">"apple"</span>, <span class="str">"banana"</span>);    <span class="cmt">// "banana"</span>
+MaxOf(<span class="type">DateTime</span>.Now, <span class="type">DateTime</span>.UtcNow);  <span class="cmt">// works</span></code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The constraint <code class="il">where T : IComparable&lt;T&gt;</code> let me call <code class="il">a.CompareTo(b)</code>.</li>
+  <li>I know <code class="il">CompareTo</code>'s return: negative if a&lt;b, 0 if equal, positive if a&gt;b.</li>
+  <li>I tested with three types and the same method works for all.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 9 &mdash; CreateDefault</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">new() constraint</span></div>
+<div class="section-label">Goal</div>
+<p>Write a generic method that returns a new instance of T using its parameterless constructor.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">T</span> CreateDefault&lt;<span class="type">T</span>&gt;() <span class="kw">where</span> <span class="type">T</span> : <span class="kw">new</span>()</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Without the <code class="il">new()</code> constraint, <code class="il">return new T()</code> doesn't compile. I tried it.</li>
+  <li>I tested with a type that has a parameterless constructor (e.g. <code class="il">List&lt;int&gt;</code>).</li>
+  <li>I tried calling it with a type that <em>doesn't</em> have one (e.g. <code class="il">string</code>) &mdash; the compiler rejects it.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 10 &mdash; SaveEntity (multiple constraints)</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">interface constraint</span></div>
+<div class="section-label">Goal</div>
+<p>Define an interface <code class="il">IEntity { int Id { get; } }</code>. Write a generic method that takes a <code class="il">List&lt;T&gt;</code> where T implements <code class="il">IEntity</code>, and returns the IDs as a <code class="il">List&lt;int&gt;</code>.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">List</span>&lt;<span class="type">int</span>&gt; GetIds&lt;<span class="type">T</span>&gt;(<span class="type">List</span>&lt;<span class="type">T</span>&gt; entities) <span class="kw">where</span> <span class="type">T</span> : <span class="type">IEntity</span></code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The constraint <code class="il">where T : IEntity</code> let me call <code class="il">entity.Id</code> inside the method.</li>
+  <li>I wrote two implementing types and tested both with the same method.</li>
+  <li>I can articulate why this is more useful than a method taking <code class="il">List&lt;IEntity&gt;</code> directly. (Hint: type identity preserved at call site.)</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 11 &mdash; Class vs struct constraint</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">class / struct constraints</span></div>
+<div class="section-label">Goal</div>
+<p>Write two methods:</p>
+<ol>
+  <li><code class="il">public static T? FirstOrNull&lt;T&gt;(IEnumerable&lt;T&gt; source) where T : class</code> &mdash; returns null if empty.</li>
+  <li><code class="il">public static T? FirstOrNullStruct&lt;T&gt;(IEnumerable&lt;T&gt; source) where T : struct</code> &mdash; returns nullable struct.</li>
+</ol>
+<p>Try to call them with the &ldquo;wrong&rdquo; kind of T. Observe the compile error.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I now know why the standard library has two separate <code class="il">FirstOrDefault</code> overloads in <code class="il">Nullable</code> contexts.</li>
+  <li>I understand <code class="il">T?</code> means different things depending on whether T is a class or struct. (Reference types: just the type, nullable annotation. Structs: <code class="il">Nullable&lt;T&gt;</code>.)</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 12 &mdash; Combined constraints</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">multiple where clauses</span></div>
+<div class="section-label">Goal</div>
+<p>Write a generic method that:</p>
+<ul>
+  <li>Takes a <code class="il">List&lt;T&gt;</code>.</li>
+  <li>Where T is a reference type.</li>
+  <li>Where T implements <code class="il">IComparable&lt;T&gt;</code>.</li>
+  <li>Where T has a parameterless constructor.</li>
+</ul>
+<p>(Yes, that's a lot. Real constraints stack up like this when generic code gets serious.)</p>
+<div class="section-label">Signature shape</div>
+<pre><code><span class="kw">public static</span> <span class="type">T</span> SortFirst&lt;<span class="type">T</span>&gt;(<span class="type">List</span>&lt;<span class="type">T</span>&gt; items)
+    <span class="kw">where</span> <span class="type">T</span> : <span class="kw">class</span>, <span class="type">IComparable</span>&lt;<span class="type">T</span>&gt;, <span class="kw">new</span>()</code></pre>
+<p>Implementation: sort the list, return the first element, or create a new T if empty.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The order of constraints matters: <code class="il">class</code> / <code class="il">struct</code> must come first, <code class="il">new()</code> must come last. I learned this by hitting the compile error.</li>
+  <li>I understand why over-constraining is a sign you're trying too hard &mdash; usually a sign to split into two methods or rethink the design.</li>
+</ul>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-interface" class="section-anchor">4 &mdash; Generic interfaces</h2>
+
+<div class="drill">
+<h3>Drill 13 &mdash; IRepository&lt;T&gt;</h3>
+<div class="meta-row"><span class="tag time">12 min</span><span class="tag topic">generic interface</span></div>
+<div class="section-label">Goal</div>
+<p>Define a generic interface for a generic in-memory store:</p>
+<pre><code><span class="kw">public interface</span> <span class="type">IStore</span>&lt;<span class="type">T</span>&gt; <span class="kw">where</span> <span class="type">T</span> : <span class="type">IEntity</span>
+{
+    <span class="type">T</span>? Get(<span class="type">int</span> id);
+    <span class="type">List</span>&lt;<span class="type">T</span>&gt; All();
+    <span class="kw">void</span> Add(<span class="type">T</span> item);
+}</code></pre>
+<p>Implement it as <code class="il">InMemoryStore&lt;T&gt;</code> backed by a <code class="il">Dictionary&lt;int, T&gt;</code>. Test it with two different entity types.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The implementation works for both entity types &mdash; you wrote it once.</li>
+  <li>I can articulate the difference between this and a non-generic <code class="il">IStore</code> with object methods. (Type safety, no casting, IntelliSense knows T.)</li>
+  <li>I now understand why &ldquo;generic repository&rdquo; is a famously over-used pattern &mdash; it's seductive because generics make it easy.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 14 &mdash; Generic method on a non-generic class</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">scope of T</span></div>
+<div class="section-label">Goal</div>
+<p>Write a non-generic static class with a generic method on it. (Many extension classes look like this.) Example: <code class="il">Helpers.IfNull&lt;T&gt;(T? value, T fallback)</code>.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The <code class="il">&lt;T&gt;</code> belongs to the method, not the class.</li>
+  <li>I called the method with <em>different</em> T's in the same program &mdash; each call has its own T.</li>
+</ul>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-variance" class="section-anchor">5 &mdash; Variance: in / out</h2>
+
+<p class="callout warn">This is the hardest section. It's also the one most working developers don't truly understand. Worth investing the 25 minutes.</p>
+
+<div class="drill">
+<h3>Drill 15 &mdash; Covariance with out (no code &mdash; explain &amp; test)</h3>
+<div class="meta-row"><span class="tag time">15 min</span><span class="tag topic">out variance</span></div>
+<div class="section-label">Goal</div>
+<p>Try this code:</p>
+<pre><code><span class="type">IEnumerable</span>&lt;<span class="type">string</span>&gt; strings = <span class="kw">new</span>[] { <span class="str">"a"</span>, <span class="str">"b"</span> };
+<span class="type">IEnumerable</span>&lt;<span class="type">object</span>&gt; objects = strings;  <span class="cmt">// works!</span>
+
+<span class="type">List</span>&lt;<span class="type">string</span>&gt; stringList = <span class="kw">new</span>() { <span class="str">"a"</span> };
+<span class="type">List</span>&lt;<span class="type">object</span>&gt; objectList = stringList;  <span class="cmt">// does NOT work!</span></code></pre>
+<p>Why does the first work but the second fail? Read about <a href="https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/covariance-contravariance/">covariance and contravariance</a>. Write 4&ndash;6 sentences explaining.</p>
+<details><summary>Hint &mdash; the intuition</summary>
+<p><code class="il">IEnumerable&lt;T&gt;</code> is declared as <code class="il">IEnumerable&lt;out T&gt;</code> &mdash; T is &ldquo;covariant&rdquo;, meaning it's only ever <em>produced</em>, never consumed. Since a string IS an object, producing strings and treating them as objects is safe. <code class="il">List&lt;T&gt;</code> isn't variance-marked &mdash; it both produces (Add reads T) and consumes (you can <code class="il">.Add(item)</code>). If <code class="il">List&lt;string&gt;</code> were assignable to <code class="il">List&lt;object&gt;</code>, you could then <code class="il">.Add(42)</code> to it &mdash; corrupting the string list. The compiler stops you.</p>
+<p>Rule of thumb: <code class="il">out T</code> = T is only output (return values, properties). <code class="il">in T</code> = T is only input (parameters). Plain <code class="il">T</code> = both.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 16 &mdash; Contravariance with in</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">in variance</span></div>
+<div class="section-label">Goal</div>
+<p>Define a generic interface <code class="il">IPrinter&lt;in T&gt;</code> with one method: <code class="il">void Print(T value);</code>. Implement <code class="il">ObjectPrinter : IPrinter&lt;object&gt;</code>. Then prove that you can assign an <code class="il">IPrinter&lt;object&gt;</code> to an <code class="il">IPrinter&lt;string&gt;</code> variable.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I removed the <code class="il">in</code> keyword and watched the assignment break.</li>
+  <li>I can articulate the rule: a printer that accepts objects can pretend to be a printer of strings, because strings ARE objects. &ldquo;Wider input is safe.&rdquo;</li>
+  <li>I now grok the difference: covariance = wider output is safe (<code class="il">out</code>); contravariance = wider input is safe (<code class="il">in</code>).</li>
+</ul>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-design" class="section-anchor">6 &mdash; When NOT to use generics</h2>
+
+<div class="drill">
+<h3>Drill 17 &mdash; Generic overkill (no code &mdash; identify smells)</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">judgment</span></div>
+<div class="section-label">Goal</div>
+<p>For each scenario, decide: generic, or not? Write a sentence per scenario.</p>
+<ol>
+  <li>A method that adds two numbers of any numeric type.</li>
+  <li>A service that handles only <code class="il">User</code> entities &mdash; saving, loading, deleting.</li>
+  <li>A method that compares two values for equality.</li>
+  <li>A &ldquo;generic repository&rdquo; for every entity in your domain.</li>
+  <li>A configuration loader that returns strongly-typed config objects.</li>
+</ol>
+<details><summary>Hint &mdash; my answers</summary>
+<ol>
+  <li>Yes &mdash; generic with the new <code class="il">INumber&lt;T&gt;</code> constraint. C# 11+ has this built in.</li>
+  <li>No. You have one entity type. Just write <code class="il">UserService</code>. Generics here add ceremony with zero benefit. (This is the &ldquo;over-application of patterns&rdquo; trap.)</li>
+  <li>Yes &mdash; <code class="il">EqualityComparer&lt;T&gt;.Default.Equals(a, b)</code> already exists, but writing a generic version is a fine exercise.</li>
+  <li>Usually <strong>no</strong> &mdash; this is the classic anti-pattern. Different entities have different query needs; a one-size-fits-all repository forces you to leak EF Core into business logic via <code class="il">IQueryable</code> escapes or to write a repository so thin it's just a DbSet rename. Better: specific repos per aggregate.</li>
+  <li>Yes &mdash; <code class="il">configuration.Get&lt;TConfig&gt;(...)</code> is the standard ASP.NET Core pattern. Use it.</li>
+</ol>
+<p>Rule: generics solve <strong>real type duplication</strong>. If you only have one T, you don't need a generic. If you have many Ts but each needs different behaviour, generics aren't the right abstraction &mdash; polymorphism or strategy is.</p>
+</details>
+</div>
+
+<h2 id="after">After these</h2>
+
+<p>You now have: generic methods, generic types, the four common constraints (<code class="il">where T : class / struct / new() / SomeInterface</code>), generic interfaces, an intuition for variance, and a working sense of when generics add value vs add noise.</p>
+
+<p>The deepest lesson is in drill 17: <strong>generics are a tool, not a goal</strong>. Lots of code is worse because someone made it generic prematurely. Recognise that and you'll write code that ages well.</p>
+
+<p>Bring me your captured questions.</p>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Drills curriculum &mdash; index</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {
+  --bg: #0b1220;
+  --surface: #111a2e;
+  --surface-2: #16223c;
+  --border: #243352;
+  --text: #e6ecf5;
+  --text-dim: #9aa7c0;
+  --accent: #6aa6ff;
+  --accent-2: #b06aff;
+  --code-bg: #0a1120;
+  --ok: #4ade80;
+  --warn: #fbbf24;
+  --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg); color: var(--text);
+  font: 16px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif;
+}
+.wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px; margin-bottom: 28px;
+}
+header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
+header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
+header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
+h1, h2, h3 { color: var(--text); margin-top: 1.6em; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+a { color: var(--accent); }
+code, code.il { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; border: 1px solid var(--border); }
+blockquote {
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+  padding: 10px 16px; margin: 12px 0;
+  color: var(--text-dim);
+  border-radius: 0 6px 6px 0;
+}
+.tbl-wrap { overflow-x: auto; margin: 14px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+th { background: var(--surface-2); }
+.status {
+  display: inline-block;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+  padding: 2px 8px; border-radius: 4px;
+  text-transform: uppercase;
+}
+.status.done { background: #1e3a2e; color: #4ade80; border: 1px solid #2d5a3f; }
+.status.next { background: #3a2e1e; color: #f59e0b; border: 1px solid #5a402d; }
+.status.plan { background: #1e2a3a; color: #6aa6ff; border: 1px solid #2d405a; }
+.status.read { background: #2e1e3a; color: #c792ea; border: 1px solid #402d5a; }
+.callout {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-2);
+  padding: 12px 16px;
+  margin: 14px 0;
+  border-radius: 0 6px 6px 0;
+}
+.priority {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin: 12px 0;
+}
+.priority h3 { margin-top: 0; font-size: 16px; }
+.priority .why { color: var(--text-dim); font-size: 13px; margin: 4px 0 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">GeneralExercises</div>
+  <h1>C# drills &mdash; curriculum index</h1>
+  <div class="meta">The map of all planned drill docs. Crossed with your <code class="il">_Organized</code> learning folder to show where you already have concept material and where drills add the practice layer.</div>
+</header>
+
+<h2 id="philosophy">The split</h2>
+
+<p>Your <code class="il">_Organized</code> folder is excellent <em>conceptual</em> material &mdash; it explains how things work. It has zero exercises. These drills are the missing half: <strong>they make you write code from a blank file</strong> using those concepts. Read the guide, then drill it. Drill it, then re-read the guide. The two reinforce each other.</p>
+
+<blockquote>The criterion for inclusion: would mastering this make you feel like <em>a programmer who happens to use C#</em> rather than <em>someone who can fix C# code with help</em>? If yes, it's on the list.</blockquote>
+
+<h2 id="status">Status &amp; pace</h2>
+
+<div class="callout">
+<p><strong>Realistic pace from me:</strong> 1&ndash;2 high-quality drill docs per session. Each doc is 15&ndash;25 drills, hand-written hints, no padding. Rushing them defeats the point &mdash; weak hints would tempt you to ask me to solve drills, which is exactly the trap we're avoiding.</p>
+<p><strong>Your pace:</strong> 3&ndash;5 drills per sitting, ideally daily for two weeks per topic. That's how the blank-page reflex actually rebuilds.</p>
+</div>
+
+<h2 id="legend">Legend</h2>
+
+<p>
+<span class="status done">done</span> &mdash; doc exists, go drill.<br>
+<span class="status next">writing now</span> &mdash; produced in this session.<br>
+<span class="status plan">planned</span> &mdash; ask me &ldquo;write the X drills&rdquo; when you're ready.<br>
+<span class="status read">read first</span> &mdash; you have a concept guide in <code class="il">_Organized</code>; read it before the drill doc lands.
+</p>
+
+<h2 id="curriculum">The curriculum</h2>
+
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>#</th><th>Topic</th><th>Status</th><th>Concept guide (in _Organized)</th></tr></thead>
+<tbody>
+<tr>
+  <td>1</td>
+  <td><a href="Collections_And_Equality_Drills.html">Collections &amp; Equality</a></td>
+  <td><span class="status done">done</span></td>
+  <td>01-Basics / CSharp_Equality_Guide.html</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><a href="LINQ_Drills.html">LINQ</a></td>
+  <td><span class="status done">done</span></td>
+  <td>&mdash;</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><a href="Async_Drills.html">Async &amp; await</a></td>
+  <td><span class="status done">done</span></td>
+  <td>08-Concurrency-and-Async / ASyncPattern.html</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><a href="PatternMatching_Records_Drills.html">Pattern matching, records, value objects</a></td>
+  <td><span class="status done">done</span></td>
+  <td>04-CSharp-Language / 32-Named-Tuples-Value-Semantics.html</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td><a href="Exception_Handling_Drills.html">Exception handling: catch, throw, wrap, swallow</a></td>
+  <td><span class="status done">done</span></td>
+  <td>&mdash;</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td><a href="Delegates_Lambdas_Drills.html">Delegates, lambdas, Func/Action/Predicate</a></td>
+  <td><span class="status done">done</span></td>
+  <td>04-CSharp-Language / delegates-lambdas-expression-bodies.html</td>
+</tr>
+<tr>
+  <td>7</td>
+  <td><a href="Generics_Drills.html">Generics: constraints, variance, generic methods</a></td>
+  <td><span class="status done">done</span></td>
+  <td>01-Basics / CSharp_Generics_Guide.html<br>04-CSharp-Language / generics-builders-deep-dive.html</td>
+</tr>
+<tr>
+  <td>8</td>
+  <td><a href="Strings_Drills.html">Strings: formatting, interpolation, comparison, Span&lt;char&gt;</a></td>
+  <td><span class="status done">done</span></td>
+  <td>&mdash;</td>
+</tr>
+<tr>
+  <td>9</td>
+  <td><a href="Enums_Drills.html">Enums &amp; Flags</a></td>
+  <td><span class="status done">done</span></td>
+  <td>04-CSharp-Language / 12-CSharp-Flags-Enum.html</td>
+</tr>
+<tr>
+  <td>10</td>
+  <td><a href="ValueRef_Types_Drills.html">Value vs reference types, stack/heap, nullability</a></td>
+  <td><span class="status done">done</span></td>
+  <td>01-Basics / CSharp_Stack_and_Heap_Guide.html</td>
+</tr>
+<tr>
+  <td>11</td>
+  <td><a href="DesignPatterns_Drills.html">Design pattern micro-drills (Strategy, Adapter, Chain of Responsibility)</a></td>
+  <td><span class="status done">done</span></td>
+  <td>02-Architecture-and-Patterns / 03-Adapter-Pattern-Explained.html<br>02-... / 29-Validator-Pipeline-Chain-Of-Responsibility.html<br>02-... / 31-Strategy-Pattern-Pluggable-Algorithms.html</td>
+</tr>
+<tr>
+  <td>12</td>
+  <td>Builder pattern (already a doc, but it's <em>exercises</em>, not flash drills)</td>
+  <td><span class="status done">done</span></td>
+  <td>C1/docs/Builder_Pattern_Guide.html &amp; C1/docs/Builder_Exercises.html</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<h2 id="excluded">Deliberately excluded (for now)</h2>
+
+<p>Your <code class="il">_Organized</code> folder also has material on Blazor, EF Core, SignalR, JS interop, Identity, IMemoryCache, etc. These are <strong>framework/project topics</strong> &mdash; very valuable, but they live above the language layer. We'll add drills for them after the language fundamentals feel solid. The right time to drill EF Core is when you can write a LINQ query from scratch without thinking; the right time to drill SignalR is when async patterns are reflexive.</p>
+
+<h2 id="next">Suggested order</h2>
+
+<p>All twelve drill docs are now written. I'd recommend this order based on dependency &mdash; each builds on the previous:</p>
+
+<div class="priority">
+<h3>Foundation (do these first)</h3>
+<p class="why">Everything else assumes you can do these in your sleep.</p>
+<ol>
+  <li>Collections &amp; Equality (done) &mdash; data structures + the contract that makes them work</li>
+  <li>LINQ (now) &mdash; data manipulation reflex</li>
+  <li>Value vs reference types (planned, read CSharp_Stack_and_Heap_Guide first)</li>
+</ol>
+</div>
+
+<div class="priority">
+<h3>Modern C# style (do these next)</h3>
+<p class="why">What makes 2025 C# different from 2015 C#. These are what employers look at.</p>
+<ol start="4">
+  <li>Pattern matching, records, value objects</li>
+  <li>Delegates, lambdas, Func/Action (skip if you feel solid &mdash; you use them daily)</li>
+  <li>Async &amp; await (now) &mdash; non-negotiable for any modern .NET work</li>
+</ol>
+</div>
+
+<div class="priority">
+<h3>Robust code (do these after the above)</h3>
+<p class="why">The difference between code that works and code that stays working.</p>
+<ol start="7">
+  <li>Exception handling</li>
+  <li>Generics (read CSharp_Generics_Guide first)</li>
+  <li>Strings &amp; formatting</li>
+</ol>
+</div>
+
+<div class="priority">
+<h3>Design intuition (last)</h3>
+<p class="why">Once the language is reflexive, work on how to <em>shape</em> code.</p>
+<ol start="10">
+  <li>Enums &amp; Flags (read 12-CSharp-Flags-Enum first)</li>
+  <li>Design pattern micro-drills (Strategy, Adapter, Chain of Responsibility)</li>
+  <li>Builder pattern exercises (done &mdash; in C1/docs/)</li>
+</ol>
+</div>
+
+<h2 id="how-to-request">When you're ready for more</h2>
+
+<p>The 12 docs are complete. Total: ~200 drills. At 3/day that's roughly 9 weeks of practice. If after working through them you want sibling docs on adjacent topics, ask:</p>
+
+<ul>
+  <li><strong>Observer / events</strong> &mdash; pub/sub pattern as a primitive.</li>
+  <li><strong>IAsyncEnumerable &amp; channels</strong> &mdash; streaming async data.</li>
+  <li><strong>Reflection &amp; attributes</strong> &mdash; reading types at runtime.</li>
+  <li><strong>Threading primitives</strong> &mdash; locks, Interlocked, SemaphoreSlim deep dive.</li>
+  <li><strong>EF Core query patterns</strong> &mdash; the right time is when LINQ is reflex.</li>
+  <li><strong>Blazor component patterns</strong> &mdash; when async and DI are reflex.</li>
+</ul>
+
+<p class="callout"><strong>Don't try to do them all at once.</strong> The reps need spacing to stick. Three drills a day for two weeks beats 30 drills in one weekend &mdash; the brain consolidates motor patterns during sleep, not during a marathon. Pick one topic, work it daily, move on when each drill feels &ldquo;trivial&rdquo; rather than &ldquo;done&rdquo;.</p>
+
+</div>
+</body>
+</html>

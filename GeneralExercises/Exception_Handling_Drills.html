@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Exception Handling &mdash; Blank-Page Drills</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {
+  --bg: #0b1220; --surface: #111a2e; --surface-2: #16223c;
+  --border: #243352; --text: #e6ecf5; --text-dim: #9aa7c0;
+  --accent: #6aa6ff; --accent-2: #b06aff; --code-bg: #0a1120;
+  --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 28px; }
+header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
+header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
+header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
+h1, h2, h3, h4 { color: var(--text); margin-top: 1.6em; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+a { color: var(--accent); }
+code, pre, code.il { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; border: 1px solid var(--border); }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55; }
+pre code { background: transparent; border: 0; padding: 0; }
+blockquote { border-left: 3px solid var(--accent); background: var(--surface);
+  padding: 10px 16px; margin: 12px 0; color: var(--text-dim); border-radius: 0 6px 6px 0; }
+.callout { background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-2); padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; }
+.callout.warn { border-left-color: var(--warn); }
+.callout.bad  { border-left-color: var(--bad); }
+.kw   { color: #c792ea; }
+.type { color: #82aaff; }
+.str  { color: #c3e88d; }
+.num  { color: #f78c6c; }
+.cmt  { color: #6c7a96; font-style: italic; }
+.drill { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 20px; margin: 20px 0; }
+.drill h3 { margin-top: 0; font-size: 17px; }
+.drill .meta-row { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-dim); margin-bottom: 8px; }
+.drill .meta-row span.tag { background: var(--surface-2); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; }
+.drill .meta-row span.tag.time { color: var(--accent); }
+.drill .meta-row span.tag.topic { color: var(--accent-2); }
+.section-label { text-transform: uppercase; font-size: 10px; letter-spacing: 0.08em;
+  color: var(--text-dim); margin: 14px 0 4px; font-weight: 600; }
+.checklist { list-style: none; padding-left: 0; margin: 4px 0; }
+.checklist li { padding: 3px 0 3px 26px; position: relative; font-size: 14px; }
+.checklist li::before { content: ""; position: absolute; left: 0; top: 8px; width: 13px; height: 13px;
+  border: 1.5px solid var(--text-dim); border-radius: 3px; background: var(--code-bg); }
+details { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 8px 12px; margin: 10px 0; }
+details > summary { cursor: pointer; color: var(--accent); font-weight: 500; user-select: none; font-size: 13px; }
+details[open] > summary { margin-bottom: 8px; }
+.toc { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 18px; margin: 18px 0 28px; font-size: 14px; }
+.toc ol { margin: 6px 0; padding-left: 22px; }
+.toc li { margin: 2px 0; }
+.toc a { text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+.section-anchor { padding-top: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">GeneralExercises &rsaquo; Exception handling</div>
+  <h1>Exception handling &mdash; blank-page drills</h1>
+  <div class="meta">15 drills covering throw, catch, finally, custom exceptions, and the dominant question of exception design: <em>when not to catch</em>. Same rules: no AI, learn.microsoft.com only, 10-min timer.</div>
+</header>
+
+<h2 id="why">The thesis</h2>
+
+<p>Most exception bugs aren't &ldquo;forgot to catch an exception&rdquo; &mdash; they're &ldquo;caught one that should have crashed loud&rdquo;. A swallowed exception is a hidden bug that ships to production and surfaces six months later as a corrupted record. Junior code over-catches; senior code lets exceptions propagate to a layer that <em>knows</em> what to do.</p>
+
+<p>These drills lean heavily on judgment, not syntax. The syntax is small; the wisdom is everything.</p>
+
+<blockquote>The single most important thing in this doc: read drill 9 (<em>When NOT to catch</em>) twice.</blockquote>
+
+<div class="toc">
+  <strong>Drill index</strong>
+  <ol>
+    <li><a href="#sec-basics">try/catch/finally basics (drills 1&ndash;3)</a></li>
+    <li><a href="#sec-rethrow">Specific vs general; throw vs throw ex (drills 4&ndash;6)</a></li>
+    <li><a href="#sec-custom">Custom exceptions (drills 7&ndash;8)</a></li>
+    <li><a href="#sec-judgment">When NOT to catch (drills 9&ndash;11)</a></li>
+    <li><a href="#sec-async">Exceptions in async code (drills 12&ndash;13)</a></li>
+    <li><a href="#sec-design">Design questions (drills 14&ndash;15)</a></li>
+  </ol>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== BASICS ===================== -->
+<!-- ============================================ -->
+<h2 id="sec-basics" class="section-anchor">1 &mdash; try/catch/finally basics</h2>
+
+<div class="drill">
+<h3>Drill 1 &mdash; ParseSafely</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">try/catch</span></div>
+<div class="section-label">Goal</div>
+<p>Given a <code class="il">string</code>, try to parse it as an <code class="il">int</code>. Return the parsed value, or <code class="il">-1</code> if parsing fails.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">int</span> ParseOrNegative(<span class="type">string</span> input)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I caught only <code class="il">FormatException</code> and <code class="il">OverflowException</code> &mdash; not bare <code class="il">Exception</code>.</li>
+  <li>I considered: should this even use try/catch? Is <code class="il">int.TryParse</code> the better answer? Why?</li>
+</ul>
+<details><summary>Hint</summary>
+<p><code class="il">int.TryParse(input, out var n)</code> is almost always preferable to try/catch around <code class="il">int.Parse</code>. Exception-based control flow is slow and obscures intent. Use try/catch when you genuinely can't predict failure (e.g. reading a file); use TryX patterns when you can.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 2 &mdash; FileWithCleanup</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">finally / using</span></div>
+<div class="section-label">Goal</div>
+<p>Open a <code class="il">FileStream</code>, write a line, close it &mdash; even if writing throws. Do it two ways:</p>
+<ol>
+  <li>With try/finally explicitly.</li>
+  <li>With a <code class="il">using</code> declaration.</li>
+</ol>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I know what <code class="il">using</code> compiles to (try/finally with <code class="il">Dispose()</code>).</li>
+  <li>I prefer <code class="il">using</code> in real code. I can articulate why.</li>
+  <li>I know <code class="il">using var</code> (declaration form) vs <code class="il">using (...)</code> (block form). I picked one.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 3 &mdash; FinallyOrder (predict, then run)</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">finally semantics</span></div>
+<div class="section-label">Goal</div>
+<p>Predict the output of this code <em>before running</em>:</p>
+<pre><code><span class="kw">try</span>
+{
+    <span class="type">Console</span>.WriteLine(<span class="str">"A"</span>);
+    <span class="kw">throw new</span> <span class="type">InvalidOperationException</span>(<span class="str">"boom"</span>);
+}
+<span class="kw">catch</span> (<span class="type">InvalidOperationException</span>)
+{
+    <span class="type">Console</span>.WriteLine(<span class="str">"B"</span>);
+    <span class="kw">throw</span>;
+}
+<span class="kw">finally</span>
+{
+    <span class="type">Console</span>.WriteLine(<span class="str">"C"</span>);
+}</code></pre>
+<p>Wrap the whole thing in an outer try/catch that prints <code class="il">"D"</code>. What's the order? When does <code class="il">"D"</code> print relative to <code class="il">"C"</code>?</p>
+<details><summary>Hint &mdash; after predicting</summary>
+<p>Order: A, B, C, D. <code class="il">finally</code> runs <em>before</em> the exception propagates out, even though the catch re-throws.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== SPECIFIC VS GENERAL ======== -->
+<!-- ============================================ -->
+<h2 id="sec-rethrow" class="section-anchor">2 &mdash; Specific vs general; throw vs throw ex</h2>
+
+<div class="drill">
+<h3>Drill 4 &mdash; The catch-all crime</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">catch (Exception)</span></div>
+<div class="section-label">Goal</div>
+<p>Write this code. Predict what gets caught.</p>
+<pre><code><span class="kw">try</span>
+{
+    <span class="type">string</span>? s = <span class="kw">null</span>;
+    <span class="type">Console</span>.WriteLine(s.Length); <span class="cmt">// NullReferenceException</span>
+}
+<span class="kw">catch</span> (<span class="type">FileNotFoundException</span> ex)
+{
+    <span class="type">Console</span>.WriteLine(<span class="str">"file: "</span> + ex.Message);
+}
+<span class="kw">catch</span> (<span class="type">Exception</span> ex)
+{
+    <span class="type">Console</span>.WriteLine(<span class="str">"general: "</span> + ex.Message);
+}</code></pre>
+<p>Question: which catch fires? Now <em>delete the general catch</em>. What happens?</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I predicted before running.</li>
+  <li>I know the rule: catch arms are tried top-down by type, first match wins.</li>
+  <li>I know what happens with no matching catch: exception propagates up the call stack.</li>
+  <li>I can name when <code class="il">catch (Exception)</code> is appropriate (logging at the top of a request handler, then re-throw) and when it's a crime (in business logic, swallowed).</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 5 &mdash; throw vs throw ex</h3>
+<div class="meta-row"><span class="tag time">12 min</span><span class="tag topic">re-throwing</span></div>
+<div class="section-label">Goal</div>
+<p>Write two versions of the same code. Both catch an exception and rethrow:</p>
+<pre><code><span class="cmt">// Version 1</span>
+<span class="kw">try</span> { Inner(); }
+<span class="kw">catch</span> (<span class="type">Exception</span> ex)
+{
+    <span class="type">Console</span>.WriteLine(<span class="str">"caught"</span>);
+    <span class="kw">throw</span>;
+}
+
+<span class="cmt">// Version 2</span>
+<span class="kw">try</span> { Inner(); }
+<span class="kw">catch</span> (<span class="type">Exception</span> ex)
+{
+    <span class="type">Console</span>.WriteLine(<span class="str">"caught"</span>);
+    <span class="kw">throw</span> ex; <span class="cmt">// note the "ex"</span>
+}</code></pre>
+<p>Where <code class="il">Inner()</code> is a method that calls another method that throws. Run both. Look at the stack traces. One of them is wrong.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I see the difference in the stack trace.</li>
+  <li>I can state the rule: <code class="il">throw;</code> preserves the original stack trace, <code class="il">throw ex;</code> resets it to <em>this line</em>. Almost always you want <code class="il">throw;</code>.</li>
+  <li>I now know to never write <code class="il">throw ex;</code> in a generic re-throw catch.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 6 &mdash; Wrap with inner exception</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">exception wrapping</span></div>
+<div class="section-label">Goal</div>
+<p>Write a service method <code class="il">LoadConfigAsync</code> that reads a JSON file and parses it. If <em>any</em> exception fires (file not found, JSON malformed, etc.), wrap it in a custom <code class="il">ConfigurationException</code> with a friendly message, attaching the original as <code class="il">InnerException</code>.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The thrown <code class="il">ConfigurationException</code> has <code class="il">InnerException</code> set to the original.</li>
+  <li>The caller can see <em>both</em> messages by walking <code class="il">.InnerException</code> or by printing <code class="il">ex.ToString()</code>.</li>
+  <li>I can name the pattern: <strong>translate exceptions at layer boundaries</strong>. (Why? Domain-level callers shouldn't care that the failure was IO; they care that &ldquo;configuration couldn't load&rdquo;.)</li>
+</ul>
+<details><summary>Hint</summary>
+<pre><code><span class="kw">try</span>
+{
+    <span class="kw">var</span> json = <span class="kw">await</span> <span class="type">File</span>.ReadAllTextAsync(path);
+    <span class="kw">return</span> <span class="type">JsonSerializer</span>.Deserialize&lt;<span class="type">Config</span>&gt;(json)
+        ?? <span class="kw">throw new</span> <span class="type">ConfigurationException</span>(<span class="str">"config was null"</span>);
+}
+<span class="kw">catch</span> (<span class="type">Exception</span> ex) <span class="kw">when</span> (ex <span class="kw">is not</span> <span class="type">ConfigurationException</span>)
+{
+    <span class="kw">throw new</span> <span class="type">ConfigurationException</span>(<span class="str">$"Failed to load config from {path}"</span>, ex);
+}</code></pre>
+<p>The <code class="il">when</code> filter avoids double-wrapping if a <code class="il">ConfigurationException</code> bubbled up from inside.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== CUSTOM EXCEPTIONS ========== -->
+<!-- ============================================ -->
+<h2 id="sec-custom" class="section-anchor">3 &mdash; Custom exceptions</h2>
+
+<div class="drill">
+<h3>Drill 7 &mdash; OrderNotFoundException</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">custom exception type</span></div>
+<div class="section-label">Goal</div>
+<p>Write a custom exception <code class="il">OrderNotFoundException</code>. It should:</p>
+<ul>
+  <li>Carry the order ID that wasn't found as a property.</li>
+  <li>Have a useful default message that includes the ID (e.g. <code class="il">"Order 42 not found"</code>).</li>
+  <li>Inherit from <code class="il">Exception</code>.</li>
+  <li>Have constructors mirroring <code class="il">Exception</code>'s &mdash; one with just the ID, one that also takes an inner exception.</li>
+</ul>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The class name ends in <code class="il">Exception</code>.</li>
+  <li>I have <em>at least</em> the two constructors above.</li>
+  <li>I followed the convention: the message goes to <code class="il">base(message)</code>; the custom data goes on a property.</li>
+  <li>I know the rule of thumb: <strong>create a custom exception only if a caller might want to catch it specifically</strong>. Otherwise use a built-in (<code class="il">InvalidOperationException</code>, <code class="il">ArgumentException</code>, etc.).</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 8 &mdash; Built-in or custom? (no code &mdash; decide)</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">judgment</span></div>
+<div class="section-label">Goal</div>
+<p>For each scenario, pick a built-in exception or argue for a custom one. Write 1&ndash;2 sentences each.</p>
+<ol>
+  <li>A method that requires a non-null <code class="il">name</code> argument.</li>
+  <li>A method that requires <code class="il">age &gt;= 0</code>.</li>
+  <li>An &ldquo;already paid&rdquo; check when trying to pay an invoice twice.</li>
+  <li>An object that's been disposed and shouldn't be used.</li>
+  <li>A configuration value that doesn't match a known enum.</li>
+</ol>
+<details><summary>Hint &mdash; my picks</summary>
+<ol>
+  <li><code class="il">ArgumentNullException</code> (or <code class="il">ArgumentException.ThrowIfNull(name)</code> in modern .NET).</li>
+  <li><code class="il">ArgumentOutOfRangeException</code>.</li>
+  <li>Custom: <code class="il">InvoiceAlreadyPaidException</code>. The caller may want to catch and show a different UI. <em>Or</em>: <code class="il">InvalidOperationException</code> with a clear message, if no caller treats this specially.</li>
+  <li><code class="il">ObjectDisposedException</code>.</li>
+  <li><code class="il">InvalidOperationException</code>, or a custom <code class="il">UnknownConfigOptionException</code> if multiple callers branch on it.</li>
+</ol>
+</details>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== WHEN NOT TO CATCH ========== -->
+<!-- ============================================ -->
+<h2 id="sec-judgment" class="section-anchor">4 &mdash; When NOT to catch</h2>
+
+<p class="callout bad"><strong>This section is the whole point of the doc.</strong> Read each drill twice.</p>
+
+<div class="drill">
+<h3>Drill 9 &mdash; The swallow (anti-pattern)</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">anti-pattern</span></div>
+<div class="section-label">Goal</div>
+<p>Read this code. Identify everything wrong with it. There's at least three things.</p>
+<pre><code><span class="kw">public</span> <span class="type">User</span>? GetUser(<span class="type">int</span> id)
+{
+    <span class="kw">try</span>
+    {
+        <span class="kw">return</span> _db.Users.Single(u =&gt; u.Id == id);
+    }
+    <span class="kw">catch</span> (<span class="type">Exception</span>)
+    {
+        <span class="kw">return</span> <span class="kw">null</span>;
+    }
+}</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I named the &ldquo;catching <code class="il">Exception</code>&rdquo; problem.</li>
+  <li>I named the &ldquo;silent failure&rdquo; problem &mdash; no logging.</li>
+  <li>I noticed that <code class="il">Single</code> throws for two different reasons (not found AND multiple found) and they're now indistinguishable from network failure, database timeout, OutOfMemoryException...</li>
+  <li>I can describe what a real review comment would say: &ldquo;Use <code class="il">SingleOrDefault</code> if 'not found' is normal; let real errors crash and be logged at the boundary.&rdquo;</li>
+</ul>
+<details><summary>Hint &mdash; the principle</summary>
+<p>Three crimes in eight lines:</p>
+<ol>
+  <li><strong>Conflating expected absence with error.</strong> &ldquo;User not found&rdquo; is a normal outcome, not an exception. Model it as <code class="il">null</code> via <code class="il">SingleOrDefault</code>, or a Result type, or whatever &mdash; but not as &ldquo;throw and ignore&rdquo;.</li>
+  <li><strong>Swallowing every other failure.</strong> A connection timeout returns <code class="il">null</code> to the caller, who treats it identically to &ldquo;not found&rdquo;. Now you have a bug that says &ldquo;user with valid ID doesn't exist&rdquo; intermittently, and no log entry to trace.</li>
+  <li><strong>No logging.</strong> The exception is gone forever. Future-you grep the logs for &ldquo;Exception&rdquo; trying to debug a customer report. Nothing. Hours wasted.</li>
+</ol>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 10 &mdash; Where exceptions should crash (no code &mdash; explain)</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">judgment</span></div>
+<div class="section-label">Goal</div>
+<p>In a typical Blazor Server app (your usual context), name three places where an unhandled exception should be allowed to crash and three places where it should be caught. Justify each.</p>
+<details><summary>Hint &mdash; rough framing</summary>
+<p><strong>Should propagate (don't catch in business logic):</strong></p>
+<ul>
+  <li>Inside a service method &mdash; let it bubble to whoever called you.</li>
+  <li>In an EF Core query &mdash; let connection or constraint errors surface; don't pretend the data was fine.</li>
+  <li>Inside a validator that detects a bug &mdash; throw and crash; the data shouldn't proceed.</li>
+</ul>
+<p><strong>Should be caught (boundaries):</strong></p>
+<ul>
+  <li>A request/Razor component handler &mdash; catch at the top, log, show a friendly error to the user.</li>
+  <li>A background service / hosted service loop &mdash; catch around each iteration so one bad message doesn't kill the loop forever.</li>
+  <li>An integration point (HTTP call to a third party) &mdash; catch their errors, translate into a domain exception that callers can reason about.</li>
+</ul>
+<p>The rule: <strong>catch at boundaries, propagate within layers</strong>.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 11 &mdash; The empty catch</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">judgment</span></div>
+<div class="section-label">Goal</div>
+<p>Write down one (and only one) scenario where <code class="il">catch { /* nothing */ }</code> &mdash; a truly empty catch &mdash; is the right thing to do.</p>
+<p>If you can't think of one, that's a strong signal that empty catches are almost always wrong.</p>
+<details><summary>Hint</summary>
+<p>One scenario I'd accept: a best-effort log flush during shutdown. You're already crashing; you can't log the failure to log; do your best and move on. Even then, I'd write <code class="il">// best-effort: shutdown logging</code> right above the empty catch to communicate intent. Every other &ldquo;empty catch&rdquo; in real code is a hidden bug.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== ASYNC ====================== -->
+<!-- ============================================ -->
+<h2 id="sec-async" class="section-anchor">5 &mdash; Exceptions in async code</h2>
+
+<div class="drill">
+<h3>Drill 12 &mdash; The unobserved task</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">async exceptions</span></div>
+<div class="section-label">Goal</div>
+<p>Write a method <code class="il">FailLaterAsync</code> that waits 100 ms then throws. Then write three versions of calling it, and predict whether the exception gets caught:</p>
+<pre><code><span class="cmt">// Version A</span>
+<span class="kw">try</span> { <span class="kw">await</span> FailLaterAsync(); }
+<span class="kw">catch</span> (<span class="type">Exception</span> ex) { <span class="type">Console</span>.WriteLine(ex.Message); }
+
+<span class="cmt">// Version B</span>
+<span class="kw">try</span> { FailLaterAsync(); } <span class="cmt">// note: no await</span>
+<span class="kw">catch</span> (<span class="type">Exception</span> ex) { <span class="type">Console</span>.WriteLine(ex.Message); }
+<span class="kw">await</span> <span class="type">Task</span>.Delay(<span class="num">500</span>);
+
+<span class="cmt">// Version C</span>
+<span class="kw">var</span> t = FailLaterAsync();
+<span class="kw">await</span> <span class="type">Task</span>.Delay(<span class="num">500</span>);
+<span class="kw">try</span> { <span class="kw">await</span> t; }
+<span class="kw">catch</span> (<span class="type">Exception</span> ex) { <span class="type">Console</span>.WriteLine(ex.Message); }</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I predicted each before running.</li>
+  <li>I explained why version B doesn't catch the exception.</li>
+  <li>I understand that the exception is &ldquo;stored on the Task&rdquo; and only thrown when the Task is observed (awaited or <code class="il">.Wait()</code>).</li>
+</ul>
+<details><summary>Hint</summary>
+<p>A: caught. B: not caught &mdash; the synchronous try/catch block sees no exception, because <code class="il">FailLaterAsync()</code> just returns a Task immediately. The exception fires inside the Task, with no observer. C: caught &mdash; the exception was waiting on the Task; awaiting surfaced it.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 13 &mdash; WhenAll and AggregateException</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">async exceptions, WhenAll</span></div>
+<div class="section-label">Goal</div>
+<p>Kick off three tasks in parallel. Make two of them throw different exceptions. <code class="il">await Task.WhenAll(tasks)</code> in a try/catch.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I awaited and caught. Only <em>one</em> exception is rethrown by <code class="il">await</code> &mdash; even though two tasks failed.</li>
+  <li>I learned how to see <em>all</em> the failures: look at <code class="il">whenAllTask.Exception</code> (an <code class="il">AggregateException</code>) after the await, or check the individual tasks' <code class="il">.Exception</code>.</li>
+  <li>I know <code class="il">await</code> intentionally unwraps the AggregateException to make &ldquo;the first exception&rdquo; convenient &mdash; but you can lose data this way if you don't check.</li>
+</ul>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== DESIGN ===================== -->
+<!-- ============================================ -->
+<h2 id="sec-design" class="section-anchor">6 &mdash; Design questions</h2>
+
+<div class="drill">
+<h3>Drill 14 &mdash; Result types vs exceptions (no code)</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">API design</span></div>
+<div class="section-label">Goal</div>
+<p>In some codebases, methods return <code class="il">Result&lt;T&gt;</code> objects (success/failure with error info) instead of throwing. Compare:</p>
+<ol>
+  <li>What problems do Result types solve?</li>
+  <li>What problems do they introduce?</li>
+  <li>For a Blazor Server service method that loads an employee by ID, would you use exceptions or a Result type? Why?</li>
+</ol>
+<details><summary>Hint &mdash; my framing</summary>
+<p>Result types make &ldquo;expected failures&rdquo; (validation, not-found, business rule violations) part of the type signature &mdash; the caller is forced to handle them. They reduce hidden control flow. But they're viral &mdash; once one method returns Result, callers tend to too, and the signature noise piles up.</p>
+<p>My rule for Blazor service code: <strong>exceptions for genuinely exceptional things</strong> (DB down, file missing, programmer errors), <strong>nullable return or Result for expected outcomes</strong> (not found, validation failed). This matches how most senior C# code is written. Don't go full Result-monad on a CRUD app &mdash; you'll write more glue than logic.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 15 &mdash; Defensive programming: when does it hurt? (no code)</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">judgment</span></div>
+<div class="section-label">Goal</div>
+<p>Look at this code in a private method. Identify which checks are valuable and which are noise.</p>
+<pre><code><span class="kw">private</span> <span class="type">decimal</span> ApplyDiscount(<span class="type">Order</span> order, <span class="type">decimal</span> percent)
+{
+    <span class="kw">if</span> (order == <span class="kw">null</span>) <span class="kw">throw new</span> <span class="type">ArgumentNullException</span>(<span class="kw">nameof</span>(order));
+    <span class="kw">if</span> (percent &lt; <span class="num">0</span>) <span class="kw">throw new</span> <span class="type">ArgumentOutOfRangeException</span>(<span class="kw">nameof</span>(percent));
+    <span class="kw">if</span> (percent &gt; <span class="num">100</span>) <span class="kw">throw new</span> <span class="type">ArgumentOutOfRangeException</span>(<span class="kw">nameof</span>(percent));
+    <span class="kw">if</span> (order.Total &lt; <span class="num">0</span>) <span class="kw">throw new</span> <span class="type">InvalidOperationException</span>();
+    <span class="kw">if</span> (order.Items == <span class="kw">null</span>) <span class="kw">throw new</span> <span class="type">InvalidOperationException</span>();
+    <span class="kw">if</span> (order.Items.Count == <span class="num">0</span>) <span class="kw">throw new</span> <span class="type">InvalidOperationException</span>();
+
+    <span class="kw">return</span> order.Total * (<span class="num">1</span> - percent / <span class="num">100</span>);
+}</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I distinguished &ldquo;input from outside the trust boundary&rdquo; from &ldquo;input from internal code I wrote&rdquo;.</li>
+  <li>For a <em>private</em> method, most of these checks are noise &mdash; the public method one layer up should have already enforced them.</li>
+  <li>I know the modern C# helper: <code class="il">ArgumentNullException.ThrowIfNull(order)</code> &mdash; one line instead of three.</li>
+  <li>I can articulate: <strong>validate at boundaries, trust internals.</strong></li>
+</ul>
+<details><summary>Hint</summary>
+<p>For a <em>public</em> service method consumed by Razor components, you want validation. For a private helper called only by code you wrote, you're paying for the same check repeatedly. Worse, every check is a place to forget to update when the contract changes. Trust your own code; don't make every method a fortress.</p>
+</details>
+</div>
+
+<h2 id="after">After these</h2>
+
+<p>You now have a working stance on: try/catch syntax, when to use TryX patterns instead of catching, throw vs throw ex, wrapping at layer boundaries, custom exceptions, the cardinal sin of swallowing, async exception flow, and Result-vs-exception design.</p>
+
+<p>The most important thing: <strong>your default should be to NOT catch</strong>. Every catch needs a justification. If you can't say what the caller does differently because you caught, don't catch.</p>
+
+<p>Bring me your captured questions.</p>
+
+</div>
+</body>
+</html>

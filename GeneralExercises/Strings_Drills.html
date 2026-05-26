@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Strings &mdash; Blank-Page Drills</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root { --bg:#0b1220; --surface:#111a2e; --surface-2:#16223c; --border:#243352; --text:#e6ecf5; --text-dim:#9aa7c0; --accent:#6aa6ff; --accent-2:#b06aff; --code-bg:#0a1120; --ok:#4ade80; --warn:#fbbf24; --bad:#f87171; }
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font:16px/1.65 -apple-system,"Segoe UI",system-ui,sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:32px 24px 80px}
+header.doc-head{border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:28px}
+header.doc-head .crumbs{color:var(--text-dim);font-size:13px}
+header.doc-head h1{margin:6px 0 4px;font-size:28px;line-height:1.2}
+header.doc-head .meta{color:var(--text-dim);font-size:13px}
+h1,h2,h3,h4{color:var(--text);margin-top:1.6em}
+h2{border-bottom:1px solid var(--border);padding-bottom:6px}
+a{color:var(--accent)}
+code,pre,code.il{font-family:"JetBrains Mono","Cascadia Code",Consolas,monospace}
+code.il{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em;border:1px solid var(--border)}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:14px 16px;overflow-x:auto;font-size:13px;line-height:1.55}
+pre code{background:transparent;border:0;padding:0}
+blockquote{border-left:3px solid var(--accent);background:var(--surface);padding:10px 16px;margin:12px 0;color:var(--text-dim);border-radius:0 6px 6px 0}
+.callout{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent-2);padding:12px 16px;margin:14px 0;border-radius:0 6px 6px 0}
+.callout.warn{border-left-color:var(--warn)}
+.kw{color:#c792ea} .type{color:#82aaff} .str{color:#c3e88d} .num{color:#f78c6c} .cmt{color:#6c7a96;font-style:italic}
+.drill{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin:20px 0}
+.drill h3{margin-top:0;font-size:17px}
+.drill .meta-row{display:flex;flex-wrap:wrap;gap:8px;font-size:12px;color:var(--text-dim);margin-bottom:8px}
+.drill .meta-row span.tag{background:var(--surface-2);border:1px solid var(--border);padding:2px 8px;border-radius:4px}
+.drill .meta-row span.tag.time{color:var(--accent)}
+.drill .meta-row span.tag.topic{color:var(--accent-2)}
+.section-label{text-transform:uppercase;font-size:10px;letter-spacing:.08em;color:var(--text-dim);margin:14px 0 4px;font-weight:600}
+.checklist{list-style:none;padding-left:0;margin:4px 0}
+.checklist li{padding:3px 0 3px 26px;position:relative;font-size:14px}
+.checklist li::before{content:"";position:absolute;left:0;top:8px;width:13px;height:13px;border:1.5px solid var(--text-dim);border-radius:3px;background:var(--code-bg)}
+details{background:var(--code-bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;margin:10px 0}
+details>summary{cursor:pointer;color:var(--accent);font-weight:500;user-select:none;font-size:13px}
+details[open]>summary{margin-bottom:8px}
+.toc{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px 18px;margin:18px 0 28px;font-size:14px}
+.toc ol{margin:6px 0;padding-left:22px}
+.toc li{margin:2px 0}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.section-anchor{padding-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">GeneralExercises &rsaquo; Strings</div>
+  <h1>Strings &mdash; blank-page drills</h1>
+  <div class="meta">17 drills covering string manipulation, formatting, interpolation, comparison gotchas, and the modern <code class="il">Span&lt;char&gt;</code> / <code class="il">StringBuilder</code> alternatives. Same rules.</div>
+</header>
+
+<h2 id="why">Why this</h2>
+
+<p>Strings look trivial. They're not. They're immutable, they have a ton of operations, they have culture-dependent behaviour that bites people, and naive concatenation in loops kills performance silently. Most C# developers shy away from <code class="il">Span&lt;char&gt;</code> &mdash; doing these drills puts you ahead.</p>
+
+<div class="toc">
+  <strong>Drill index</strong>
+  <ol>
+    <li><a href="#sec-basics">Basics &amp; immutability (drills 1&ndash;3)</a></li>
+    <li><a href="#sec-format">Formatting &amp; interpolation (drills 4&ndash;7)</a></li>
+    <li><a href="#sec-compare">Comparison &amp; culture (drills 8&ndash;11)</a></li>
+    <li><a href="#sec-builder">StringBuilder &amp; performance (drills 12&ndash;14)</a></li>
+    <li><a href="#sec-span">Span&lt;char&gt; basics (drills 15&ndash;17)</a></li>
+  </ol>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-basics" class="section-anchor">1 &mdash; Basics &amp; immutability</h2>
+
+<div class="drill">
+<h3>Drill 1 &mdash; ReverseString</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">char[] / new string</span></div>
+<div class="section-label">Goal</div>
+<p>Reverse a string. Do <strong>not</strong> use <code class="il">Array.Reverse</code> or LINQ <code class="il">.Reverse()</code>. Use a <code class="il">char[]</code> and your own loop.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">string</span> Reverse(<span class="type">string</span> input)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I built a <code class="il">char[]</code> and returned <code class="il">new string(chars)</code>.</li>
+  <li>I know strings are immutable &mdash; you can't change a char in place.</li>
+  <li>I considered: what does <code class="il">"caf&eacute;".Length</code> return? Is reversing it character-by-character safe? (Hint: combining accents, emoji, etc. The simple answer is &ldquo;no, not in general&rdquo;.)</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 2 &mdash; CountVowels</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">char operations</span></div>
+<div class="section-label">Goal</div>
+<p>Count the vowels (a, e, i, o, u, case-insensitive) in a string.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">int</span> CountVowels(<span class="type">string</span> input)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I lowercased once at the start, not per character.</li>
+  <li>I used a <code class="il">HashSet&lt;char&gt;</code> for the vowels, or a string containing them with <code class="il">.Contains</code>. (Pros and cons of each?)</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 3 &mdash; The immutability check (no code &mdash; predict)</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">immutability</span></div>
+<div class="section-label">Goal</div>
+<p>Predict the output:</p>
+<pre><code><span class="type">string</span> s = <span class="str">"hello"</span>;
+s.ToUpper();
+<span class="type">Console</span>.WriteLine(s);</code></pre>
+<p>Now fix it. Then explain why the original was a common bug.</p>
+<details><summary>Hint</summary>
+<p>Prints <code class="il">hello</code>. <code class="il">ToUpper</code> returns a <em>new</em> string &mdash; doesn't mutate <code class="il">s</code>. Fix: <code class="il">s = s.ToUpper();</code>. Every string method that &ldquo;modifies&rdquo; returns a new string. This is the source of countless bugs in junior code.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-format" class="section-anchor">2 &mdash; Formatting &amp; interpolation</h2>
+
+<div class="drill">
+<h3>Drill 4 &mdash; PriceLabel</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">interpolation + format spec</span></div>
+<div class="section-label">Goal</div>
+<p>Given <code class="il">decimal price = 1234.5m</code>, format it as <code class="il">"€1,234.50"</code> using string interpolation with a format specifier.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used <code class="il">$"€{price:N2}"</code> or <code class="il">$"{price:C}"</code>.</li>
+  <li>I know <code class="il">:N2</code> means &ldquo;numeric with 2 decimals, current culture&rdquo;.</li>
+  <li>I know <code class="il">:C</code> means &ldquo;currency, current culture&rdquo; &mdash; pulls the &euro; symbol from <code class="il">CultureInfo</code>.</li>
+  <li>I tested with explicit <code class="il">CultureInfo("pt-PT")</code> and <code class="il">CultureInfo("en-US")</code> &mdash; observed the difference.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 5 &mdash; DateLabel</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">date formatting</span></div>
+<div class="section-label">Goal</div>
+<p>Format <code class="il">DateTime.Now</code> as <code class="il">"26/05/2026 14:30"</code> (dd/MM/yyyy HH:mm). Then format the same value as ISO 8601 (<code class="il">"2026-05-26T14:30:00"</code>).</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used a custom format string: <code class="il">$"{dt:dd/MM/yyyy HH:mm}"</code>.</li>
+  <li>I used the standard ISO format: <code class="il">"o"</code> or <code class="il">"s"</code>.</li>
+  <li>I know <code class="il">HH</code> is 24-hour, <code class="il">hh</code> is 12-hour. I tested both.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 6 &mdash; Padding &amp; alignment</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">alignment in interp</span></div>
+<div class="section-label">Goal</div>
+<p>Given a list of <code class="il">(string Name, int Score)</code>, print them as a right-aligned column of names with scores after.</p>
+<div class="section-label">Example output</div>
+<pre><code>    Ana: 95
+   Beto: 100
+Catarina:  87</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used the alignment portion of interpolation: <code class="il">$"{name,10}: {score,3}"</code>.</li>
+  <li>Negative numbers left-align, positive right-align. I tried both.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 7 &mdash; Raw string literals</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">""" syntax</span></div>
+<div class="section-label">Goal</div>
+<p>Write a method that returns a JSON-formatted string with several fields. Use a raw string literal (<code class="il">"""</code>) so you don't have to escape the double quotes.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used <code class="il">"""</code> for opening and closing.</li>
+  <li>I used interpolation inside a raw string: <code class="il">$$"""{ "name": "{{name}}" }"""</code> &mdash; note the double <code class="il">$</code> and <code class="il">{{}}</code>.</li>
+  <li>I know the indentation rule: closing <code class="il">"""</code> sets the baseline; content indented further keeps the extra indentation.</li>
+</ul>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-compare" class="section-anchor">3 &mdash; Comparison &amp; culture</h2>
+
+<p class="callout warn"><strong>The Turkish-i problem is real.</strong> Every drill here is about a real bug that has shipped to production.</p>
+
+<div class="drill">
+<h3>Drill 8 &mdash; CaseInsensitiveEquals</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">StringComparison</span></div>
+<div class="section-label">Goal</div>
+<p>Write a method that compares two strings case-insensitively. <strong>Do NOT</strong> use <code class="il">.ToLower()</code>.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static bool</span> EqualsIgnoreCase(<span class="type">string</span>? a, <span class="type">string</span>? b)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used <code class="il">string.Equals(a, b, StringComparison.OrdinalIgnoreCase)</code>.</li>
+  <li>I can name two reasons <code class="il">.ToLower()</code> is wrong: (1) allocates a new string, (2) culture-dependent &mdash; in Turkish, <code class="il">"I".ToLower()</code> is &ldquo;&#305;&rdquo;, not &ldquo;i&rdquo;.</li>
+  <li>I know when to use <code class="il">Ordinal</code> vs <code class="il">InvariantCulture</code> vs <code class="il">CurrentCulture</code>. (Hint: for IDs, technical strings, file paths: <code class="il">Ordinal</code>. For user-visible sorting: <code class="il">CurrentCulture</code>.)</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 9 &mdash; StartsWithSafe</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">StringComparison again</span></div>
+<div class="section-label">Goal</div>
+<p>Write a method that checks if a string starts with a given prefix, case-insensitively, regardless of culture.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used <code class="il">.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)</code> &mdash; not <code class="il">.ToLower().StartsWith(prefix.ToLower())</code>.</li>
+  <li>The non-allocating version (with StringComparison) is faster AND correct.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 10 &mdash; The Turkish trap (predict)</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">culture bug</span></div>
+<div class="section-label">Goal</div>
+<p>Predict what this prints:</p>
+<pre><code><span class="type">CultureInfo</span>.CurrentCulture = <span class="kw">new</span> <span class="type">CultureInfo</span>(<span class="str">"tr-TR"</span>);
+<span class="type">Console</span>.WriteLine(<span class="str">"FILE"</span>.ToLower() == <span class="str">"file"</span>);</code></pre>
+<p>Then explain. Then write the version that always returns <code class="il">true</code> regardless of culture.</p>
+<details><summary>Hint</summary>
+<p>Prints <code class="il">False</code> in Turkish. <code class="il">"FILE".ToLower()</code> in Turkish becomes <code class="il">"f&#305;le"</code> &mdash; capital I lowercases to dotless &#305;. The fix: <code class="il">.ToLowerInvariant()</code> or, better, <code class="il">string.Equals(a, b, StringComparison.OrdinalIgnoreCase)</code>.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 11 &mdash; IsNullOrWhiteSpace (when to use)</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">null vs empty vs whitespace</span></div>
+<div class="section-label">Goal</div>
+<p>Compare:</p>
+<ul>
+  <li><code class="il">x == null</code></li>
+  <li><code class="il">x == ""</code></li>
+  <li><code class="il">string.IsNullOrEmpty(x)</code></li>
+  <li><code class="il">string.IsNullOrWhiteSpace(x)</code></li>
+</ul>
+<p>Write a service method that validates a name field for an entity. Which check do you use? Defend in 2&ndash;3 sentences.</p>
+<details><summary>Hint</summary>
+<p><code class="il">IsNullOrWhiteSpace</code> covers null, empty, and <code class="il">" "</code>. For user input (names, emails, descriptions), this is what you want &mdash; users sometimes type a space and assume it counts as &ldquo;something&rdquo;. For internal IDs, <code class="il">IsNullOrEmpty</code> is enough.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-builder" class="section-anchor">4 &mdash; StringBuilder &amp; performance</h2>
+
+<div class="drill">
+<h3>Drill 12 &mdash; ConcatLoop (timed)</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">allocation cost</span></div>
+<div class="section-label">Goal</div>
+<p>Build a string of 10,000 numbers separated by commas, two ways:</p>
+<ol>
+  <li>Naive <code class="il">+=</code> in a loop.</li>
+  <li>Using <code class="il">StringBuilder</code>.</li>
+</ol>
+<p>Time both with <code class="il">Stopwatch</code>. The difference will surprise you.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I measured both and saw the difference (often 100&times; or more).</li>
+  <li>I can explain why: <code class="il">+=</code> on string allocates a new string every iteration. 10,000 iterations = 10,000 strings of increasing size = O(n&sup2;) memory.</li>
+  <li>StringBuilder amortises &mdash; doubles its internal buffer occasionally, so O(n).</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 13 &mdash; JoinStrings</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">string.Join</span></div>
+<div class="section-label">Goal</div>
+<p>Given a <code class="il">List&lt;string&gt;</code>, produce a single comma-separated string. Do NOT use a loop. Use <code class="il">string.Join</code>.</p>
+<div class="section-label">Examples</div>
+<pre><code>JoinList(<span class="kw">new</span>() { <span class="str">"a"</span>, <span class="str">"b"</span>, <span class="str">"c"</span> });  <span class="cmt">// "a,b,c"</span>
+JoinList(<span class="kw">new</span>());                          <span class="cmt">// ""</span></code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used <code class="il">string.Join(",", items)</code> &mdash; one line.</li>
+  <li>I know <code class="il">string.Join</code> is internally optimised &mdash; faster than a manual StringBuilder for this exact case.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 14 &mdash; When NOT to use StringBuilder (no code)</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">judgment</span></div>
+<div class="section-label">Goal</div>
+<p>Junior devs sometimes reach for StringBuilder reflexively. When is it overkill? Name 3 situations.</p>
+<details><summary>Hint</summary>
+<p>(1) Concatenating a small fixed number of strings &mdash; the compiler optimises <code class="il">a + b + c</code> to a single <code class="il">String.Concat</code> call. (2) Single-statement interpolation &mdash; same optimisation. (3) Joining a known list &mdash; <code class="il">string.Join</code> is better and clearer.</p>
+<p>StringBuilder shines for <strong>variable-length, loop-driven, or multi-statement</strong> assembly.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-span" class="section-anchor">5 &mdash; Span&lt;char&gt; basics</h2>
+
+<p class="callout"><strong>Span&lt;T&gt; is C#'s zero-allocation slicing.</strong> You don't need it daily, but knowing it exists separates working developers from senior ones. Modern .NET APIs increasingly accept and return Span.</p>
+
+<div class="drill">
+<h3>Drill 15 &mdash; SliceWithoutAllocating</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">ReadOnlySpan&lt;char&gt;</span></div>
+<div class="section-label">Goal</div>
+<p>Write a method that takes a string and returns the first 5 characters as a <code class="il">ReadOnlySpan&lt;char&gt;</code> &mdash; not a new string.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">ReadOnlySpan</span>&lt;<span class="type">char</span>&gt; First5(<span class="type">string</span> input)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used <code class="il">input.AsSpan(0, 5)</code>.</li>
+  <li>I know <code class="il">ReadOnlySpan</code> is a <em>view</em> over the existing string &mdash; no allocation.</li>
+  <li>I know Spans are <em>ref structs</em> &mdash; they can't be stored on the heap (no fields of type Span in classes, no boxing). Why is that restriction necessary?</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 16 &mdash; ParseIntFromSpan</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">Span-based parsing</span></div>
+<div class="section-label">Goal</div>
+<p>Parse a substring as an <code class="il">int</code> without allocating a new string. Use <code class="il">int.Parse(ReadOnlySpan&lt;char&gt;)</code>.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used the Span overload of <code class="il">int.Parse</code>, not <code class="il">.Substring</code> + parse.</li>
+  <li>I now know most parsing methods in modern .NET have Span overloads &mdash; preferred for hot paths.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 17 &mdash; When to reach for Span (no code &mdash; judge)</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">when to optimise</span></div>
+<div class="section-label">Goal</div>
+<p>Span is powerful but has costs (more complex code, restrictions on storage). For each scenario, decide: Span, or regular string?</p>
+<ol>
+  <li>Parsing CSV in a parser that processes 10 MB files.</li>
+  <li>A method called twice per Blazor page render to format a label.</li>
+  <li>A startup-time config loader that reads a small JSON file.</li>
+  <li>A logging hot path that runs millions of times per second.</li>
+</ol>
+<details><summary>Hint &mdash; my picks</summary>
+<ol>
+  <li>Span &mdash; allocation per row would dwarf the parsing work.</li>
+  <li>Regular string &mdash; this is called nanoseconds per page, allocation is irrelevant.</li>
+  <li>Regular string &mdash; once at startup, who cares.</li>
+  <li>Span &mdash; the canonical Span use case is logging hot paths.</li>
+</ol>
+<p>Rule: <strong>Span is for hot paths and large data. Don't optimise prematurely.</strong></p>
+</details>
+</div>
+
+<h2 id="after">After these</h2>
+
+<p>You can now: manipulate strings without allocation pitfalls, format dates/numbers/currency, handle culture correctly, choose between concatenation strategies, and know when Span is the right answer.</p>
+
+<p>Bring me your captured questions.</p>
+
+</div>
+</body>
+</html>

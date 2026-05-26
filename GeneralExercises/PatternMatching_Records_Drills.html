@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pattern Matching &amp; Records &mdash; Blank-Page Drills</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {
+  --bg: #0b1220; --surface: #111a2e; --surface-2: #16223c;
+  --border: #243352; --text: #e6ecf5; --text-dim: #9aa7c0;
+  --accent: #6aa6ff; --accent-2: #b06aff; --code-bg: #0a1120;
+  --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 28px; }
+header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
+header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
+header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
+h1, h2, h3, h4 { color: var(--text); margin-top: 1.6em; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+a { color: var(--accent); }
+code, pre, code.il { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; border: 1px solid var(--border); }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55; }
+pre code { background: transparent; border: 0; padding: 0; }
+blockquote { border-left: 3px solid var(--accent); background: var(--surface);
+  padding: 10px 16px; margin: 12px 0; color: var(--text-dim); border-radius: 0 6px 6px 0; }
+.callout { background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-2); padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; }
+.callout.warn { border-left-color: var(--warn); }
+.kw   { color: #c792ea; }
+.type { color: #82aaff; }
+.str  { color: #c3e88d; }
+.num  { color: #f78c6c; }
+.cmt  { color: #6c7a96; font-style: italic; }
+.drill { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 20px; margin: 20px 0; }
+.drill h3 { margin-top: 0; font-size: 17px; }
+.drill .meta-row { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-dim); margin-bottom: 8px; }
+.drill .meta-row span.tag { background: var(--surface-2); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; }
+.drill .meta-row span.tag.time { color: var(--accent); }
+.drill .meta-row span.tag.topic { color: var(--accent-2); }
+.section-label { text-transform: uppercase; font-size: 10px; letter-spacing: 0.08em;
+  color: var(--text-dim); margin: 14px 0 4px; font-weight: 600; }
+.checklist { list-style: none; padding-left: 0; margin: 4px 0; }
+.checklist li { padding: 3px 0 3px 26px; position: relative; font-size: 14px; }
+.checklist li::before { content: ""; position: absolute; left: 0; top: 8px; width: 13px; height: 13px;
+  border: 1.5px solid var(--text-dim); border-radius: 3px; background: var(--code-bg); }
+details { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 8px 12px; margin: 10px 0; }
+details > summary { cursor: pointer; color: var(--accent); font-weight: 500; user-select: none; font-size: 13px; }
+details[open] > summary { margin-bottom: 8px; }
+.toc { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 18px; margin: 18px 0 28px; font-size: 14px; }
+.toc ol { margin: 6px 0; padding-left: 22px; }
+.toc li { margin: 2px 0; }
+.toc a { text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+.section-anchor { padding-top: 12px; }
+.stretch { background: rgba(106, 166, 255, 0.06); border-left: 3px solid var(--accent);
+  padding: 8px 12px; margin: 10px 0; border-radius: 0 4px 4px 0; font-size: 13px; }
+.stretch strong { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">GeneralExercises &rsaquo; Pattern matching &amp; records</div>
+  <h1>Pattern matching &amp; records &mdash; blank-page drills</h1>
+  <div class="meta">18 drills covering what makes 2025 C# look different from 2015 C#. Switch expressions, property patterns, records, value objects, and the &ldquo;with&rdquo; expression. Same rules: no AI, learn.microsoft.com only, 10-min timer.</div>
+</header>
+
+<h2 id="why">Why this matters</h2>
+
+<p>If you can recognise where to replace an <code class="il">if/else</code> ladder with a switch expression, or a class with a record, or a builder with a <code class="il">with</code> expression &mdash; you write code that looks like it was written in this decade. That's a real signal in code review, and more importantly, the resulting code is shorter, safer, and easier to reason about.</p>
+
+<p>Two big wins to aim for:</p>
+<ul>
+  <li><strong>Pattern matching</strong> turns &ldquo;type-check then cast&rdquo; into one step, and replaces big <code class="il">switch</code> statements with expressions that <em>return</em> a value.</li>
+  <li><strong>Records</strong> give you value equality, deconstruction, immutability, and the <code class="il">with</code> expression &mdash; all for free. They turn 50-line DTO classes into one-liners.</li>
+</ul>
+
+<blockquote>Companion guide: <code class="il">_Organized/04-CSharp-Language/32-Named-Tuples-Value-Semantics.html</code>.</blockquote>
+
+<div class="toc">
+  <strong>Drill index</strong>
+  <ol>
+    <li><a href="#sec-switch">Switch expressions (drills 1&ndash;4)</a></li>
+    <li><a href="#sec-property">Property patterns (drills 5&ndash;7)</a></li>
+    <li><a href="#sec-type">Type patterns &amp; "is" (drills 8&ndash;10)</a></li>
+    <li><a href="#sec-list">List patterns (drills 11&ndash;12)</a></li>
+    <li><a href="#sec-records">Records (drills 13&ndash;16)</a></li>
+    <li><a href="#sec-design">Design: when to use what (drills 17&ndash;18)</a></li>
+  </ol>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== SWITCH ===================== -->
+<!-- ============================================ -->
+<h2 id="sec-switch" class="section-anchor">1 &mdash; Switch expressions</h2>
+
+<div class="drill">
+<h3>Drill 1 &mdash; HttpStatusMessage</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">switch expression</span></div>
+<div class="section-label">Goal</div>
+<p>Given an HTTP status code (<code class="il">int</code>), return a short message. <strong>Use a switch expression, not <code class="il">switch</code> statement or <code class="il">if/else</code>.</strong></p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">string</span> StatusMessage(<span class="type">int</span> code)</code></pre>
+<div class="section-label">Examples</div>
+<pre><code>StatusMessage(<span class="num">200</span>)  <span class="cmt">// "OK"</span>
+StatusMessage(<span class="num">404</span>)  <span class="cmt">// "Not Found"</span>
+StatusMessage(<span class="num">500</span>)  <span class="cmt">// "Server Error"</span>
+StatusMessage(<span class="num">418</span>)  <span class="cmt">// "I'm a teapot"</span>
+StatusMessage(<span class="num">999</span>)  <span class="cmt">// "Unknown"</span></code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The whole method is an expression-bodied member (<code class="il">=&gt;</code>).</li>
+  <li>I have a discard pattern (<code class="il">_</code>) for the &ldquo;unknown&rdquo; case.</li>
+  <li>I know what the compiler does if my switch is non-exhaustive without the discard. (Hint: warning.)</li>
+</ul>
+<details><summary>Hint</summary>
+<p>Shape: <code class="il">public static string StatusMessage(int code) =&gt; code switch { 200 =&gt; "OK", 404 =&gt; "Not Found", _ =&gt; "Unknown" };</code>. The <code class="il">_</code> is the catch-all.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 2 &mdash; CategorizeNumber</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">relational patterns</span></div>
+<div class="section-label">Goal</div>
+<p>Categorise an <code class="il">int</code> as <code class="il">"negative"</code>, <code class="il">"zero"</code>, <code class="il">"small"</code> (1&ndash;9), <code class="il">"medium"</code> (10&ndash;99), or <code class="il">"large"</code> (100+). Use a switch expression with relational patterns.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used <code class="il">&lt; 0</code>, <code class="il">&gt;= 1 and &lt;= 9</code>, etc. &mdash; not <code class="il">case int n when ...</code>.</li>
+  <li>I know what the <code class="il">and</code>/<code class="il">or</code>/<code class="il">not</code> pattern combinators are for.</li>
+</ul>
+<details><summary>Hint</summary>
+<pre><code>n <span class="kw">switch</span>
+{
+    &lt; <span class="num">0</span>           =&gt; <span class="str">"negative"</span>,
+    <span class="num">0</span>             =&gt; <span class="str">"zero"</span>,
+    &gt;= <span class="num">1</span> <span class="kw">and</span> &lt;= <span class="num">9</span> =&gt; <span class="str">"small"</span>,
+    <span class="cmt">// ...</span>
+};</code></pre>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 3 &mdash; DayKind</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">enum + switch expression</span></div>
+<div class="section-label">Goal</div>
+<p>Given a <code class="il">DayOfWeek</code> (the built-in enum), return <code class="il">"weekday"</code> or <code class="il">"weekend"</code>. Use one switch expression with the <code class="il">or</code> combinator.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">string</span> DayKind(<span class="type">DayOfWeek</span> day)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used <code class="il">DayOfWeek.Saturday or DayOfWeek.Sunday</code> in one arm &mdash; not two separate arms.</li>
+  <li>I know whether my switch is exhaustive over the enum, and what the compiler tells me if it isn't.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 4 &mdash; TupleSwitch</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">tuple patterns</span></div>
+<div class="section-label">Goal</div>
+<p>Write a rock-paper-scissors judge. Take two strings (<code class="il">"rock"</code>, <code class="il">"paper"</code>, or <code class="il">"scissors"</code>) and return <code class="il">"player1"</code>, <code class="il">"player2"</code>, or <code class="il">"draw"</code>. <strong>Use a switch expression on a tuple.</strong></p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">string</span> Judge(<span class="type">string</span> p1, <span class="type">string</span> p2)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I switched on <code class="il">(p1, p2)</code>, not nested if/elses.</li>
+  <li>I handled the draws with a single &ldquo;same-same&rdquo; arm using a variable pattern: <code class="il">(var a, var b) when a == b =&gt; "draw"</code>. Or used three explicit arms.</li>
+  <li>I have a discard for invalid inputs.</li>
+</ul>
+<details><summary>Hint</summary>
+<pre><code>(p1, p2) <span class="kw">switch</span>
+{
+    (<span class="str">"rock"</span>,     <span class="str">"scissors"</span>) =&gt; <span class="str">"player1"</span>,
+    (<span class="str">"paper"</span>,    <span class="str">"rock"</span>)     =&gt; <span class="str">"player1"</span>,
+    (<span class="str">"scissors"</span>, <span class="str">"paper"</span>)    =&gt; <span class="str">"player1"</span>,
+    <span class="cmt">// ... the symmetric cases for player2</span>
+    (<span class="kw">var</span> a, <span class="kw">var</span> b) <span class="kw">when</span> a == b =&gt; <span class="str">"draw"</span>,
+    _ =&gt; <span class="str">"invalid"</span>
+};</code></pre>
+</details>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== PROPERTY PATTERNS ========== -->
+<!-- ============================================ -->
+<h2 id="sec-property" class="section-anchor">2 &mdash; Property patterns</h2>
+
+<div class="drill">
+<h3>Drill 5 &mdash; AdultStudent</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">property pattern</span></div>
+<div class="section-label">Goal</div>
+<p>Given a <code class="il">Person(string Name, int Age)</code>, return <code class="il">true</code> if they are 18 or older. Use a property pattern with <code class="il">is</code>.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static bool</span> IsAdult(<span class="type">Person</span> person)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used <code class="il">person is { Age: &gt;= 18 }</code> &mdash; not <code class="il">person.Age &gt;= 18</code>.</li>
+  <li>I know that the property pattern also null-checks the object for free &mdash; if <code class="il">person</code> is <code class="il">null</code>, the pattern returns <code class="il">false</code>.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 6 &mdash; ShippingCost</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">switch + property patterns</span></div>
+<div class="section-label">Goal</div>
+<p>Given an <code class="il">Order(decimal Total, bool IsExpress, string Country)</code>, return a shipping cost using a switch expression with property patterns:</p>
+<ul>
+  <li>If Total &gt;= 100 and not express: free.</li>
+  <li>If express: 15.</li>
+  <li>If country is &ldquo;PT&rdquo;: 5.</li>
+  <li>Else: 10.</li>
+</ul>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">decimal</span> ShippingCost(<span class="type">Order</span> order)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I switched on <code class="il">order</code> directly with property patterns, not on a tuple of its fields.</li>
+  <li>The order of arms matters &mdash; I put more-specific arms first.</li>
+  <li>I can articulate why &ldquo;express AND total &gt;= 100&rdquo; should be tested before plain &ldquo;total &gt;= 100&rdquo;.</li>
+</ul>
+<details><summary>Hint</summary>
+<pre><code>order <span class="kw">switch</span>
+{
+    { Total: &gt;= <span class="num">100</span>, IsExpress: <span class="kw">false</span> } =&gt; <span class="num">0</span>,
+    { IsExpress: <span class="kw">true</span> }                  =&gt; <span class="num">15</span>,
+    { Country: <span class="str">"PT"</span> }                     =&gt; <span class="num">5</span>,
+    _                                    =&gt; <span class="num">10</span>
+};</code></pre>
+<p>Why order matters: switch arms are tried top-down, first match wins. An express order with total 200 should pay 15 (express trumps free shipping by your rules) &mdash; or should it? Decide the business rule first; the order of arms follows.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 7 &mdash; ExtractAndUse (no code &mdash; explain)</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">property pattern + capture</span></div>
+<div class="section-label">Goal</div>
+<p>Read the docs on property patterns with variable capture. Write a switch arm that matches a <code class="il">Person</code> aged 18 or older AND captures their name into a local variable for the right-hand side. Show the syntax.</p>
+<details><summary>Hint</summary>
+<p><code class="il">{ Age: &gt;= 18, Name: var name } =&gt; $"Adult: {name}"</code>. The <code class="il">var</code> pattern inside the property pattern binds the value.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== TYPE PATTERNS ============== -->
+<!-- ============================================ -->
+<h2 id="sec-type" class="section-anchor">3 &mdash; Type patterns &amp; "is"</h2>
+
+<div class="drill">
+<h3>Drill 8 &mdash; ParseOrThrow</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">is + variable</span></div>
+<div class="section-label">Goal</div>
+<p>Given an <code class="il">object?</code>, if it's an <code class="il">int</code>, return it doubled. Otherwise throw <code class="il">ArgumentException</code>. <strong>Use <code class="il">is</code> with a variable, not <code class="il">(int)obj</code>.</strong></p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">int</span> DoubleIfInt(<span class="type">object</span>? value)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used <code class="il">if (value is int i)</code> &mdash; one line that tests the type and binds the value if true.</li>
+  <li>I did <em>not</em> do <code class="il">if (value is int) { var i = (int)value; ... }</code> &mdash; that's the pre-C# 7 pattern.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 9 &mdash; DescribeShape</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">type patterns in switch</span></div>
+<div class="section-label">Goal</div>
+<p>Given a base <code class="il">abstract record Shape</code>, with derived types <code class="il">Circle(double Radius)</code>, <code class="il">Rectangle(double Width, double Height)</code>, and <code class="il">Triangle(double Base, double Height)</code>, return the area. Use a switch expression with type patterns and deconstruction.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">double</span> Area(<span class="type">Shape</span> shape)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used positional patterns (deconstruction): <code class="il">Circle(var r) =&gt; ...</code>.</li>
+  <li>The switch is exhaustive &mdash; no warning from the compiler. (Or there is, and I added a discard.)</li>
+  <li>I know that records get <code class="il">Deconstruct</code> automatically, which is what makes positional patterns work.</li>
+</ul>
+<details><summary>Hint</summary>
+<pre><code>shape <span class="kw">switch</span>
+{
+    <span class="type">Circle</span>(<span class="kw">var</span> r)        =&gt; <span class="type">Math</span>.PI * r * r,
+    <span class="type">Rectangle</span>(<span class="kw">var</span> w, <span class="kw">var</span> h) =&gt; w * h,
+    <span class="type">Triangle</span>(<span class="kw">var</span> b, <span class="kw">var</span> h)  =&gt; <span class="num">0.5</span> * b * h,
+    _                       =&gt; <span class="kw">throw new</span> <span class="type">ArgumentException</span>(<span class="str">"unknown shape"</span>)
+};</code></pre>
+<p>This pattern &mdash; sealed/abstract base + discriminated derived types + exhaustive switch &mdash; is C#'s closest thing to a sum type. Sealed the base if you want the compiler to enforce exhaustiveness (in modern .NET).</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 10 &mdash; NotNull (no code &mdash; explain)</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">is not null</span></div>
+<div class="section-label">Goal</div>
+<p>Compare these three guard styles:</p>
+<pre><code><span class="kw">if</span> (value != <span class="kw">null</span>) { ... }
+<span class="kw">if</span> (value <span class="kw">is not null</span>) { ... }
+<span class="kw">if</span> (value <span class="kw">is</span> { }) { ... }</code></pre>
+<p>All three look equivalent. Are they? Write 2&ndash;4 sentences explaining when they differ.</p>
+<details><summary>Hint</summary>
+<p><code class="il">!=</code> can be overloaded &mdash; some types lie about equality. <code class="il">is not null</code> can't be overloaded &mdash; it asks the runtime, not the type. That's why FxCop / analyzers nudge you toward <code class="il">is not null</code>. <code class="il">is { }</code> is equivalent to <code class="il">is not null</code> for reference types; the empty property pattern just means &ldquo;an object exists, no further requirements&rdquo;.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== LIST PATTERNS ============== -->
+<!-- ============================================ -->
+<h2 id="sec-list" class="section-anchor">4 &mdash; List patterns</h2>
+
+<div class="drill">
+<h3>Drill 11 &mdash; FirstAndLast</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">list patterns</span></div>
+<div class="section-label">Goal</div>
+<p>Given an <code class="il">int[]</code>, return a description:</p>
+<ul>
+  <li>Empty &rarr; <code class="il">"empty"</code></li>
+  <li>One element <code class="il">x</code> &rarr; <code class="il">$"single: {x}"</code></li>
+  <li>Two elements <code class="il">x, y</code> &rarr; <code class="il">$"pair: {x}, {y}"</code></li>
+  <li>More than two &rarr; <code class="il">$"first {first}, last {last}"</code></li>
+</ul>
+<p>Use list patterns in a switch expression.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used <code class="il">[]</code>, <code class="il">[x]</code>, <code class="il">[x, y]</code>, <code class="il">[var first, .., var last]</code>.</li>
+  <li>I know what <code class="il">..</code> (the slice pattern) means.</li>
+</ul>
+<details><summary>Hint</summary>
+<pre><code>numbers <span class="kw">switch</span>
+{
+    []                       =&gt; <span class="str">"empty"</span>,
+    [<span class="kw">var</span> x]                  =&gt; <span class="str">$"single: {x}"</span>,
+    [<span class="kw">var</span> x, <span class="kw">var</span> y]           =&gt; <span class="str">$"pair: {x}, {y}"</span>,
+    [<span class="kw">var</span> first, .., <span class="kw">var</span> last] =&gt; <span class="str">$"first {first}, last {last}"</span>
+};</code></pre>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 12 &mdash; StartsWithZero</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">list patterns with literals</span></div>
+<div class="section-label">Goal</div>
+<p>Given an <code class="il">int[]</code>, return <code class="il">true</code> if it starts with <code class="il">0</code> followed by anything. Use a list pattern.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used <code class="il">[0, ..]</code>.</li>
+  <li>This is one expression, no length check needed before indexing.</li>
+</ul>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== RECORDS ==================== -->
+<!-- ============================================ -->
+<h2 id="sec-records" class="section-anchor">5 &mdash; Records</h2>
+
+<div class="drill">
+<h3>Drill 13 &mdash; PersonRecord</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">positional records</span></div>
+<div class="section-label">Goal</div>
+<p>Write a one-line <code class="il">record Person</code> with <code class="il">FirstName</code>, <code class="il">LastName</code>, <code class="il">int Age</code>. Then prove (with a few <code class="il">Console.WriteLine</code> lines or tests) that:</p>
+<ol>
+  <li>Two <code class="il">Person</code>s with the same values are equal (<code class="il">==</code> returns true).</li>
+  <li>The default <code class="il">ToString()</code> is human-readable (e.g. <code class="il">Person { FirstName = Ana, LastName = Silva, Age = 30 }</code>).</li>
+  <li>You can deconstruct: <code class="il">var (f, l, a) = person;</code>.</li>
+</ol>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The record is one line: <code class="il">public sealed record Person(string FirstName, string LastName, int Age);</code></li>
+  <li>I tested all three properties above.</li>
+  <li>I added <code class="il">sealed</code>. I can explain why that's usually right for records used as data.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 14 &mdash; WithExpression</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">with</span></div>
+<div class="section-label">Goal</div>
+<p>Take the <code class="il">Person</code> from Drill 13. Create one instance, then use the <code class="il">with</code> expression to make a new instance with only the <code class="il">Age</code> changed.</p>
+<pre><code><span class="kw">var</span> ana   = <span class="kw">new</span> <span class="type">Person</span>(<span class="str">"Ana"</span>, <span class="str">"Silva"</span>, <span class="num">30</span>);
+<span class="kw">var</span> older = ana <span class="kw">with</span> { Age = <span class="num">31</span> };
+
+<span class="cmt">// older.Age == 31, ana.Age still == 30, both are independent objects</span></code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The original instance is unchanged. <code class="il">with</code> creates a new one.</li>
+  <li>I know <code class="il">with</code> only works on records (and structs marked <code class="il">record</code>). It does not work on regular classes.</li>
+  <li>I can name two scenarios where <code class="il">with</code> is the right tool. (Hint: settings, immutable state, &ldquo;edited copies&rdquo;.)</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 15 &mdash; Email value object</h3>
+<div class="meta-row"><span class="tag time">12 min</span><span class="tag topic">records as value objects</span></div>
+<div class="section-label">Goal</div>
+<p>Make an <code class="il">Email</code> record that wraps a single string. The constructor must reject invalid emails (anything without an <code class="il">@</code> and a dot for this drill &mdash; don't over-engineer the validation). Once constructed, the value cannot be changed.</p>
+<div class="section-label">Behaviour</div>
+<pre><code><span class="kw">var</span> ok  = <span class="kw">new</span> <span class="type">Email</span>(<span class="str">"ana@example.com"</span>);   <span class="cmt">// fine</span>
+<span class="kw">var</span> bad = <span class="kw">new</span> <span class="type">Email</span>(<span class="str">"not-an-email"</span>);      <span class="cmt">// throws ArgumentException</span>
+
+<span class="kw">var</span> a = <span class="kw">new</span> <span class="type">Email</span>(<span class="str">"x@y.com"</span>);
+<span class="kw">var</span> b = <span class="kw">new</span> <span class="type">Email</span>(<span class="str">"x@y.com"</span>);
+a == b;  <span class="cmt">// true (value equality)</span></code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used a positional record but with validation in the body.</li>
+  <li>I can articulate what a &ldquo;value object&rdquo; is and why <code class="il">Email</code> qualifies. (Hint: domain meaning, equality by value, immutable, can't exist in invalid state.)</li>
+  <li>I have a test for the throws case.</li>
+</ul>
+<details><summary>Hint</summary>
+<pre><code><span class="kw">public sealed record</span> <span class="type">Email</span>(<span class="type">string</span> Value)
+{
+    <span class="kw">public</span> <span class="type">Email</span>(<span class="type">string</span> Value) : <span class="kw">this</span>()  <span class="cmt">// ... no, that's wrong</span>
+}</code></pre>
+<p>Hmm. Positional records' validation is done <em>in the primary constructor body</em>, which is the part after the parameter list. The idiomatic shape:</p>
+<pre><code><span class="kw">public sealed record</span> <span class="type">Email</span>
+{
+    <span class="kw">public</span> <span class="type">string</span> Value { <span class="kw">get</span>; }
+
+    <span class="kw">public</span> <span class="type">Email</span>(<span class="type">string</span> value)
+    {
+        <span class="kw">if</span> (!value.Contains(<span class="str">'@'</span>) || !value.Contains(<span class="str">'.'</span>))
+            <span class="kw">throw new</span> <span class="type">ArgumentException</span>(<span class="str">"invalid email"</span>, <span class="kw">nameof</span>(value));
+        Value = value;
+    }
+}</code></pre>
+<p>Or if you prefer the positional shape, use a static factory <code class="il">Email.Create(...)</code> that validates and a private constructor.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 16 &mdash; Record vs class (no code &mdash; explain)</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">design</span></div>
+<div class="section-label">Goal</div>
+<p>You're designing two types: <code class="il">User</code> (someone who logs in, has an Id, can change their display name) and <code class="il">Money</code> (an amount + currency, used for prices and totals). For each:</p>
+<ol>
+  <li>Class or record? Why?</li>
+  <li>If record: sealed?</li>
+  <li>If class: which override(s) would you add?</li>
+</ol>
+<details><summary>Hint &mdash; my answer</summary>
+<p><strong>User</strong>: class. A user has an identity (the Id). Two users with different display names but the same Id are the <em>same user</em>, not equal-by-value. Records would make two users with the same name equal &mdash; wrong. Override <code class="il">Equals</code> and <code class="il">GetHashCode</code> to compare by Id only.</p>
+<p><strong>Money</strong>: <code class="il">sealed record</code>. <code class="il">5.00 EUR</code> is fungible with any other <code class="il">5.00 EUR</code> &mdash; pure value semantics. Use <code class="il">with</code> if you need &ldquo;same amount, different currency&rdquo; (though that's actually a different domain operation; <code class="il">with</code> would just lie about it &mdash; a method <code class="il">ConvertTo(currency, rate)</code> is more honest).</p>
+<p>The principle: <strong>does identity matter, or only the values?</strong> Identity matters &rarr; class. Only values &rarr; record.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== DESIGN ===================== -->
+<!-- ============================================ -->
+<h2 id="sec-design" class="section-anchor">6 &mdash; Design: when to use what</h2>
+
+<div class="drill">
+<h3>Drill 17 &mdash; Refactor an if-ladder (no fresh code &mdash; rewrite)</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">refactor</span></div>
+<div class="section-label">Goal</div>
+<p>Take this old-style code. Rewrite it as a switch expression using pattern matching. The new version should be one expression.</p>
+<pre><code><span class="kw">public</span> <span class="type">string</span> Describe(<span class="type">object</span>? value)
+{
+    <span class="kw">if</span> (value == <span class="kw">null</span>) <span class="kw">return</span> <span class="str">"null"</span>;
+    <span class="kw">if</span> (value <span class="kw">is</span> <span class="type">int</span>) {
+        <span class="kw">var</span> i = (<span class="type">int</span>)value;
+        <span class="kw">if</span> (i == <span class="num">0</span>) <span class="kw">return</span> <span class="str">"zero"</span>;
+        <span class="kw">if</span> (i &gt; <span class="num">0</span>) <span class="kw">return</span> <span class="str">"positive int"</span>;
+        <span class="kw">return</span> <span class="str">"negative int"</span>;
+    }
+    <span class="kw">if</span> (value <span class="kw">is</span> <span class="type">string</span> s &amp;&amp; s.Length == <span class="num">0</span>) <span class="kw">return</span> <span class="str">"empty string"</span>;
+    <span class="kw">if</span> (value <span class="kw">is</span> <span class="type">string</span>) <span class="kw">return</span> <span class="str">"non-empty string"</span>;
+    <span class="kw">return</span> <span class="str">"something else"</span>;
+}</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The new version is a single switch expression.</li>
+  <li>I used a property pattern on <code class="il">string</code> to test for empty: <code class="il">string { Length: 0 }</code>.</li>
+  <li>Both versions return the same string for every input I tested.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 18 &mdash; When NOT to use pattern matching (no code)</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">judgment</span></div>
+<div class="section-label">Goal</div>
+<p>Pattern matching is a hammer &mdash; everything starts to look like a nail. In 3&ndash;5 sentences, name two situations where a plain method call, polymorphism, or a dictionary lookup is genuinely better than a switch expression.</p>
+<details><summary>Hint</summary>
+<p>(1) If you find yourself adding a new arm to the same switch every time a new shape is added, the switch is a substitute for polymorphism &mdash; consider making the operation a virtual method on the base type instead. The switch leaks the type hierarchy across the codebase. (2) If the mapping is purely data (status code &rarr; string with 50+ entries), a <code class="il">Dictionary&lt;int, string&gt;</code> initialised once is cheaper and easier to maintain than a 50-arm switch expression.</p>
+</details>
+</div>
+
+<h2 id="after">After these</h2>
+
+<p>You now have the modern-C# vocabulary: switch expressions, relational/tuple/property/list patterns, exhaustiveness, records, <code class="il">with</code>, value objects, the &ldquo;identity vs value&rdquo; distinction.</p>
+
+<p>Bring me your captured questions.</p>
+
+</div>
+</body>
+</html>

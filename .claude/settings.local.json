@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/User/.claude/projects/C--Users-User-source-repos-luiscmt22-CSharpProjects/**)",
+      "Read(//c/Users/User/Desktop/AGILE/Learning/CSharp-Projects-main/Chapter2//**)"
+    ]
+  }
+}

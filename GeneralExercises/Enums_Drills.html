@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Enums &amp; Flags &mdash; Blank-Page Drills</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root { --bg:#0b1220; --surface:#111a2e; --surface-2:#16223c; --border:#243352; --text:#e6ecf5; --text-dim:#9aa7c0; --accent:#6aa6ff; --accent-2:#b06aff; --code-bg:#0a1120; --ok:#4ade80; --warn:#fbbf24; --bad:#f87171; }
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font:16px/1.65 -apple-system,"Segoe UI",system-ui,sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:32px 24px 80px}
+header.doc-head{border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:28px}
+header.doc-head .crumbs{color:var(--text-dim);font-size:13px}
+header.doc-head h1{margin:6px 0 4px;font-size:28px;line-height:1.2}
+header.doc-head .meta{color:var(--text-dim);font-size:13px}
+h1,h2,h3,h4{color:var(--text);margin-top:1.6em}
+h2{border-bottom:1px solid var(--border);padding-bottom:6px}
+a{color:var(--accent)}
+code,pre,code.il{font-family:"JetBrains Mono","Cascadia Code",Consolas,monospace}
+code.il{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em;border:1px solid var(--border)}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:14px 16px;overflow-x:auto;font-size:13px;line-height:1.55}
+pre code{background:transparent;border:0;padding:0}
+blockquote{border-left:3px solid var(--accent);background:var(--surface);padding:10px 16px;margin:12px 0;color:var(--text-dim);border-radius:0 6px 6px 0}
+.callout{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent-2);padding:12px 16px;margin:14px 0;border-radius:0 6px 6px 0}
+.callout.warn{border-left-color:var(--warn)}
+.kw{color:#c792ea} .type{color:#82aaff} .str{color:#c3e88d} .num{color:#f78c6c} .cmt{color:#6c7a96;font-style:italic}
+.drill{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin:20px 0}
+.drill h3{margin-top:0;font-size:17px}
+.drill .meta-row{display:flex;flex-wrap:wrap;gap:8px;font-size:12px;color:var(--text-dim);margin-bottom:8px}
+.drill .meta-row span.tag{background:var(--surface-2);border:1px solid var(--border);padding:2px 8px;border-radius:4px}
+.drill .meta-row span.tag.time{color:var(--accent)}
+.drill .meta-row span.tag.topic{color:var(--accent-2)}
+.section-label{text-transform:uppercase;font-size:10px;letter-spacing:.08em;color:var(--text-dim);margin:14px 0 4px;font-weight:600}
+.checklist{list-style:none;padding-left:0;margin:4px 0}
+.checklist li{padding:3px 0 3px 26px;position:relative;font-size:14px}
+.checklist li::before{content:"";position:absolute;left:0;top:8px;width:13px;height:13px;border:1.5px solid var(--text-dim);border-radius:3px;background:var(--code-bg)}
+details{background:var(--code-bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;margin:10px 0}
+details>summary{cursor:pointer;color:var(--accent);font-weight:500;user-select:none;font-size:13px}
+details[open]>summary{margin-bottom:8px}
+.toc{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px 18px;margin:18px 0 28px;font-size:14px}
+.toc ol{margin:6px 0;padding-left:22px}
+.toc li{margin:2px 0}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.section-anchor{padding-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">GeneralExercises &rsaquo; Enums &amp; Flags</div>
+  <h1>Enums &amp; Flags &mdash; blank-page drills</h1>
+  <div class="meta">13 drills covering ordinary enums, the <code class="il">[Flags]</code> attribute, parsing, and using enums safely in switch expressions. Companion: <code class="il">_Organized/04-CSharp-Language/12-CSharp-Flags-Enum.html</code>.</div>
+</header>
+
+<h2 id="why">Why this</h2>
+
+<p>Enums look like the dullest feature in C#. They're not &mdash; they have subtle rules (any int is a valid enum value at runtime, even ones you didn't define), and the <code class="il">[Flags]</code> pattern is a tool every working developer needs to recognise on sight.</p>
+
+<div class="toc">
+  <strong>Drill index</strong>
+  <ol>
+    <li><a href="#sec-basics">Enum basics (drills 1&ndash;4)</a></li>
+    <li><a href="#sec-flags">Flags (drills 5&ndash;9)</a></li>
+    <li><a href="#sec-parse">Parsing &amp; round-tripping (drills 10&ndash;11)</a></li>
+    <li><a href="#sec-design">Design choices (drills 12&ndash;13)</a></li>
+  </ol>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-basics" class="section-anchor">1 &mdash; Enum basics</h2>
+
+<div class="drill">
+<h3>Drill 1 &mdash; TrafficLight</h3>
+<div class="meta-row"><span class="tag time">3 min</span><span class="tag topic">declaration</span></div>
+<div class="section-label">Goal</div>
+<p>Declare a <code class="il">TrafficLight</code> enum with values <code class="il">Red</code>, <code class="il">Yellow</code>, <code class="il">Green</code>. Write a method that takes one and returns the next color in the cycle.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">TrafficLight</span> Next(<span class="type">TrafficLight</span> current)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used a switch expression.</li>
+  <li>I have a discard arm <code class="il">_ =&gt; throw new ArgumentException(...)</code> for invalid input.</li>
+  <li>I know that without the discard arm, the compiler warns about non-exhaustive switch.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 2 &mdash; The integer trap (predict)</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">enums are ints</span></div>
+<div class="section-label">Goal</div>
+<p>Predict the output:</p>
+<pre><code><span class="kw">public enum</span> <span class="type">Priority</span> { Low, Medium, High }
+
+<span class="type">Priority</span> p = (<span class="type">Priority</span>)<span class="num">99</span>;
+<span class="type">Console</span>.WriteLine(p);
+<span class="type">Console</span>.WriteLine(<span class="type">Enum</span>.IsDefined(<span class="kw">typeof</span>(<span class="type">Priority</span>), p));
+
+<span class="type">Console</span>.WriteLine(Next(p));  <span class="cmt">// Next is from drill 1's pattern, but for Priority</span></code></pre>
+<p>Run it. What does this teach you about enums?</p>
+<details><summary>Hint</summary>
+<p>Prints <code class="il">99</code> (because there's no member with that value, ToString falls back to the number) and <code class="il">False</code> for IsDefined. The cast succeeds at runtime &mdash; <em>any int can be cast to an enum</em>, regardless of whether you defined that value. This is why discard arms exist in enum switches: you can't trust that the input is one of the declared values.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 3 &mdash; Custom underlying values</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">explicit values</span></div>
+<div class="section-label">Goal</div>
+<p>Declare an <code class="il">HttpStatus</code> enum where each member maps to its actual HTTP code: <code class="il">Ok = 200</code>, <code class="il">NotFound = 404</code>, <code class="il">ServerError = 500</code>. Write a method that converts an <code class="il">int</code> to an <code class="il">HttpStatus?</code> &mdash; null if it's not a defined value.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used <code class="il">Enum.IsDefined</code> to check.</li>
+  <li>I know that without <code class="il">IsDefined</code>, casting <code class="il">(HttpStatus)999</code> gives me a fake enum value.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 4 &mdash; ToString variants</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">enum formatting</span></div>
+<div class="section-label">Goal</div>
+<p>Given an enum value, observe what each of these produces:</p>
+<pre><code><span class="kw">var</span> p = <span class="type">Priority</span>.High;
+p.ToString();        <span class="cmt">// ?</span>
+p.ToString(<span class="str">"G"</span>);     <span class="cmt">// ?</span>
+p.ToString(<span class="str">"D"</span>);     <span class="cmt">// ?</span>
+p.ToString(<span class="str">"X"</span>);     <span class="cmt">// ?</span>
+p.ToString(<span class="str">"F"</span>);     <span class="cmt">// ?</span></code></pre>
+<p>Write down each.</p>
+<details><summary>Hint</summary>
+<p><code class="il">G</code>/default = name. <code class="il">D</code> = decimal value. <code class="il">X</code> = hexadecimal value. <code class="il">F</code> = flags name list (only meaningful with [Flags]). Useful to know in logging and debugging.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-flags" class="section-anchor">2 &mdash; Flags</h2>
+
+<div class="drill">
+<h3>Drill 5 &mdash; Permissions enum</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">[Flags] basics</span></div>
+<div class="section-label">Goal</div>
+<p>Declare a <code class="il">Permissions</code> flags enum with <code class="il">None = 0, Read = 1, Write = 2, Delete = 4, Admin = 8</code>. Decorate it with <code class="il">[Flags]</code>.</p>
+<p>Create a value combining Read and Write, then print it.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used powers of 2 (1, 2, 4, 8, ...), not 1, 2, 3, 4.</li>
+  <li>I combined with <code class="il">|</code>: <code class="il">var p = Permissions.Read | Permissions.Write;</code></li>
+  <li>Printing shows <code class="il">"Read, Write"</code> because of <code class="il">[Flags]</code>.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 6 &mdash; HasFlag</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">HasFlag vs bitwise</span></div>
+<div class="section-label">Goal</div>
+<p>Given a combined permissions value, check if it includes Write. Two ways:</p>
+<ol>
+  <li><code class="il">p.HasFlag(Permissions.Write)</code></li>
+  <li><code class="il">(p &amp; Permissions.Write) == Permissions.Write</code></li>
+</ol>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I tried both. They behave identically.</li>
+  <li>I know <code class="il">HasFlag</code> is slower (boxing). For hot paths, use the bitwise form.</li>
+  <li>For readability in normal code, <code class="il">HasFlag</code> wins.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 7 &mdash; Add &amp; remove flags</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">bitwise operations</span></div>
+<div class="section-label">Goal</div>
+<p>Write methods to add and remove a flag.</p>
+<pre><code><span class="kw">public static</span> <span class="type">Permissions</span> Add(<span class="type">Permissions</span> p, <span class="type">Permissions</span> flag);    <span class="cmt">// p | flag</span>
+<span class="kw">public static</span> <span class="type">Permissions</span> Remove(<span class="type">Permissions</span> p, <span class="type">Permissions</span> flag); <span class="cmt">// p &amp; ~flag</span>
+<span class="kw">public static</span> <span class="type">Permissions</span> Toggle(<span class="type">Permissions</span> p, <span class="type">Permissions</span> flag); <span class="cmt">// p ^ flag</span></code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I know what <code class="il">|</code>, <code class="il">&amp;</code>, <code class="il">~</code>, <code class="il">^</code> do at the bit level.</li>
+  <li>I tested toggle by applying it twice &mdash; should return the original value.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 8 &mdash; CompositeFlags</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">combined values</span></div>
+<div class="section-label">Goal</div>
+<p>Add a member to your <code class="il">Permissions</code> enum: <code class="il">ReadWrite = Read | Write</code>. Now <code class="il">var p = Permissions.ReadWrite;</code> should print <code class="il">"ReadWrite"</code> on its own &mdash; not <code class="il">"Read, Write"</code>.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The compiler accepts <code class="il">ReadWrite = Read | Write</code>.</li>
+  <li>ToString picks the most specific name when one exists.</li>
+  <li>I considered: when is the composite name confusing? (When you add ReadWrite later and existing logs change interpretation.)</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 9 &mdash; The shifted form</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">readability</span></div>
+<div class="section-label">Goal</div>
+<p>Rewrite your <code class="il">Permissions</code> declaration using shift expressions:</p>
+<pre><code><span class="kw">public enum</span> <span class="type">Permissions</span>
+{
+    None    = <span class="num">0</span>,
+    Read    = <span class="num">1</span> &lt;&lt; <span class="num">0</span>,  <span class="cmt">// 1</span>
+    Write   = <span class="num">1</span> &lt;&lt; <span class="num">1</span>,  <span class="cmt">// 2</span>
+    Delete  = <span class="num">1</span> &lt;&lt; <span class="num">2</span>,  <span class="cmt">// 4</span>
+    Admin   = <span class="num">1</span> &lt;&lt; <span class="num">3</span>,  <span class="cmt">// 8</span>
+}</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I prefer the shift form for flags enums &gt; 4 members. Why?</li>
+</ul>
+<details><summary>Hint</summary>
+<p>Adding a new member: shift-form lets you increment the shift count (4, 5, 6...), no math required. With the literal form (1, 2, 4, 8, 16...) it's easy to mess up which power of 2 comes next. Also: shifts express intent.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-parse" class="section-anchor">3 &mdash; Parsing &amp; round-tripping</h2>
+
+<div class="drill">
+<h3>Drill 10 &mdash; TryParse safely</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">Enum.TryParse</span></div>
+<div class="section-label">Goal</div>
+<p>Given a string (from user input), try to parse it as a <code class="il">Priority</code>. Return the value or null.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">Priority</span>? ParseOrNull(<span class="type">string</span>? input)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used <code class="il">Enum.TryParse&lt;Priority&gt;(input, out var p)</code> &mdash; the generic version.</li>
+  <li>I passed <code class="il">ignoreCase: true</code> if I want <code class="il">"high"</code> and <code class="il">"HIGH"</code> to both work.</li>
+  <li><strong>Important:</strong> I also called <code class="il">Enum.IsDefined</code> on the parsed value. Why? Because <code class="il">TryParse("99", out var p)</code> succeeds and gives me a fake <code class="il">Priority</code>!</li>
+</ul>
+<details><summary>Hint &mdash; the trap</summary>
+<p><code class="il">Enum.TryParse</code> accepts numbers as input by default. <code class="il">TryParse("99", out var p)</code> returns true and gives you <code class="il">p == (Priority)99</code>. Always pair with <code class="il">IsDefined</code> in security/validation paths.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 11 &mdash; Round-trip</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">stringify &amp; back</span></div>
+<div class="section-label">Goal</div>
+<p>For each Priority value, convert to string with <code class="il">ToString()</code>, then back with <code class="il">TryParse</code>. Verify they round-trip.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Loop over <code class="il">Enum.GetValues&lt;Priority&gt;()</code> &mdash; you get every defined value.</li>
+  <li>Round-trip works for every member.</li>
+</ul>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-design" class="section-anchor">4 &mdash; Design choices</h2>
+
+<div class="drill">
+<h3>Drill 12 &mdash; Enum or class hierarchy? (no code)</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">design</span></div>
+<div class="section-label">Goal</div>
+<p>For each scenario, pick: enum, or class hierarchy?</p>
+<ol>
+  <li>Day of week.</li>
+  <li>Payment method (Cash, CreditCard, Stripe, BankTransfer) where each has different fields and behaviour.</li>
+  <li>User status (Active, Suspended, Deleted) used only for filtering.</li>
+  <li>Shape types in a drawing app (Circle, Rectangle, Triangle) each with different area calculations.</li>
+</ol>
+<details><summary>Hint &mdash; my picks</summary>
+<ol>
+  <li>Enum &mdash; pure data, no behaviour, fixed set.</li>
+  <li>Class hierarchy (sealed records + abstract base). Each payment method needs different data and methods; switching on an enum would create a 50-arm switch every time you add behaviour.</li>
+  <li>Enum &mdash; if it's truly just a filter label. If statuses have transition rules or side effects, lean toward a state-machine type instead.</li>
+  <li>Class hierarchy &mdash; same as payment, each shape has distinct area logic.</li>
+</ol>
+<p>Rule: <strong>enums when the values are pure labels with no per-value behaviour</strong>. The moment you find yourself writing a switch over an enum to dispatch logic, consider whether each case should be a class.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 13 &mdash; Adding a new enum value (no code &mdash; predict the chaos)</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">brittleness</span></div>
+<div class="section-label">Goal</div>
+<p>Your codebase has an enum <code class="il">OrderStatus { Pending, Shipped, Delivered, Cancelled }</code>. There are 14 switch expressions across the codebase that match on it. You're adding <code class="il">Refunded</code>.</p>
+<p>Without writing code, list what could go wrong, and how each could be caught early.</p>
+<details><summary>Hint</summary>
+<ul>
+  <li>Switches with a discard arm (<code class="il">_</code>) silently send <code class="il">Refunded</code> to the &ldquo;unknown&rdquo; branch. Bug ships. Mitigation: switches without a discard generate warnings; treat warnings as errors in CI.</li>
+  <li>Database column with an int representation: old rows are fine, but if you reorder enum members, all stored values shift. Always append new members at the end; consider explicit values.</li>
+  <li>UI dropdowns built from <code class="il">Enum.GetValues</code> automatically include the new one &mdash; usually fine, sometimes not (you might not be ready to let users select Refunded yet).</li>
+  <li>JSON serialization: if you serialise by name, you're fine. By number, the same brittleness as the DB.</li>
+</ul>
+<p>The lesson: enums look stable but adding members is a refactor that touches every consumer. Plan for it.</p>
+</details>
+</div>
+
+<h2 id="after">After these</h2>
+
+<p>You can now: declare enums and flags enums correctly, parse strings to enums safely (with the IsDefined guard), use bitwise ops fluently, and know when an enum is the wrong abstraction.</p>
+
+</div>
+</body>
+</html>

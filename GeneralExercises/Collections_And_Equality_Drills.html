@@ -1,0 +1,925 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Collections &amp; Equality &mdash; Blank-Page Drills</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {
+  --bg: #0b1220;
+  --surface: #111a2e;
+  --surface-2: #16223c;
+  --border: #243352;
+  --text: #e6ecf5;
+  --text-dim: #9aa7c0;
+  --accent: #6aa6ff;
+  --accent-2: #b06aff;
+  --code-bg: #0a1120;
+  --ok: #4ade80;
+  --warn: #fbbf24;
+  --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg); color: var(--text);
+  font: 16px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif;
+}
+.wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px; margin-bottom: 28px;
+}
+header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
+header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
+header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
+h1, h2, h3, h4 { color: var(--text); margin-top: 1.6em; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+a { color: var(--accent); }
+code, pre, code.il { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; border: 1px solid var(--border); }
+pre {
+  background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55;
+}
+pre code { background: transparent; border: 0; padding: 0; }
+blockquote {
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+  padding: 10px 16px; margin: 12px 0;
+  color: var(--text-dim);
+  border-radius: 0 6px 6px 0;
+}
+.diagram-box {
+  background: #1e293b; border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px; overflow-x: auto;
+}
+.diagram-box pre { background: transparent; border: 0; padding: 0; color: #e6ecf5; }
+.tbl-wrap { overflow-x: auto; margin: 14px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+th { background: var(--surface-2); }
+tr:nth-child(even) td { background: var(--surface); }
+.callout {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-2);
+  padding: 12px 16px;
+  margin: 14px 0;
+  border-radius: 0 6px 6px 0;
+}
+.callout.warn { border-left-color: var(--warn); }
+.callout.ok   { border-left-color: var(--ok); }
+.callout.bad  { border-left-color: var(--bad); }
+.kw   { color: #c792ea; }
+.type { color: #82aaff; }
+.str  { color: #c3e88d; }
+.num  { color: #f78c6c; }
+.cmt  { color: #6c7a96; font-style: italic; }
+
+.drill {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin: 20px 0;
+}
+.drill h3 { margin-top: 0; font-size: 17px; }
+.drill .meta-row {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  font-size: 12px; color: var(--text-dim);
+  margin-bottom: 8px;
+}
+.drill .meta-row span.tag {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 2px 8px; border-radius: 4px;
+}
+.drill .meta-row span.tag.time { color: var(--accent); }
+.drill .meta-row span.tag.topic { color: var(--accent-2); }
+.section-label {
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin: 14px 0 4px;
+  font-weight: 600;
+}
+.checklist { list-style: none; padding-left: 0; margin: 4px 0; }
+.checklist li {
+  padding: 3px 0 3px 26px;
+  position: relative;
+  font-size: 14px;
+}
+.checklist li::before {
+  content: "";
+  position: absolute; left: 0; top: 8px;
+  width: 13px; height: 13px;
+  border: 1.5px solid var(--text-dim);
+  border-radius: 3px;
+  background: var(--code-bg);
+}
+details {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin: 10px 0;
+}
+details > summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-weight: 500;
+  user-select: none;
+  font-size: 13px;
+}
+details[open] > summary { margin-bottom: 8px; }
+.toc {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 18px;
+  margin: 18px 0 28px;
+  font-size: 14px;
+}
+.toc ol { margin: 6px 0; padding-left: 22px; }
+.toc li { margin: 2px 0; }
+.toc a { text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+.section-anchor { padding-top: 12px; }
+.protocol {
+  background: #1a1230;
+  border: 1px solid #3a2e5a;
+  border-left: 4px solid var(--accent-2);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 20px 0;
+}
+.protocol h3 { margin-top: 0; color: var(--accent-2); }
+.stretch {
+  background: rgba(106, 166, 255, 0.06);
+  border-left: 3px solid var(--accent);
+  padding: 8px 12px;
+  margin: 10px 0;
+  border-radius: 0 4px 4px 0;
+  font-size: 13px;
+}
+.stretch strong { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">GeneralExercises</div>
+  <h1>Collections &amp; Equality &mdash; blank-page drills</h1>
+  <div class="meta">~20 micro-exercises designed to rebuild the muscle of writing C# from an empty file. No solution code in this doc. No AI assistance during drills.</div>
+</header>
+
+<h2 id="why">Why this exists</h2>
+
+<p>You can read code. You can fix code. You can debug code. When the cursor blinks on an empty file, your hand doesn't move. That's not a knowledge problem &mdash; it's a <strong>blank-page reflex</strong>, and it's the predictable side-effect of pair-programming with an AI for months. Every time you ask me to draft something, you skip the exact mental rep this doc is going to rebuild.</p>
+
+<p>The collections topic (Lists, Dictionaries, HashSets, equality) is the pilot. If the format works for you, we'll do the same for LINQ, async, generics, etc. &mdash; each as a sibling file in this folder.</p>
+
+<blockquote>The drills are deliberately small. The goal isn't to ship code; it's to repeat the act of <em>starting from zero</em> until it stops feeling threatening.</blockquote>
+
+<!-- =============== PROTOCOL =============== -->
+<div class="protocol">
+<h3>The no-AI protocol</h3>
+
+<p>These rules are the whole point. If you break them, the doc is worthless. Re-read this section every session.</p>
+
+<ol>
+  <li><strong>No AI during the drill.</strong> No Claude, no Copilot, no ChatGPT. Disable Copilot in your IDE before opening the drill file (in VS Code: <code class="il">Ctrl+Shift+P &rarr; "GitHub Copilot: Disable Completions"</code>). Re-enable it after.</li>
+  <li><strong>Only one allowed reference:</strong> <a href="https://learn.microsoft.com">learn.microsoft.com</a>. No Stack Overflow, no blogs, no Reddit. The Microsoft docs cover everything in these drills, and they're how you'll survive when the net is flaky.</li>
+  <li><strong>Set a 10-minute timer per drill.</strong> If it rings and you're stuck, do <em>not</em> open the hint yet. Instead, <strong>write down the exact question you'd ask me</strong> in a scratch file. That captured question is more valuable than the solved drill &mdash; it shows you where your model is fuzzy.</li>
+  <li><strong>Only after writing the question</strong>, open the hint. If still stuck after the hint, leave the drill marked &ldquo;stuck&rdquo; and move on. Come back to it tomorrow.</li>
+  <li><strong>You can ask me to <em>review</em> your finished drill.</strong> Review &ne; solve. I'll critique what you wrote and ask you questions, never hand you the code. If you ask me &ldquo;how do I do drill 7?&rdquo; I will refuse and point you back here.</li>
+  <li><strong>Type, don't paste.</strong> Even your own previous code. Muscle memory is the point.</li>
+</ol>
+
+<p class="callout warn"><strong>The trap:</strong> the temptation will be to do one drill, hit a wall, ask me &ldquo;just this once&rdquo;, and breeze through. That's the same trap that put you here. The captured-question step exists to make the &ldquo;just ask Claude&rdquo; impulse productive without short-circuiting the rep.</p>
+</div>
+
+<!-- =============== SETUP =============== -->
+<h2 id="setup">Setup (one-time, ~5 min)</h2>
+
+<p>You need a single console project where each drill lives in its own static class. The setup is on you (mentor mode) &mdash; here's the shape:</p>
+
+<ol>
+  <li>In <code class="il">CSharpProjects/GeneralExercises/</code> create a console project (target <code class="il">net10.0</code>, nullable enabled). Name it something like <code class="il">Drills</code>.</li>
+  <li>For each drill, create one file: <code class="il">Drill_01_LastElement.cs</code>, etc. Put a single static class in it with one static method whose signature matches the drill's spec.</li>
+  <li><code class="il">Program.cs</code> calls one drill at a time and prints the result. You uncomment/swap as you work.</li>
+  <li>(Optional) Add a sibling <code class="il">Drills.Tests</code> xUnit project if you want the stretch goals. References <code class="il">Drills</code>.</li>
+</ol>
+
+<p>If you want to use the existing C2 <code class="il">EnigmaSimulator.Tests</code> project temporarily for the test stretches, that's fine too &mdash; just delete the drill tests before committing C2 work.</p>
+
+<!-- =============== TOC =============== -->
+<div class="toc">
+  <strong>Drill index</strong>
+  <ol>
+    <li><a href="#sec-lists">Lists &amp; arrays (drills 1&ndash;4)</a></li>
+    <li><a href="#sec-dict">Dictionary (drills 5&ndash;10)</a></li>
+    <li><a href="#sec-hashset">HashSet (drills 11&ndash;14)</a></li>
+    <li><a href="#sec-equality">Equality contract (drills 15&ndash;19)</a></li>
+    <li><a href="#sec-comparer">IEqualityComparer (drills 20&ndash;22)</a></li>
+    <li><a href="#sec-choose">Choose the right collection (drills 23&ndash;25)</a></li>
+  </ol>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== LISTS & ARRAYS ============= -->
+<!-- ============================================ -->
+<h2 id="sec-lists" class="section-anchor">1 &mdash; Lists &amp; arrays</h2>
+
+<p>Tiny warm-ups to get the typing reflex back. None of these should take more than 5 minutes.</p>
+
+<div class="drill" id="d1">
+<h3>Drill 1 &mdash; LastElement</h3>
+<div class="meta-row">
+  <span class="tag time">5 min</span>
+  <span class="tag topic">List&lt;T&gt;</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Return the last element of a <code class="il">List&lt;int&gt;</code>. If the list is empty, throw <code class="il">ArgumentException</code>.</p>
+
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">int</span> LastElement(<span class="type">List</span>&lt;<span class="type">int</span>&gt; numbers)</code></pre>
+
+<div class="section-label">Examples</div>
+<pre><code>LastElement(<span class="kw">new</span>() { <span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span> })  <span class="cmt">// 3</span>
+LastElement(<span class="kw">new</span>())              <span class="cmt">// throws ArgumentException</span></code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I did not use LINQ <code class="il">.Last()</code>. Use the indexer.</li>
+  <li>I know what <code class="il">numbers.Count - 1</code> returns when <code class="il">Count</code> is 0, and why that's an off-by-one trap.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>The indexer is <code class="il">list[i]</code>. The last valid index is <code class="il">Count - 1</code>. Check for empty first; throw before you try to index.</p>
+</details>
+
+<div class="stretch"><strong>Stretch:</strong> write two xUnit tests &mdash; happy path and empty-list-throws. Use <code class="il">Assert.Throws&lt;ArgumentException&gt;</code>.</div>
+</div>
+
+<div class="drill" id="d2">
+<h3>Drill 2 &mdash; EvensOnly</h3>
+<div class="meta-row">
+  <span class="tag time">5 min</span>
+  <span class="tag topic">List&lt;T&gt;</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Return a new list containing only the even numbers from the input. Preserve order. Do <strong>not</strong> use LINQ.</p>
+
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">List</span>&lt;<span class="type">int</span>&gt; EvensOnly(<span class="type">List</span>&lt;<span class="type">int</span>&gt; numbers)</code></pre>
+
+<div class="section-label">Examples</div>
+<pre><code>EvensOnly(<span class="kw">new</span>() { <span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span> })  <span class="cmt">// [2, 4]</span>
+EvensOnly(<span class="kw">new</span>() { <span class="num">1</span>, <span class="num">3</span> })        <span class="cmt">// []</span>
+EvensOnly(<span class="kw">new</span>())                  <span class="cmt">// []</span></code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I created a new list rather than mutating the input.</li>
+  <li>I used <code class="il">%</code> correctly (and I know what <code class="il">-3 % 2</code> returns in C#).</li>
+  <li>I used a <code class="il">foreach</code> loop, not LINQ.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>Declare an empty result list. Loop through the input. <code class="il">if (n % 2 == 0)</code> &rarr; <code class="il">result.Add(n)</code>. Return the result.</p>
+</details>
+
+<div class="stretch"><strong>Stretch:</strong> now write a second version using LINQ <code class="il">.Where()</code>. Compare. Which is clearer? Which would you defend in a code review?</div>
+</div>
+
+<div class="drill" id="d3">
+<h3>Drill 3 &mdash; Sum</h3>
+<div class="meta-row">
+  <span class="tag time">3 min</span>
+  <span class="tag topic">List&lt;T&gt; / array</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Sum the elements of an <code class="il">int[]</code>. Without LINQ.</p>
+
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">long</span> Sum(<span class="type">int</span>[] numbers)</code></pre>
+
+<div class="section-label">Examples</div>
+<pre><code>Sum([<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>])              <span class="cmt">// 6</span>
+Sum([])                       <span class="cmt">// 0</span>
+Sum([<span class="type">int</span>.MaxValue, <span class="num">1</span>])       <span class="cmt">// 2147483648 (does not overflow because return is long)</span></code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I can explain why the return type is <code class="il">long</code> and not <code class="il">int</code>.</li>
+  <li>My accumulator variable is declared as the right type for that reason.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>The overflow case is the lesson. If you accumulate in an <code class="il">int</code> and only cast to <code class="il">long</code> on return, the addition has already overflowed. Declare the accumulator as <code class="il">long</code> from the start.</p>
+</details>
+</div>
+
+<div class="drill" id="d4">
+<h3>Drill 4 &mdash; Reverse (in place)</h3>
+<div class="meta-row">
+  <span class="tag time">8 min</span>
+  <span class="tag topic">array, indexing</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Reverse an array <strong>in place</strong>. Do not allocate a new array. Do not use <code class="il">Array.Reverse</code>.</p>
+
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static void</span> ReverseInPlace(<span class="type">int</span>[] numbers)</code></pre>
+
+<div class="section-label">Examples</div>
+<pre><code><span class="kw">var</span> a = <span class="kw">new</span>[] { <span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span> };
+ReverseInPlace(a);
+<span class="cmt">// a is now [4, 3, 2, 1]</span></code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>It works for odd-length arrays (e.g. 5 elements).</li>
+  <li>It works for length 0 and length 1 without crashing.</li>
+  <li>I used exactly one temporary variable, not a whole second array.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>Two pointers: <code class="il">left = 0</code>, <code class="il">right = length - 1</code>. While <code class="il">left &lt; right</code>: swap, then <code class="il">left++</code>, <code class="il">right--</code>. Tuple swap (<code class="il">(a[i], a[j]) = (a[j], a[i])</code>) is fine and idiomatic.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== DICTIONARY ================= -->
+<!-- ============================================ -->
+<h2 id="sec-dict" class="section-anchor">2 &mdash; Dictionary</h2>
+
+<p>Dictionary is where most newer C# devs first hit real design choices. These drills explore the four ways to read from one (<code class="il">[]</code>, <code class="il">TryGetValue</code>, <code class="il">ContainsKey + []</code>, <code class="il">GetValueOrDefault</code>) and when each is right.</p>
+
+<div class="drill" id="d5">
+<h3>Drill 5 &mdash; WordCounts</h3>
+<div class="meta-row">
+  <span class="tag time">8 min</span>
+  <span class="tag topic">Dictionary&lt;K,V&gt;</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Given a sentence, return a dictionary mapping each word to the number of times it appears. Split on spaces. Case-sensitive (we'll do case-insensitive later).</p>
+
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">Dictionary</span>&lt;<span class="type">string</span>, <span class="type">int</span>&gt; WordCounts(<span class="type">string</span> sentence)</code></pre>
+
+<div class="section-label">Examples</div>
+<pre><code>WordCounts(<span class="str">"the cat sat on the mat"</span>)
+<span class="cmt">// { "the": 2, "cat": 1, "sat": 1, "on": 1, "mat": 1 }</span>
+
+WordCounts(<span class="str">""</span>)        <span class="cmt">// empty dict</span></code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I considered both <code class="il">ContainsKey + Add</code> and <code class="il">TryGetValue</code>. I picked one and can explain why.</li>
+  <li>My code does not throw on an empty input.</li>
+  <li>I know what <code class="il">"the cat".Split(' ')</code> returns when there are two spaces in a row.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>Two equally valid shapes:</p>
+<ul>
+  <li><code class="il">if (counts.ContainsKey(word)) counts[word]++; else counts[word] = 1;</code> &mdash; two dictionary lookups per word.</li>
+  <li><code class="il">counts[word] = counts.GetValueOrDefault(word) + 1;</code> &mdash; one read, one write.</li>
+</ul>
+<p>The second is more idiomatic in modern C# but the first is more obviously correct to a beginner reader. Both fine.</p>
+</details>
+
+<div class="stretch"><strong>Stretch:</strong> write three xUnit tests: single word, repeated word, empty string. Then add: how do you handle multiple consecutive spaces? Decide what the right behaviour is, write the test, then fix the code.</div>
+</div>
+
+<div class="drill" id="d6">
+<h3>Drill 6 &mdash; SafeLookup</h3>
+<div class="meta-row">
+  <span class="tag time">5 min</span>
+  <span class="tag topic">TryGetValue</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Given a <code class="il">Dictionary&lt;string, int&gt;</code> and a key, return the value if present, otherwise <code class="il">-1</code>. <strong>Must use <code class="il">TryGetValue</code> &mdash; not <code class="il">ContainsKey</code>, not the indexer.</strong></p>
+
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">int</span> SafeLookup(<span class="type">Dictionary</span>&lt;<span class="type">string</span>, <span class="type">int</span>&gt; map, <span class="type">string</span> key)</code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I can explain in one sentence why <code class="il">TryGetValue</code> is preferred over <code class="il">ContainsKey + []</code>.</li>
+  <li>I used the <code class="il">out var</code> pattern in the call.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>The one-sentence answer to the self-check: <code class="il">ContainsKey + []</code> does two hash lookups; <code class="il">TryGetValue</code> does one. For a tight loop over a big dictionary, that's a 2&times; difference.</p>
+</details>
+</div>
+
+<div class="drill" id="d7">
+<h3>Drill 7 &mdash; GroupByFirstLetter</h3>
+<div class="meta-row">
+  <span class="tag time">10 min</span>
+  <span class="tag topic">Dictionary of List</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Given a list of names, return a dictionary keyed by the first letter (uppercased), where the value is a list of names starting with that letter. Names within each list keep input order.</p>
+
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">Dictionary</span>&lt;<span class="type">char</span>, <span class="type">List</span>&lt;<span class="type">string</span>&gt;&gt; GroupByFirstLetter(<span class="type">List</span>&lt;<span class="type">string</span>&gt; names)</code></pre>
+
+<div class="section-label">Examples</div>
+<pre><code>GroupByFirstLetter(<span class="kw">new</span>() { <span class="str">"Ana"</span>, <span class="str">"alex"</span>, <span class="str">"Bea"</span>, <span class="str">"carl"</span> })
+<span class="cmt">// { 'A': ["Ana", "alex"], 'B': ["Bea"], 'C': ["carl"] }</span></code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The dictionary value type is <code class="il">List&lt;string&gt;</code>, and each missing key gets a fresh empty list before I append.</li>
+  <li>I handle the empty-input case (returns empty dict, doesn't crash).</li>
+  <li>I considered: what if a name is an empty string? What should happen? Did I decide consciously?</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>The pattern: for each name, compute the key. If the dictionary doesn't have it yet, add a new empty <code class="il">List&lt;string&gt;</code>. Then append the name to that list. <code class="il">char.ToUpperInvariant(name[0])</code> gets you the uppercased first letter.</p>
+</details>
+</div>
+
+<div class="drill" id="d8">
+<h3>Drill 8 &mdash; FirstDuplicate</h3>
+<div class="meta-row">
+  <span class="tag time">8 min</span>
+  <span class="tag topic">Dictionary as "seen" set</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Given an <code class="il">int[]</code>, return the first element that appears more than once. If none, return <code class="il">null</code>.</p>
+
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">int</span>? FirstDuplicate(<span class="type">int</span>[] numbers)</code></pre>
+
+<div class="section-label">Examples</div>
+<pre><code>FirstDuplicate([<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">2</span>, <span class="num">1</span>])  <span class="cmt">// 2  (because 2 reappears before 1 does)</span>
+FirstDuplicate([<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>])        <span class="cmt">// null</span>
+FirstDuplicate([])               <span class="cmt">// null</span></code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I made one pass through the array, not nested loops.</li>
+  <li>I used a collection to track &ldquo;already seen&rdquo;. Did I pick Dictionary or HashSet? Why?</li>
+  <li>The complexity is O(n). I can explain why nested loops would be O(n&sup2;) and why that matters.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>HashSet is the right choice (you only care &ldquo;have I seen this?&rdquo;, not &ldquo;at what index?&rdquo;) &mdash; but doing it with a Dictionary&lt;int,bool&gt; teaches the same lesson. We'll redo this with HashSet in Drill 11.</p>
+</details>
+</div>
+
+<div class="drill" id="d9">
+<h3>Drill 9 &mdash; MergeMaps</h3>
+<div class="meta-row">
+  <span class="tag time">10 min</span>
+  <span class="tag topic">Dictionary, conflict resolution</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Merge two <code class="il">Dictionary&lt;string, int&gt;</code> into a new dictionary. If a key exists in both, the values are <em>added</em>.</p>
+
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">Dictionary</span>&lt;<span class="type">string</span>, <span class="type">int</span>&gt; Merge(<span class="type">Dictionary</span>&lt;<span class="type">string</span>, <span class="type">int</span>&gt; a, <span class="type">Dictionary</span>&lt;<span class="type">string</span>, <span class="type">int</span>&gt; b)</code></pre>
+
+<div class="section-label">Examples</div>
+<pre><code>Merge(
+  <span class="kw">new</span>() { [<span class="str">"x"</span>] = <span class="num">1</span>, [<span class="str">"y"</span>] = <span class="num">2</span> },
+  <span class="kw">new</span>() { [<span class="str">"y"</span>] = <span class="num">3</span>, [<span class="str">"z"</span>] = <span class="num">4</span> }
+)
+<span class="cmt">// { "x": 1, "y": 5, "z": 4 }</span></code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Neither input dictionary is mutated. I built a fresh result.</li>
+  <li>I did not write <code class="il">.Add()</code> with a duplicate key (that throws &mdash; the indexer is the right tool here).</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>Start by copying <code class="il">a</code> into a new dictionary. Then walk <code class="il">b</code>'s key-value pairs and use <code class="il">GetValueOrDefault</code> to accumulate.</p>
+</details>
+</div>
+
+<div class="drill" id="d10">
+<h3>Drill 10 &mdash; AddVsIndexer (no code &mdash; explain it)</h3>
+<div class="meta-row">
+  <span class="tag time">5 min</span>
+  <span class="tag topic">conceptual</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>In a comment block at the top of a file, in your own words, answer: what is the behavioural difference between <code class="il">dict.Add(k, v)</code> and <code class="il">dict[k] = v</code> when <code class="il">k</code> already exists?</p>
+
+<p>Then: name one situation where you'd <em>prefer</em> <code class="il">.Add()</code> to fail, and one where <code class="il">[]</code>'s overwrite is what you want.</p>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I wrote at least three sentences in my own words. (No copying from docs.)</li>
+  <li>My two examples are concrete (a real scenario), not abstract.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>One framing: <code class="il">.Add</code> is &ldquo;I'm certain this key is new &mdash; if I'm wrong, that's a bug, crash loudly&rdquo;. <code class="il">[]</code> is &ldquo;set this key to this value, idempotent, I don't care if it was already there&rdquo;. Both are legitimate.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== HASHSET ==================== -->
+<!-- ============================================ -->
+<h2 id="sec-hashset" class="section-anchor">3 &mdash; HashSet</h2>
+
+<p>HashSet is &ldquo;the value-less dictionary&rdquo;. You use it when the only question is membership.</p>
+
+<div class="drill" id="d11">
+<h3>Drill 11 &mdash; Dedupe</h3>
+<div class="meta-row">
+  <span class="tag time">5 min</span>
+  <span class="tag topic">HashSet&lt;T&gt;</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Given a <code class="il">List&lt;string&gt;</code>, return a new list with duplicates removed but original order preserved.</p>
+
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">List</span>&lt;<span class="type">string</span>&gt; Dedupe(<span class="type">List</span>&lt;<span class="type">string</span>&gt; items)</code></pre>
+
+<div class="section-label">Examples</div>
+<pre><code>Dedupe(<span class="kw">new</span>() { <span class="str">"a"</span>, <span class="str">"b"</span>, <span class="str">"a"</span>, <span class="str">"c"</span>, <span class="str">"b"</span> })
+<span class="cmt">// ["a", "b", "c"]</span></code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I did not use LINQ <code class="il">.Distinct()</code>.</li>
+  <li>I used <code class="il">HashSet&lt;string&gt;.Add</code> &mdash; and I know what <code class="il">Add</code> returns (and that I should use it).</li>
+  <li>The output keeps the order of <em>first</em> occurrence, not last.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p><code class="il">HashSet&lt;T&gt;.Add(item)</code> returns <code class="il">bool</code>: <code class="il">true</code> if the item was added (i.e. wasn't there), <code class="il">false</code> if it was already present. So your loop body can be: <code class="il">if (seen.Add(item)) result.Add(item);</code>. One line.</p>
+</details>
+</div>
+
+<div class="drill" id="d12">
+<h3>Drill 12 &mdash; CommonElements</h3>
+<div class="meta-row">
+  <span class="tag time">8 min</span>
+  <span class="tag topic">HashSet set ops</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Given two arrays of integers, return the values that appear in <strong>both</strong>, as a <code class="il">HashSet&lt;int&gt;</code>.</p>
+
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">HashSet</span>&lt;<span class="type">int</span>&gt; CommonElements(<span class="type">int</span>[] a, <span class="type">int</span>[] b)</code></pre>
+
+<div class="section-label">Examples</div>
+<pre><code>CommonElements([<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>], [<span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>])  <span class="cmt">// { 2, 3 }</span>
+CommonElements([<span class="num">1</span>], [<span class="num">2</span>])                <span class="cmt">// { }</span></code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I know about <code class="il">HashSet&lt;T&gt;.IntersectWith</code>. I used it (or I deliberately did not, and can explain).</li>
+  <li>The original arrays are not mutated.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>Two-liner: <code class="il">var set = new HashSet&lt;int&gt;(a); set.IntersectWith(b); return set;</code>. Mind the docs &mdash; <code class="il">IntersectWith</code> mutates the set it's called on, which is why we wrap <code class="il">a</code> in a fresh hashset first.</p>
+</details>
+</div>
+
+<div class="drill" id="d13">
+<h3>Drill 13 &mdash; HasAllRequired</h3>
+<div class="meta-row">
+  <span class="tag time">5 min</span>
+  <span class="tag topic">IsSubsetOf / IsSupersetOf</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Given a user's roles (a <code class="il">HashSet&lt;string&gt;</code>) and a list of required roles, return <code class="il">true</code> only if the user has <em>every</em> required role.</p>
+
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static bool</span> HasAllRequired(<span class="type">HashSet</span>&lt;<span class="type">string</span>&gt; userRoles, <span class="type">List</span>&lt;<span class="type">string</span>&gt; required)</code></pre>
+
+<div class="section-label">Examples</div>
+<pre><code>HasAllRequired(<span class="kw">new</span>() { <span class="str">"Admin"</span>, <span class="str">"Editor"</span> }, <span class="kw">new</span>() { <span class="str">"Admin"</span> })            <span class="cmt">// true</span>
+HasAllRequired(<span class="kw">new</span>() { <span class="str">"Admin"</span>, <span class="str">"Editor"</span> }, <span class="kw">new</span>() { <span class="str">"Admin"</span>, <span class="str">"Owner"</span> })  <span class="cmt">// false</span>
+HasAllRequired(<span class="kw">new</span>() { <span class="str">"Admin"</span> }, <span class="kw">new</span>())                              <span class="cmt">// true (vacuously)</span></code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used a HashSet method, not a manual loop.</li>
+  <li>I can articulate the difference between <code class="il">IsSubsetOf</code> and <code class="il">IsSupersetOf</code>.</li>
+</ul>
+</div>
+
+<div class="drill" id="d14">
+<h3>Drill 14 &mdash; FirstNonRepeating</h3>
+<div class="meta-row">
+  <span class="tag time">10 min</span>
+  <span class="tag topic">HashSet + Dictionary combo</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Given a <code class="il">string</code>, return the first character that appears only once. If none, return <code class="il">'\0'</code>.</p>
+
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static char</span> FirstNonRepeating(<span class="type">string</span> input)</code></pre>
+
+<div class="section-label">Examples</div>
+<pre><code>FirstNonRepeating(<span class="str">"swiss"</span>)   <span class="cmt">// 'w'</span>
+FirstNonRepeating(<span class="str">"aabb"</span>)    <span class="cmt">// '\0'</span>
+FirstNonRepeating(<span class="str">""</span>)        <span class="cmt">// '\0'</span></code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I made two passes over the string (one to count, one to find), not nested loops.</li>
+  <li>I considered using a <code class="il">Dictionary&lt;char, int&gt;</code> for counts. Why not just a <code class="il">HashSet&lt;char&gt;</code>?</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>The HashSet question is the lesson: a HashSet can answer &ldquo;have I seen this?&rdquo; but not &ldquo;how many times?&rdquo;. To know if a char is non-repeating you need a count, hence Dictionary. Pass 1: build counts. Pass 2: walk the string in order, return the first char whose count is 1.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== EQUALITY CONTRACT ========== -->
+<!-- ============================================ -->
+<h2 id="sec-equality" class="section-anchor">4 &mdash; Equality contract</h2>
+
+<p>This is where Dictionaries and HashSets bite people. The collections use <code class="il">GetHashCode()</code> to find buckets and <code class="il">Equals()</code> to confirm matches. Get either wrong and your dictionary silently loses data. Open <code class="il">CSharp_Equality_Guide.html</code> in <code class="il">_Organized/01-Basics/</code> alongside these drills.</p>
+
+<div class="drill" id="d15">
+<h3>Drill 15 &mdash; Point as a class with value equality</h3>
+<div class="meta-row">
+  <span class="tag time">15 min</span>
+  <span class="tag topic">Equals, GetHashCode, IEquatable</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Write a class <code class="il">Point</code> with <code class="il">int X</code> and <code class="il">int Y</code> properties, where two points with the same X and Y are <em>equal</em>. Override what you must override. Implement <code class="il">IEquatable&lt;Point&gt;</code>.</p>
+
+<div class="section-label">Behaviour</div>
+<pre><code><span class="kw">var</span> a = <span class="kw">new</span> <span class="type">Point</span>(<span class="num">1</span>, <span class="num">2</span>);
+<span class="kw">var</span> b = <span class="kw">new</span> <span class="type">Point</span>(<span class="num">1</span>, <span class="num">2</span>);
+<span class="kw">var</span> c = <span class="kw">new</span> <span class="type">Point</span>(<span class="num">3</span>, <span class="num">4</span>);
+
+a.Equals(b);                <span class="cmt">// true</span>
+a.Equals(c);                <span class="cmt">// false</span>
+a == b;                     <span class="cmt">// (your call &mdash; see self-check)</span>
+a.GetHashCode() == b.GetHashCode(); <span class="cmt">// true</span>
+
+<span class="kw">var</span> set = <span class="kw">new</span> <span class="type">HashSet</span>&lt;<span class="type">Point</span>&gt; { a };
+set.Contains(b);            <span class="cmt">// true</span></code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I overrode <code class="il">Equals(object?)</code> AND implemented <code class="il">IEquatable&lt;Point&gt;.Equals(Point?)</code>. I know why both exist.</li>
+  <li>I overrode <code class="il">GetHashCode()</code>. I can state the contract in one sentence (&ldquo;if Equals returns true, GetHashCode must return the same value&rdquo;).</li>
+  <li>I made a decision about <code class="il">==</code> and <code class="il">!=</code>: either I overloaded them, or I deliberately left them as reference equality. I can defend the choice.</li>
+  <li>I tested <code class="il">HashSet.Contains</code> works &mdash; that's the real proof of correctness.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>Skeleton (do <em>not</em> copy):</p>
+<pre><code><span class="kw">public class</span> <span class="type">Point</span> : <span class="type">IEquatable</span>&lt;<span class="type">Point</span>&gt;
+{
+    <span class="cmt">// X, Y, constructor, properties...</span>
+
+    <span class="kw">public bool</span> Equals(<span class="type">Point</span>? other) =&gt; <span class="cmt">/* compare X and Y, handle null */</span>;
+    <span class="kw">public override bool</span> Equals(<span class="type">object</span>? obj) =&gt; <span class="cmt">/* delegate to the typed Equals */</span>;
+    <span class="kw">public override int</span> GetHashCode() =&gt; <span class="type">HashCode</span>.Combine(X, Y);
+}</code></pre>
+<p>Use the built-in <code class="il">HashCode.Combine(...)</code> &mdash; rolling your own with XOR is a beginner trap.</p>
+</details>
+
+<div class="stretch"><strong>Stretch:</strong> add the <code class="il">==</code> and <code class="il">!=</code> operator overloads, then write tests covering each path (null-vs-null, null-vs-non-null, equal-non-null, unequal-non-null).</div>
+</div>
+
+<div class="drill" id="d16">
+<h3>Drill 16 &mdash; The broken contract</h3>
+<div class="meta-row">
+  <span class="tag time">10 min</span>
+  <span class="tag topic">debugging via equality</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Take the <code class="il">Point</code> from Drill 15. Make a copy in a new file. <strong>Remove the <code class="il">GetHashCode</code> override.</strong> Keep <code class="il">Equals</code>. Then write a small program that:</p>
+<ol>
+  <li>Adds <code class="il">new Point(1, 2)</code> to a <code class="il">HashSet&lt;Point&gt;</code>.</li>
+  <li>Asks the set whether <code class="il">new Point(1, 2)</code> is in it.</li>
+  <li>Prints the result.</li>
+</ol>
+
+<p>Predict the answer <em>before running it</em>. Write your prediction down. Then run. Then write down why it behaved that way.</p>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I wrote my prediction <em>before</em> running.</li>
+  <li>I explained the actual behaviour in terms of buckets and hash codes.</li>
+  <li>I now appreciate why violating the Equals/GetHashCode contract is a silent bug, not a loud one.</li>
+</ul>
+
+<details><summary>Hint (only after you've run it)</summary>
+<p>Without the override, <code class="il">GetHashCode</code> falls back to the base <code class="il">object</code> implementation, which is based on the reference (a different number for every <code class="il">new</code>). The two Points get put into different buckets. <code class="il">Contains</code> looks in the bucket the second point hashes to, finds nothing there, and returns <code class="il">false</code> &mdash; even though <code class="il">Equals</code> would have said <code class="il">true</code> if asked. The set is silently broken.</p>
+</details>
+</div>
+
+<div class="drill" id="d17">
+<h3>Drill 17 &mdash; Point as a record</h3>
+<div class="meta-row">
+  <span class="tag time">5 min</span>
+  <span class="tag topic">records, value equality for free</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Rewrite <code class="il">Point</code> as a positional <code class="il">record</code> in one line. Verify that everything you proved in Drill 15 still works: <code class="il">Equals</code>, hashcode, <code class="il">HashSet.Contains</code>.</p>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The record is one line.</li>
+  <li>I tested it against the same scenarios from Drill 15. They all pass without me writing any equality code.</li>
+  <li>I can state the rule: <strong>records give you value equality for free.</strong> Classes don't.</li>
+  <li>Bonus: I checked &mdash; does <code class="il">==</code> work on the record? Why?</li>
+</ul>
+</div>
+
+<div class="drill" id="d18">
+<h3>Drill 18 &mdash; Reference vs value equality (no code)</h3>
+<div class="meta-row">
+  <span class="tag time">5 min</span>
+  <span class="tag topic">conceptual</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>In your own words, explain the difference between reference equality and value equality. Then for each of these, state which one applies by default:</p>
+
+<ul>
+  <li><code class="il">string</code></li>
+  <li><code class="il">int</code></li>
+  <li>A class you wrote with no <code class="il">Equals</code> override</li>
+  <li>A <code class="il">record</code> you wrote with no <code class="il">Equals</code> override</li>
+  <li>A <code class="il">struct</code> you wrote with no <code class="il">Equals</code> override</li>
+</ul>
+
+<p>Write your answers down. Then verify one of them you're unsure about by writing the smallest test you can.</p>
+
+<details><summary>Hint &mdash; the surprising one</summary>
+<p><code class="il">string</code> is a reference type, but <code class="il">==</code> on string is overloaded to do value equality. That's the famous &ldquo;strings are weird&rdquo; thing. Structs do value equality by default but use slow reflection-based comparison unless you override.</p>
+</details>
+</div>
+
+<div class="drill" id="d19">
+<h3>Drill 19 &mdash; Dictionary with a custom key class</h3>
+<div class="meta-row">
+  <span class="tag time">10 min</span>
+  <span class="tag topic">Equality contract in practice</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Make a <code class="il">Dictionary&lt;Coord, string&gt;</code> where <code class="il">Coord</code> is a class with <code class="il">int Row, Col</code>. Show that the dictionary works correctly: storing under <code class="il">new Coord(1, 1)</code> and looking up under a <em>different instance</em> of <code class="il">new Coord(1, 1)</code> returns the stored value.</p>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>If I forget to override <code class="il">Equals</code>/<code class="il">GetHashCode</code> on <code class="il">Coord</code>, the lookup fails. I verified this.</li>
+  <li>I now understand why the C# Equality Guide spent so long on this. This is the real-world consequence.</li>
+</ul>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== IEqualityComparer ========== -->
+<!-- ============================================ -->
+<h2 id="sec-comparer" class="section-anchor">5 &mdash; IEqualityComparer</h2>
+
+<p>What if you can't modify the type, but you still want a custom notion of equality for a specific dictionary or hashset? That's <code class="il">IEqualityComparer&lt;T&gt;</code>.</p>
+
+<div class="drill" id="d20">
+<h3>Drill 20 &mdash; Case-insensitive dictionary</h3>
+<div class="meta-row">
+  <span class="tag time">5 min</span>
+  <span class="tag topic">StringComparer</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Create a <code class="il">Dictionary&lt;string, int&gt;</code> where the keys are compared case-insensitively. Storing under <code class="il">"Hello"</code> and looking up under <code class="il">"HELLO"</code> returns the same value.</p>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I did not write my own comparer for this &mdash; I used <code class="il">StringComparer.OrdinalIgnoreCase</code>.</li>
+  <li>I can name two other built-in <code class="il">StringComparer</code>s and explain when I'd use each.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>The dictionary constructor takes an optional <code class="il">IEqualityComparer&lt;TKey&gt;</code>: <code class="il">new Dictionary&lt;string, int&gt;(StringComparer.OrdinalIgnoreCase)</code>. That's it.</p>
+</details>
+</div>
+
+<div class="drill" id="d21">
+<h3>Drill 21 &mdash; Custom IEqualityComparer</h3>
+<div class="meta-row">
+  <span class="tag time">15 min</span>
+  <span class="tag topic">IEqualityComparer&lt;T&gt;</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Given a <code class="il">Person</code> class with <code class="il">FirstName</code>, <code class="il">LastName</code>, and <code class="il">int Age</code> (you write this class &mdash; <strong>do not</strong> add any equality on it; treat it as a third-party type you can't modify), write a <code class="il">PersonNameComparer : IEqualityComparer&lt;Person&gt;</code> that considers two people equal if their <code class="il">FirstName</code> and <code class="il">LastName</code> match (case-insensitively). Age is ignored.</p>
+
+<div class="section-label">Then verify</div>
+<pre><code><span class="kw">var</span> set = <span class="kw">new</span> <span class="type">HashSet</span>&lt;<span class="type">Person</span>&gt;(<span class="kw">new</span> <span class="type">PersonNameComparer</span>());
+set.Add(<span class="kw">new</span> <span class="type">Person</span>(<span class="str">"Ana"</span>, <span class="str">"Silva"</span>, <span class="num">30</span>));
+set.Contains(<span class="kw">new</span> <span class="type">Person</span>(<span class="str">"ANA"</span>, <span class="str">"silva"</span>, <span class="num">99</span>));  <span class="cmt">// true</span></code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>My <code class="il">GetHashCode</code> in the comparer also ignores Age and is case-insensitive.</li>
+  <li>I can articulate why the comparer's <code class="il">GetHashCode</code> contract must be consistent with the comparer's <code class="il">Equals</code> &mdash; same rule as for an instance, but living on the comparer.</li>
+  <li>I did <strong>not</strong> modify the <code class="il">Person</code> class to make this work.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>The interface has two methods: <code class="il">bool Equals(T? x, T? y)</code> and <code class="il">int GetHashCode(T obj)</code>. Inside, compare the relevant fields using <code class="il">StringComparer.OrdinalIgnoreCase</code>. For the hash, combine the lowercased names: <code class="il">HashCode.Combine(person.FirstName?.ToLowerInvariant(), person.LastName?.ToLowerInvariant())</code> works, but using the StringComparer directly is cleaner.</p>
+</details>
+</div>
+
+<div class="drill" id="d22">
+<h3>Drill 22 &mdash; When NOT to use IEqualityComparer (no code)</h3>
+<div class="meta-row">
+  <span class="tag time">5 min</span>
+  <span class="tag topic">conceptual</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>You own the <code class="il">Person</code> class &mdash; you can edit it freely. You want value equality based on FirstName and LastName. Should you (a) override <code class="il">Equals</code>/<code class="il">GetHashCode</code> on <code class="il">Person</code> itself, or (b) write an <code class="il">IEqualityComparer</code>? Write three sentences arguing for each.</p>
+
+<details><summary>Hint</summary>
+<p>The principle: equality on the type itself is the <em>identity</em> of the type &mdash; it applies everywhere. A comparer is <em>a perspective</em> &mdash; it applies only where you opt in. If two people with the same name truly are &ldquo;the same person&rdquo; in your domain, override. If you sometimes need name-equality and sometimes need full-equality, use comparers and don't override.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== CHOOSE THE RIGHT =========== -->
+<!-- ============================================ -->
+<h2 id="sec-choose" class="section-anchor">6 &mdash; Choose the right collection</h2>
+
+<p>Pattern-matching drills: scenario in, answer out. No code &mdash; just the choice and the reasoning. Two sentences each.</p>
+
+<div class="drill" id="d23">
+<h3>Drill 23 &mdash; Scenario A</h3>
+<p>You're loading 50,000 product records from a database. The UI needs to look up a product by SKU thousands of times per second. What collection holds the products in memory? Why?</p>
+
+<details><summary>Hint</summary>
+<p>O(1) lookups by key &rarr; Dictionary. SKU is the key. The win over <code class="il">List&lt;Product&gt;.Find</code> is enormous at 50k items.</p>
+</details>
+</div>
+
+<div class="drill" id="d24">
+<h3>Drill 24 &mdash; Scenario B</h3>
+<p>You're parsing a log file. You want to know which unique error codes appeared, and how many times each one fired. What collection(s)? Why?</p>
+
+<details><summary>Hint</summary>
+<p>If you only need the unique codes: HashSet. If you need codes and counts: Dictionary&lt;errorCode, int&gt;. Both at once would be redundant &mdash; the dictionary's <code class="il">.Keys</code> gives you the unique set for free.</p>
+</details>
+</div>
+
+<div class="drill" id="d25">
+<h3>Drill 25 &mdash; Scenario C</h3>
+<p>You're building a shopping cart. The user adds items. The same item can be added multiple times (quantity). The order items were added matters for display. What collection? Why?</p>
+
+<details><summary>Hint</summary>
+<p>This one is sneaky. A <code class="il">List&lt;CartItem&gt;</code> preserves order and allows duplicates &mdash; but you'll be doing <code class="il">.Find</code> a lot to update quantities. A <code class="il">Dictionary&lt;ProductId, CartItem&gt;</code> gives fast updates but loses insertion order. The honest answer: it depends on what's more important. Pick one and defend it. (In .NET, <code class="il">OrderedDictionary&lt;K,V&gt;</code> &mdash; available in modern .NET &mdash; gives you both, but that's a third option to know about.)</p>
+</details>
+</div>
+
+<!-- =============== AFTER =============== -->
+<h2 id="after">When you've done them all</h2>
+
+<p>Look at your captured-question scratch file. The questions you wrote down at minute 10 are your real curriculum &mdash; those are the gaps to study next. Bring that list to me and we'll talk through them <em>conceptually</em>, not by solving the drills.</p>
+
+<p>Then pick the next topic and ask me for a sibling drill doc. Suggestions:</p>
+
+<ul>
+  <li><strong>LINQ drills</strong> &mdash; same shape, focused on <code class="il">Where</code>, <code class="il">Select</code>, <code class="il">GroupBy</code>, <code class="il">Aggregate</code>, deferred execution gotchas.</li>
+  <li><strong>Async/await drills</strong> &mdash; tasks, cancellation, common deadlock traps.</li>
+  <li><strong>Generics drills</strong> &mdash; constraints, variance, generic methods vs generic types.</li>
+  <li><strong>Exception handling drills</strong> &mdash; when to catch, when to throw, when to wrap.</li>
+</ul>
+
+<p class="callout ok"><strong>Track your reps.</strong> A line per drill in a simple text file: date, drill number, time taken, &ldquo;stuck on X&rdquo; or &ldquo;clean&rdquo;. After a month you'll be able to see your blank-page reflex measurably improving. That data will matter when the doubt creeps in.</p>
+
+</div>
+</body>
+</html>

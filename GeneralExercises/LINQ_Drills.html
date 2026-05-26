@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>LINQ &mdash; Blank-Page Drills</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {
+  --bg: #0b1220;
+  --surface: #111a2e;
+  --surface-2: #16223c;
+  --border: #243352;
+  --text: #e6ecf5;
+  --text-dim: #9aa7c0;
+  --accent: #6aa6ff;
+  --accent-2: #b06aff;
+  --code-bg: #0a1120;
+  --ok: #4ade80;
+  --warn: #fbbf24;
+  --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 28px; }
+header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
+header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
+header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
+h1, h2, h3, h4 { color: var(--text); margin-top: 1.6em; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+a { color: var(--accent); }
+code, pre, code.il { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; border: 1px solid var(--border); }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55; }
+pre code { background: transparent; border: 0; padding: 0; }
+blockquote { border-left: 3px solid var(--accent); background: var(--surface);
+  padding: 10px 16px; margin: 12px 0; color: var(--text-dim); border-radius: 0 6px 6px 0; }
+.callout { background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-2); padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; }
+.callout.warn { border-left-color: var(--warn); }
+.kw   { color: #c792ea; }
+.type { color: #82aaff; }
+.str  { color: #c3e88d; }
+.num  { color: #f78c6c; }
+.cmt  { color: #6c7a96; font-style: italic; }
+.drill { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 20px; margin: 20px 0; }
+.drill h3 { margin-top: 0; font-size: 17px; }
+.drill .meta-row { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-dim); margin-bottom: 8px; }
+.drill .meta-row span.tag { background: var(--surface-2); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; }
+.drill .meta-row span.tag.time { color: var(--accent); }
+.drill .meta-row span.tag.topic { color: var(--accent-2); }
+.section-label { text-transform: uppercase; font-size: 10px; letter-spacing: 0.08em;
+  color: var(--text-dim); margin: 14px 0 4px; font-weight: 600; }
+.checklist { list-style: none; padding-left: 0; margin: 4px 0; }
+.checklist li { padding: 3px 0 3px 26px; position: relative; font-size: 14px; }
+.checklist li::before { content: ""; position: absolute; left: 0; top: 8px; width: 13px; height: 13px;
+  border: 1.5px solid var(--text-dim); border-radius: 3px; background: var(--code-bg); }
+details { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 8px 12px; margin: 10px 0; }
+details > summary { cursor: pointer; color: var(--accent); font-weight: 500; user-select: none; font-size: 13px; }
+details[open] > summary { margin-bottom: 8px; }
+.toc { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 18px; margin: 18px 0 28px; font-size: 14px; }
+.toc ol { margin: 6px 0; padding-left: 22px; }
+.toc li { margin: 2px 0; }
+.toc a { text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+.section-anchor { padding-top: 12px; }
+.stretch { background: rgba(106, 166, 255, 0.06); border-left: 3px solid var(--accent);
+  padding: 8px 12px; margin: 10px 0; border-radius: 0 4px 4px 0; font-size: 13px; }
+.stretch strong { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">GeneralExercises &rsaquo; LINQ</div>
+  <h1>LINQ &mdash; blank-page drills</h1>
+  <div class="meta">22 drills covering the operators you'll use 90% of the time, plus the deferred-execution gotchas that bite everyone. Same rules as <code class="il">Collections_And_Equality_Drills.html</code>: no AI, only learn.microsoft.com, 10-min timer, capture the question.</div>
+</header>
+
+<h2 id="why">Why LINQ now</h2>
+
+<p>If you can write a LINQ query from a blank file without hesitation, you're already in the top half of working C# developers. The operators aren't difficult individually &mdash; the trouble is <em>composing</em> them, knowing which one fits, and knowing when the query actually runs (deferred execution is the source of nine out of ten LINQ bugs).</p>
+
+<p>These drills lean toward <strong>method syntax</strong> (<code class="il">.Where(x =&gt; ...)</code>) over query syntax (<code class="il">from x in xs where ...</code>) because that's what real codebases use. Mention me if you want a query-syntax sibling doc.</p>
+
+<blockquote>Rule for these drills: <strong>solve it without LINQ first, then rewrite using LINQ.</strong> The contrast is the lesson. Skipping the manual version skips most of the learning.</blockquote>
+
+<h2 id="setup">Setup reminder</h2>
+
+<p>Each drill: new file, one static class, one method. Most drills take a list/array as input. Put a few shared sample inputs at the top of <code class="il">Program.cs</code> so you don't keep re-typing them.</p>
+
+<div class="toc">
+  <strong>Drill index</strong>
+  <ol>
+    <li><a href="#sec-basics">Where, Select, basics (drills 1&ndash;5)</a></li>
+    <li><a href="#sec-aggregate">Aggregation: Sum, Count, Any, All (drills 6&ndash;10)</a></li>
+    <li><a href="#sec-order">Ordering &amp; paging (drills 11&ndash;13)</a></li>
+    <li><a href="#sec-group">Grouping &amp; ToDictionary (drills 14&ndash;17)</a></li>
+    <li><a href="#sec-join">Joins (drills 18&ndash;19)</a></li>
+    <li><a href="#sec-deferred">Deferred execution traps (drills 20&ndash;22)</a></li>
+  </ol>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== BASICS ===================== -->
+<!-- ============================================ -->
+<h2 id="sec-basics" class="section-anchor">1 &mdash; Where, Select, basics</h2>
+
+<div class="drill">
+<h3>Drill 1 &mdash; PositiveOnly</h3>
+<div class="meta-row"><span class="tag time">3 min</span><span class="tag topic">Where</span></div>
+<div class="section-label">Goal</div>
+<p>Return only the positive numbers from an <code class="il">int[]</code>, as an <code class="il">IEnumerable&lt;int&gt;</code>. Use <code class="il">Where</code>.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">IEnumerable</span>&lt;<span class="type">int</span>&gt; PositiveOnly(<span class="type">int</span>[] numbers)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The method body is one expression. (Hint: expression-bodied member, <code class="il">=&gt;</code>.)</li>
+  <li>I know what <code class="il">Where</code>'s return type is. It is <strong>not</strong> a <code class="il">List&lt;T&gt;</code>.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 2 &mdash; ToUpper</h3>
+<div class="meta-row"><span class="tag time">3 min</span><span class="tag topic">Select</span></div>
+<div class="section-label">Goal</div>
+<p>Given a <code class="il">List&lt;string&gt;</code>, return a list of those strings uppercased.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">List</span>&lt;<span class="type">string</span>&gt; ToUpper(<span class="type">List</span>&lt;<span class="type">string</span>&gt; words)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The signature returns <code class="il">List&lt;string&gt;</code>, but <code class="il">Select</code> returns <code class="il">IEnumerable</code>. I converted at the end. Which method did I call?</li>
+  <li>I considered: should this use <code class="il">ToUpper()</code> or <code class="il">ToUpperInvariant()</code>? Why does it matter?</li>
+</ul>
+<details><summary>Hint</summary>
+<p>Chain ends with <code class="il">.ToList()</code>. Invariant uppercase is what you want unless you're displaying to a user in a specific culture &mdash; Turkish 'i' is the famous trap.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 3 &mdash; Lengths</h3>
+<div class="meta-row"><span class="tag time">4 min</span><span class="tag topic">Select projection</span></div>
+<div class="section-label">Goal</div>
+<p>Given a <code class="il">List&lt;string&gt;</code>, return a list of their lengths.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">List</span>&lt;<span class="type">int</span>&gt; Lengths(<span class="type">List</span>&lt;<span class="type">string</span>&gt; words)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I projected to a different type. The output's element type is not the input's.</li>
+  <li>What happens if one of the strings is <code class="il">null</code>? Did I decide consciously?</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 4 &mdash; LongWords</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">Where + Select chain</span></div>
+<div class="section-label">Goal</div>
+<p>Given a <code class="il">List&lt;string&gt;</code>, return only the words longer than 4 characters, uppercased.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">List</span>&lt;<span class="type">string</span>&gt; LongWordsUpper(<span class="type">List</span>&lt;<span class="type">string</span>&gt; words)</code></pre>
+<div class="section-label">Examples</div>
+<pre><code>LongWordsUpper(<span class="kw">new</span>() { <span class="str">"hi"</span>, <span class="str">"hello"</span>, <span class="str">"goodbye"</span> })  <span class="cmt">// ["HELLO", "GOODBYE"]</span></code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I chained two operators. The order matters: filter first, transform second, is more efficient.</li>
+  <li>I can explain why &mdash; what does Select do to filtered-out items if you Select first?</li>
+</ul>
+<details><summary>Hint</summary>
+<p>If you Select first, you compute the uppercase of <em>every</em> string, then throw most of them away. Where first cuts the workload. For trivial transforms it doesn't matter; for expensive ones it does.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 5 &mdash; SelectIndex</h3>
+<div class="meta-row"><span class="tag time">6 min</span><span class="tag topic">Select with index</span></div>
+<div class="section-label">Goal</div>
+<p>Given a <code class="il">List&lt;string&gt;</code>, return a list of <code class="il">"3: pear"</code> strings &mdash; index, colon, space, the word.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">List</span>&lt;<span class="type">string</span>&gt; Numbered(<span class="type">List</span>&lt;<span class="type">string</span>&gt; words)</code></pre>
+<div class="section-label">Examples</div>
+<pre><code>Numbered(<span class="kw">new</span>() { <span class="str">"apple"</span>, <span class="str">"banana"</span>, <span class="str">"pear"</span> })
+<span class="cmt">// ["0: apple", "1: banana", "2: pear"]</span></code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used the overload of Select that gives me the index &mdash; not a separate counter variable.</li>
+  <li>I used string interpolation, not concatenation.</li>
+</ul>
+<details><summary>Hint</summary>
+<p><code class="il">.Select((item, index) =&gt; ...)</code> is the overload. Also exists on <code class="il">Where</code>, though it's rarer there.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== AGGREGATION ================ -->
+<!-- ============================================ -->
+<h2 id="sec-aggregate" class="section-anchor">2 &mdash; Aggregation</h2>
+
+<div class="drill">
+<h3>Drill 6 &mdash; CountPositive</h3>
+<div class="meta-row"><span class="tag time">3 min</span><span class="tag topic">Count predicate</span></div>
+<div class="section-label">Goal</div>
+<p>Return the count of positive numbers in an <code class="il">int[]</code>. Use <code class="il">Count</code> with a predicate &mdash; do not <code class="il">.Where(...).Count()</code>.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">int</span> CountPositive(<span class="type">int</span>[] numbers)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>One LINQ call, not two.</li>
+  <li>I know why <code class="il">.Count(predicate)</code> is preferable to <code class="il">.Where(predicate).Count()</code>. (One-pass vs creating an intermediate.)</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 7 &mdash; AnyNegative</h3>
+<div class="meta-row"><span class="tag time">3 min</span><span class="tag topic">Any</span></div>
+<div class="section-label">Goal</div>
+<p>Return <code class="il">true</code> if any number in the input is negative.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static bool</span> AnyNegative(<span class="type">IEnumerable</span>&lt;<span class="type">int</span>&gt; numbers)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used <code class="il">.Any(predicate)</code> &mdash; not <code class="il">.Count() &gt; 0</code> on a filtered sequence.</li>
+  <li>I can explain why <code class="il">Any</code> is faster for large sequences (it short-circuits).</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 8 &mdash; AllPositive</h3>
+<div class="meta-row"><span class="tag time">3 min</span><span class="tag topic">All + empty trap</span></div>
+<div class="section-label">Goal</div>
+<p>Return <code class="il">true</code> if <em>every</em> number is positive.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>What does <code class="il">All</code> return for an empty sequence? Predict, then verify in the REPL or a test.</li>
+  <li>If that answer surprised me, I now understand &ldquo;vacuous truth&rdquo; in C# (and in math).</li>
+</ul>
+<details><summary>Hint</summary>
+<p><code class="il">All</code> returns <code class="il">true</code> on an empty sequence (&ldquo;every element satisfies P, because there are none to violate it&rdquo;). This bites people who write <code class="il">if (items.All(x =&gt; x.IsValid))</code> as a guard &mdash; if <code class="il">items</code> is empty, you sail through.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 9 &mdash; AverageAge</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">Average + Select</span></div>
+<div class="section-label">Goal</div>
+<p>Given a <code class="il">List&lt;Person&gt;</code> (<code class="il">record Person(string Name, int Age)</code>), return the average age as a <code class="il">double</code>. If the list is empty, return <code class="il">0</code>.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I selected the property before calling Average &mdash; or used the Average overload that takes a selector.</li>
+  <li>I handled the empty case explicitly. (Average throws on empty &mdash; surprise!)</li>
+</ul>
+<details><summary>Hint</summary>
+<p><code class="il">Average</code> on an empty sequence throws <code class="il">InvalidOperationException</code>. <code class="il">DefaultIfEmpty(0).Average(p =&gt; p.Age)</code> is one fix; an explicit <code class="il">if (!list.Any()) return 0;</code> guard is clearer.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 10 &mdash; SumOfSquares</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">Aggregate</span></div>
+<div class="section-label">Goal</div>
+<p>Return the sum of the squares of an <code class="il">int[]</code>. Use <code class="il">Aggregate</code> &mdash; not <code class="il">Sum</code> on a Select.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">long</span> SumOfSquares(<span class="type">int</span>[] numbers)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used the seed-and-accumulator overload of Aggregate, not the one-argument one. Why is the seeded version safer?</li>
+  <li>I avoided int overflow.</li>
+</ul>
+<details><summary>Hint</summary>
+<p>The seedless overload <code class="il">.Aggregate((acc, x) =&gt; ...)</code> throws on an empty sequence &mdash; there's no initial value to return. The seeded overload <code class="il">.Aggregate(0L, (acc, x) =&gt; acc + x * x)</code> handles empty and also lets you set the accumulator type (here <code class="il">long</code>).</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== ORDERING =================== -->
+<!-- ============================================ -->
+<h2 id="sec-order" class="section-anchor">3 &mdash; Ordering &amp; paging</h2>
+
+<div class="drill">
+<h3>Drill 11 &mdash; SortDescending</h3>
+<div class="meta-row"><span class="tag time">4 min</span><span class="tag topic">OrderByDescending</span></div>
+<div class="section-label">Goal</div>
+<p>Given an <code class="il">int[]</code>, return a list sorted descending.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I did not mutate the input array.</li>
+  <li>I know the difference between <code class="il">Array.Sort</code> (mutates) and <code class="il">OrderBy</code> (returns new sequence).</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 12 &mdash; SortByThen</h3>
+<div class="meta-row"><span class="tag time">6 min</span><span class="tag topic">OrderBy + ThenBy</span></div>
+<div class="section-label">Goal</div>
+<p>Given a <code class="il">List&lt;Person&gt;</code>, return them ordered by <code class="il">LastName</code> ascending, then by <code class="il">FirstName</code> ascending, then by <code class="il">Age</code> descending.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used <code class="il">ThenBy</code> / <code class="il">ThenByDescending</code> &mdash; not nested <code class="il">OrderBy</code> calls (which would resort, losing the previous order).</li>
+  <li>I confirmed in a test: two records with the same last name appear in the correct first-name order.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 13 &mdash; PageOfResults</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">Skip + Take</span></div>
+<div class="section-label">Goal</div>
+<p>Given an ordered <code class="il">IEnumerable&lt;T&gt;</code>, a page size, and a 1-based page number, return that page.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">List</span>&lt;<span class="type">T</span>&gt; Page&lt;<span class="type">T</span>&gt;(<span class="type">IEnumerable</span>&lt;<span class="type">T</span>&gt; source, <span class="type">int</span> pageNumber, <span class="type">int</span> pageSize)</code></pre>
+<div class="section-label">Examples</div>
+<pre><code>Page([<span class="num">1</span>..<span class="num">10</span>], pageNumber: <span class="num">2</span>, pageSize: <span class="num">3</span>)  <span class="cmt">// [4, 5, 6]</span></code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I got the off-by-one right. Page 1 should be the first <code class="il">pageSize</code> elements (skip 0).</li>
+  <li>I considered what to do for <code class="il">pageNumber &lt;= 0</code>. (Throw? Return empty? Return page 1?)</li>
+</ul>
+<details><summary>Hint</summary>
+<p>The formula is <code class="il">.Skip((pageNumber - 1) * pageSize).Take(pageSize)</code>. The conscious decision is the input validation.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== GROUPING =================== -->
+<!-- ============================================ -->
+<h2 id="sec-group" class="section-anchor">4 &mdash; Grouping &amp; ToDictionary</h2>
+
+<div class="drill">
+<h3>Drill 14 &mdash; GroupByDepartment</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">GroupBy</span></div>
+<div class="section-label">Goal</div>
+<p>Given a <code class="il">List&lt;Employee&gt;</code> (<code class="il">record Employee(string Name, string Department)</code>), produce a <code class="il">Dictionary&lt;string, List&lt;string&gt;&gt;</code> mapping department &rarr; list of employee names in that department.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>One LINQ chain. No manual loops.</li>
+  <li>I used <code class="il">GroupBy</code> then <code class="il">ToDictionary</code>.</li>
+  <li>The inner value is <code class="il">List&lt;string&gt;</code> &mdash; names only, not <code class="il">Employee</code> objects. I projected inside the dictionary value.</li>
+</ul>
+<details><summary>Hint</summary>
+<p>Shape: <code class="il">.GroupBy(e =&gt; e.Department).ToDictionary(g =&gt; g.Key, g =&gt; g.Select(e =&gt; e.Name).ToList())</code>. Each <code class="il">g</code> is an <code class="il">IGrouping&lt;TKey, TElement&gt;</code> &mdash; it has a <code class="il">.Key</code> and is itself <code class="il">IEnumerable&lt;TElement&gt;</code>.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 15 &mdash; CountPerDepartment</h3>
+<div class="meta-row"><span class="tag time">6 min</span><span class="tag topic">GroupBy + Count</span></div>
+<div class="section-label">Goal</div>
+<p>Same input as Drill 14. Return <code class="il">Dictionary&lt;string, int&gt;</code> mapping department &rarr; employee count.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Same shape as Drill 14, but the value selector is <code class="il">g =&gt; g.Count()</code>.</li>
+  <li>I considered: could I have used a <code class="il">Dictionary&lt;string, int&gt;</code> with a manual loop instead? (Yes &mdash; this is roughly Drill 5 from Collections, rewritten.) Compare the two.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 16 &mdash; LookupByFirstLetter</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">ToLookup</span></div>
+<div class="section-label">Goal</div>
+<p>Given a <code class="il">List&lt;string&gt;</code> of names, return an <code class="il">ILookup&lt;char, string&gt;</code> keyed by first letter (uppercased). Use <code class="il">ToLookup</code>, not <code class="il">ToDictionary</code>.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I can explain why <code class="il">ToLookup</code> tolerates duplicate keys but <code class="il">ToDictionary</code> throws on them.</li>
+  <li>I know how to access the values for a key &mdash; same indexer syntax, but the result is a sequence, not a single value.</li>
+</ul>
+<details><summary>Hint</summary>
+<p>A Lookup is &ldquo;Dictionary&lt;K, IEnumerable&lt;V&gt;&gt; built for you&rdquo;. Missing keys return an empty sequence, not a KeyNotFoundException &mdash; another reason to prefer it for &ldquo;group these&rdquo; scenarios.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 17 &mdash; ToDictionaryByKey</h3>
+<div class="meta-row"><span class="tag time">7 min</span><span class="tag topic">ToDictionary unique keys</span></div>
+<div class="section-label">Goal</div>
+<p>Given a <code class="il">List&lt;Product&gt;</code> (<code class="il">record Product(int Id, string Name)</code>) where IDs are guaranteed unique, build a <code class="il">Dictionary&lt;int, Product&gt;</code> keyed by Id.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used the overload that takes only a key selector (the value selector defaults to the element itself).</li>
+  <li>I know what happens if two products share an ID. (Throws <code class="il">ArgumentException</code>.) That's deliberate &mdash; the contract says &ldquo;unique&rdquo;.</li>
+</ul>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== JOINS ====================== -->
+<!-- ============================================ -->
+<h2 id="sec-join" class="section-anchor">5 &mdash; Joins</h2>
+
+<div class="drill">
+<h3>Drill 18 &mdash; OrdersWithCustomerName</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">Join</span></div>
+<div class="section-label">Goal</div>
+<p>Given <code class="il">List&lt;Customer&gt;</code> (<code class="il">record Customer(int Id, string Name)</code>) and <code class="il">List&lt;Order&gt;</code> (<code class="il">record Order(int OrderId, int CustomerId, decimal Total)</code>), produce a list of <code class="il">(OrderId, CustomerName, Total)</code> tuples by joining on <code class="il">CustomerId</code>.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">List</span>&lt;(<span class="type">int</span> OrderId, <span class="type">string</span> CustomerName, <span class="type">decimal</span> Total)&gt; OrdersWithNames(
+    <span class="type">List</span>&lt;<span class="type">Customer</span>&gt; customers,
+    <span class="type">List</span>&lt;<span class="type">Order</span>&gt; orders)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used the <code class="il">Join</code> operator with four arguments: outer key, inner key, outer source, inner source. Or did I let the method chain shape it? Compare.</li>
+  <li>I know this is an <strong>inner join</strong> &mdash; orders without a matching customer disappear silently. Did I test that?</li>
+</ul>
+<details><summary>Hint</summary>
+<p>Method-syntax shape: <code class="il">orders.Join(customers, o =&gt; o.CustomerId, c =&gt; c.Id, (o, c) =&gt; (o.OrderId, c.Name, o.Total))</code>. The argument order is famously confusing &mdash; outer is the &ldquo;left&rdquo; collection (the one you called Join on), inner is the second argument.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 19 &mdash; CustomersWithTheirOrders</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">GroupJoin / left-outer</span></div>
+<div class="section-label">Goal</div>
+<p>Same data as Drill 18. Produce a list of <code class="il">(CustomerName, OrderCount, TotalSpent)</code> tuples &mdash; <strong>including customers with zero orders</strong>.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Customers without orders appear with <code class="il">OrderCount = 0</code> and <code class="il">TotalSpent = 0</code>. (This is the &ldquo;left outer join&rdquo; behaviour.)</li>
+  <li>I used <code class="il">GroupJoin</code> or a Select where each customer projects to a tuple computed from the orders matching their id.</li>
+</ul>
+<details><summary>Hint</summary>
+<p>Two paths:</p>
+<ul>
+<li><code class="il">customers.GroupJoin(orders, c =&gt; c.Id, o =&gt; o.CustomerId, (c, os) =&gt; ...)</code> &mdash; <code class="il">os</code> is the matching orders (possibly empty).</li>
+<li>Or: build a lookup first &mdash; <code class="il">var byCustomer = orders.ToLookup(o =&gt; o.CustomerId);</code> &mdash; then Select over customers using <code class="il">byCustomer[c.Id]</code>.</li>
+</ul>
+<p>The lookup approach is often clearer.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== DEFERRED EXECUTION ========= -->
+<!-- ============================================ -->
+<h2 id="sec-deferred" class="section-anchor">6 &mdash; Deferred execution traps</h2>
+
+<p class="callout warn"><strong>Read this section twice.</strong> Deferred execution is responsible for the majority of LINQ bugs in production code. The drills here are short but the lesson is huge.</p>
+
+<div class="drill">
+<h3>Drill 20 &mdash; The captured variable</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">deferred execution</span></div>
+<div class="section-label">Goal</div>
+<p>Write this exact program. Predict the output <em>before running it</em>.</p>
+<pre><code><span class="kw">var</span> threshold = <span class="num">5</span>;
+<span class="kw">var</span> numbers = <span class="kw">new</span>[] { <span class="num">1</span>, <span class="num">3</span>, <span class="num">5</span>, <span class="num">7</span>, <span class="num">9</span> };
+<span class="kw">var</span> bigOnes = numbers.Where(n =&gt; n &gt; threshold);
+
+threshold = <span class="num">2</span>;
+
+<span class="kw">foreach</span> (<span class="kw">var</span> n <span class="kw">in</span> bigOnes)
+    <span class="type">Console</span>.WriteLine(n);</code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I wrote my prediction down before running.</li>
+  <li>I explained the actual output in terms of <em>when</em> the predicate <code class="il">n =&gt; n &gt; threshold</code> is evaluated.</li>
+  <li>I now know: <code class="il">.Where</code> stores the query, not the result.</li>
+</ul>
+<details><summary>Hint &mdash; only after running</summary>
+<p>The output is <code class="il">3 5 7 9</code> &mdash; not <code class="il">7 9</code>. <code class="il">Where</code> doesn't run when you call it; it runs when you enumerate. By the time the <code class="il">foreach</code> kicks in, <code class="il">threshold</code> is <code class="il">2</code>. The lambda captured the <em>variable</em>, not the value.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 21 &mdash; Multiple enumeration</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">deferred execution</span></div>
+<div class="section-label">Goal</div>
+<p>Write this program. Predict how many times &ldquo;computing&rdquo; prints.</p>
+<pre><code><span class="kw">var</span> raw = <span class="kw">new</span>[] { <span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span> };
+
+<span class="type">IEnumerable</span>&lt;<span class="type">int</span>&gt; computed = raw.Select(n =&gt;
+{
+    <span class="type">Console</span>.WriteLine(<span class="str">"computing "</span> + n);
+    <span class="kw">return</span> n * n;
+});
+
+<span class="kw">var</span> count = computed.Count();
+<span class="kw">var</span> max   = computed.Max();
+<span class="kw">var</span> first = computed.First();</code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I predicted the count <em>before</em> running.</li>
+  <li>I explained why <code class="il">.First()</code> printed only one &ldquo;computing&rdquo; line but <code class="il">.Count()</code> and <code class="il">.Max()</code> printed five each.</li>
+  <li>I know the fix: <code class="il">.ToList()</code> once, then reuse. This is called <em>materialising</em> the query.</li>
+</ul>
+<details><summary>Hint</summary>
+<p>11 lines of &ldquo;computing&rdquo;. 5 from Count, 5 from Max, 1 from First (which short-circuits). Each call to a terminal operator re-runs the entire pipeline from the source. If the source is a database query, you just did three queries.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 22 &mdash; List or IEnumerable? (no code &mdash; explain)</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">API design</span></div>
+<div class="section-label">Goal</div>
+<p>You're writing a service method that returns &ldquo;all employees in a department&rdquo;. The data comes from a LINQ query. Should the return type be <code class="il">IEnumerable&lt;Employee&gt;</code>, <code class="il">List&lt;Employee&gt;</code>, <code class="il">IReadOnlyList&lt;Employee&gt;</code>, or <code class="il">IQueryable&lt;Employee&gt;</code>?</p>
+
+<p>Write 3&ndash;5 sentences arguing for the right answer. There isn't a single correct one &mdash; defend your choice and acknowledge the trade-off you accepted.</p>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I named at least two of the four options and why they're tempting.</li>
+  <li>I mentioned: who pays the cost of materialisation? When?</li>
+</ul>
+<details><summary>Hint &mdash; my framing</summary>
+<ul>
+  <li><code class="il">IEnumerable&lt;T&gt;</code>: caller decides when (and whether) to materialise. Lazy is powerful but every caller risks Drill 21's trap.</li>
+  <li><code class="il">List&lt;T&gt;</code>: forces materialisation in the service; caller can't accidentally re-query, but you've committed to allocating the full list every call.</li>
+  <li><code class="il">IReadOnlyList&lt;T&gt;</code>: materialised + you communicate &ldquo;don't mutate this&rdquo;. Usually the best default for service return types.</li>
+  <li><code class="il">IQueryable&lt;T&gt;</code>: only if you genuinely want the caller to compose more LINQ that translates to SQL. Leaks EF Core into your service contract &mdash; rarely worth it.</li>
+</ul>
+<p>For most service methods, <code class="il">IReadOnlyList&lt;T&gt;</code> is the right default. Return type signals intent; <code class="il">IEnumerable</code> signals &ldquo;I'm lazy, beware&rdquo;, <code class="il">List</code> signals &ldquo;mutate me if you want&rdquo;, <code class="il">IReadOnlyList</code> signals &ldquo;done, snapshot, hands off&rdquo;.</p>
+</details>
+</div>
+
+<h2 id="after">When you've done them all</h2>
+
+<p>You'll have used <code class="il">Where</code>, <code class="il">Select</code>, <code class="il">Count</code>, <code class="il">Any</code>, <code class="il">All</code>, <code class="il">Average</code>, <code class="il">Aggregate</code>, <code class="il">OrderBy</code>, <code class="il">ThenBy</code>, <code class="il">Skip</code>, <code class="il">Take</code>, <code class="il">GroupBy</code>, <code class="il">ToLookup</code>, <code class="il">ToDictionary</code>, <code class="il">Join</code>, <code class="il">GroupJoin</code> &mdash; basically the whole working vocabulary.</p>
+
+<p>Operators we deliberately skipped (ask if you want a follow-up):</p>
+<ul>
+  <li><code class="il">SelectMany</code> &mdash; flatten nested collections.</li>
+  <li><code class="il">Zip</code> &mdash; pair up two sequences.</li>
+  <li><code class="il">Distinct</code> with <code class="il">IEqualityComparer</code> &mdash; covered by Collections drills 20&ndash;21.</li>
+  <li><code class="il">Chunk</code> (modern .NET) &mdash; split into fixed-size groups.</li>
+  <li>Set ops on sequences: <code class="il">Union</code>, <code class="il">Intersect</code>, <code class="il">Except</code>.</li>
+</ul>
+
+<p>Bring me your captured-question scratch file. Those are the cracks in your model.</p>
+
+</div>
+</body>
+</html>

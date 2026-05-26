@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Async &amp; Await &mdash; Blank-Page Drills</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {
+  --bg: #0b1220; --surface: #111a2e; --surface-2: #16223c;
+  --border: #243352; --text: #e6ecf5; --text-dim: #9aa7c0;
+  --accent: #6aa6ff; --accent-2: #b06aff; --code-bg: #0a1120;
+  --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 28px; }
+header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
+header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
+header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
+h1, h2, h3, h4 { color: var(--text); margin-top: 1.6em; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+a { color: var(--accent); }
+code, pre, code.il { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; border: 1px solid var(--border); }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55; }
+pre code { background: transparent; border: 0; padding: 0; }
+blockquote { border-left: 3px solid var(--accent); background: var(--surface);
+  padding: 10px 16px; margin: 12px 0; color: var(--text-dim); border-radius: 0 6px 6px 0; }
+.callout { background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-2); padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; }
+.callout.warn { border-left-color: var(--warn); }
+.callout.bad  { border-left-color: var(--bad); }
+.kw   { color: #c792ea; }
+.type { color: #82aaff; }
+.str  { color: #c3e88d; }
+.num  { color: #f78c6c; }
+.cmt  { color: #6c7a96; font-style: italic; }
+.drill { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 20px; margin: 20px 0; }
+.drill h3 { margin-top: 0; font-size: 17px; }
+.drill .meta-row { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-dim); margin-bottom: 8px; }
+.drill .meta-row span.tag { background: var(--surface-2); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; }
+.drill .meta-row span.tag.time { color: var(--accent); }
+.drill .meta-row span.tag.topic { color: var(--accent-2); }
+.section-label { text-transform: uppercase; font-size: 10px; letter-spacing: 0.08em;
+  color: var(--text-dim); margin: 14px 0 4px; font-weight: 600; }
+.checklist { list-style: none; padding-left: 0; margin: 4px 0; }
+.checklist li { padding: 3px 0 3px 26px; position: relative; font-size: 14px; }
+.checklist li::before { content: ""; position: absolute; left: 0; top: 8px; width: 13px; height: 13px;
+  border: 1.5px solid var(--text-dim); border-radius: 3px; background: var(--code-bg); }
+details { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 8px 12px; margin: 10px 0; }
+details > summary { cursor: pointer; color: var(--accent); font-weight: 500; user-select: none; font-size: 13px; }
+details[open] > summary { margin-bottom: 8px; }
+.toc { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 18px; margin: 18px 0 28px; font-size: 14px; }
+.toc ol { margin: 6px 0; padding-left: 22px; }
+.toc li { margin: 2px 0; }
+.toc a { text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+.section-anchor { padding-top: 12px; }
+.stretch { background: rgba(106, 166, 255, 0.06); border-left: 3px solid var(--accent);
+  padding: 8px 12px; margin: 10px 0; border-radius: 0 4px 4px 0; font-size: 13px; }
+.stretch strong { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">GeneralExercises &rsaquo; Async &amp; await</div>
+  <h1>Async &amp; await &mdash; blank-page drills</h1>
+  <div class="meta">16 drills covering the async vocabulary you need every day &mdash; plus the traps that quietly destroy production apps. Companion to <code class="il">_Organized/08-Concurrency-and-Async/ASyncPattern.html</code>.</div>
+</header>
+
+<h2 id="why">Why this matters more than people admit</h2>
+
+<p>Async is the single most-misunderstood feature in C#. Most code is &ldquo;async-looking&rdquo; without being async-correct: <code class="il">.Result</code> sprinkled around, <code class="il">async void</code> in event handlers, fire-and-forget tasks with no exception handling, <code class="il">Task.Run</code> wrapping things that are already async. Each of these is a bug waiting to happen &mdash; usually under load, in production, at 3 a.m.</p>
+
+<p>The drills are <strong>small but pointed</strong>. Several have no &ldquo;solution&rdquo; per se &mdash; you predict behaviour, run it, and explain. That's the model you most need.</p>
+
+<blockquote>Read the existing <code class="il">_Organized/08-Concurrency-and-Async/ASyncPattern.html</code> guide before starting if you haven't recently. The drills assume the &ldquo;async = doesn't block a thread&rdquo; mental model.</blockquote>
+
+<h2 id="setup">Setup note</h2>
+
+<p>Console apps support top-level <code class="il">async</code> <code class="il">Main</code> automatically in .NET 10. Don't reach for <code class="il">.GetAwaiter().GetResult()</code> &mdash; if a drill seems to need it, you're holding it wrong.</p>
+
+<p>You'll need <code class="il">System.Net.Http</code> and <code class="il">System.Threading.Tasks</code> &mdash; both auto-imported.</p>
+
+<div class="toc">
+  <strong>Drill index</strong>
+  <ol>
+    <li><a href="#sec-task">Task basics (drills 1&ndash;4)</a></li>
+    <li><a href="#sec-parallel">Sequential vs parallel (drills 5&ndash;7)</a></li>
+    <li><a href="#sec-cancel">Cancellation (drills 8&ndash;10)</a></li>
+    <li><a href="#sec-traps">The classic traps (drills 11&ndash;14)</a></li>
+    <li><a href="#sec-design">Design questions (drills 15&ndash;16)</a></li>
+  </ol>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== TASK BASICS ================ -->
+<!-- ============================================ -->
+<h2 id="sec-task" class="section-anchor">1 &mdash; Task basics</h2>
+
+<div class="drill">
+<h3>Drill 1 &mdash; DelayedHello</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">async / await / Task</span></div>
+<div class="section-label">Goal</div>
+<p>Write an async method that waits 500 ms, then returns the string <code class="il">"Hello"</code>. Call it from <code class="il">Main</code> and print the result.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static async</span> <span class="type">Task</span>&lt;<span class="type">string</span>&gt; DelayedHelloAsync()</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The method name ends in <code class="il">Async</code>.</li>
+  <li>The return type is <code class="il">Task&lt;string&gt;</code>, not <code class="il">string</code>.</li>
+  <li>I used <code class="il">await Task.Delay(...)</code>, not <code class="il">Thread.Sleep</code>. I can explain why.</li>
+  <li>I did <strong>not</strong> use <code class="il">.Result</code> or <code class="il">.Wait()</code> to call it from Main.</li>
+</ul>
+<details><summary>Hint</summary>
+<p><code class="il">Thread.Sleep</code> blocks the thread &mdash; the whole point of async is to <em>not</em> block. <code class="il">Task.Delay</code> yields the thread back to the runtime for the duration. Top-level async <code class="il">Main</code>: <code class="il">async Task Main() { ... await DelayedHelloAsync() ... }</code>.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 2 &mdash; ReadAndCount</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">async I/O</span></div>
+<div class="section-label">Goal</div>
+<p>Asynchronously read all text from a file path and return the number of lines.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static async</span> <span class="type">Task</span>&lt;<span class="type">int</span>&gt; CountLinesAsync(<span class="type">string</span> path)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used <code class="il">File.ReadAllLinesAsync</code> or <code class="il">File.ReadAllTextAsync</code> &mdash; not the synchronous version.</li>
+  <li>I awaited the result before returning the count.</li>
+  <li>Test it on a real text file (e.g. the README.md you wrote).</li>
+</ul>
+<div class="stretch"><strong>Stretch:</strong> what happens if you forget the <code class="il">await</code> and return <code class="il">File.ReadAllTextAsync(path).Result.Split(...).Length</code>? Compile? Run? Block? Try it.</div>
+</div>
+
+<div class="drill">
+<h3>Drill 3 &mdash; Task vs Task&lt;T&gt; (no code &mdash; explain)</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">conceptual</span></div>
+<div class="section-label">Goal</div>
+<p>In a code comment, answer in your own words:</p>
+<ol>
+  <li>What's the difference between <code class="il">Task</code> and <code class="il">Task&lt;T&gt;</code>?</li>
+  <li>When would you ever <em>return</em> <code class="il">Task</code> (not <code class="il">Task&lt;T&gt;</code>) from an async method?</li>
+  <li>Why does <code class="il">async void</code> exist, and when is it the right call?</li>
+</ol>
+<details><summary>Hint</summary>
+<p>(1) <code class="il">Task</code> represents work that completes but has no return value &mdash; like a void method, but awaitable. <code class="il">Task&lt;T&gt;</code> additionally produces a result. (2) Any time the method does work but doesn't produce a value: writing to a file, sending a message, updating a database row. (3) <code class="il">async void</code> exists for event handlers (where the signature is forced by the event). Use it <em>only</em> there &mdash; in any other context, you can't await it, you can't catch its exceptions, and they bubble up to crash your process.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 4 &mdash; ValueTask (no code &mdash; explain)</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">conceptual</span></div>
+<div class="section-label">Goal</div>
+<p>Open <a href="https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.valuetask">learn.microsoft.com on ValueTask</a>. Write two sentences answering: when should you reach for <code class="il">ValueTask&lt;T&gt;</code> instead of <code class="il">Task&lt;T&gt;</code>? When should you absolutely not?</p>
+<details><summary>Hint</summary>
+<p>Reach for it when a method is on a hot path AND often completes synchronously (e.g. cached lookups). Skip it in normal code &mdash; <code class="il">ValueTask</code> has extra rules (don't await twice, don't call <code class="il">.Result</code> repeatedly) that make it easy to misuse. Default to <code class="il">Task</code>.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== PARALLEL =================== -->
+<!-- ============================================ -->
+<h2 id="sec-parallel" class="section-anchor">2 &mdash; Sequential vs parallel</h2>
+
+<div class="drill">
+<h3>Drill 5 &mdash; SequentialDelays</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">await in a loop</span></div>
+<div class="section-label">Goal</div>
+<p>Write a method that calls <code class="il">Task.Delay(1000)</code> three times sequentially using <code class="il">await</code> in a loop. Time the total elapsed (use <code class="il">Stopwatch</code>). Expect roughly 3 seconds.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The elapsed time is ~3000 ms.</li>
+  <li>I can explain why awaiting each in turn is sequential.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 6 &mdash; ParallelDelays</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">Task.WhenAll</span></div>
+<div class="section-label">Goal</div>
+<p>Rewrite Drill 5 so all three delays run in parallel using <code class="il">Task.WhenAll</code>. Elapsed should drop to ~1 second.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The elapsed time is ~1000 ms, not ~3000.</li>
+  <li>I called the three <code class="il">Task.Delay</code>s <em>before</em> awaiting &mdash; storing the tasks in variables (or an array) &mdash; then awaited <code class="il">Task.WhenAll</code> over them.</li>
+  <li>I understand why calling-then-awaiting-each in a loop would <em>not</em> be parallel.</li>
+</ul>
+<details><summary>Hint</summary>
+<p>Wrong (sequential despite WhenAll):</p>
+<pre><code><span class="kw">var</span> tasks = <span class="kw">new</span> <span class="type">List</span>&lt;<span class="type">Task</span>&gt;();
+<span class="kw">foreach</span> (<span class="kw">var</span> _ <span class="kw">in</span> <span class="type">Enumerable</span>.Range(<span class="num">0</span>, <span class="num">3</span>))
+{
+    <span class="kw">await</span> <span class="type">Task</span>.Delay(<span class="num">1000</span>); <span class="cmt">// wait, why is this here?</span>
+}</code></pre>
+<p>Right:</p>
+<pre><code><span class="kw">var</span> tasks = <span class="type">Enumerable</span>.Range(<span class="num">0</span>, <span class="num">3</span>).Select(_ =&gt; <span class="type">Task</span>.Delay(<span class="num">1000</span>));
+<span class="kw">await</span> <span class="type">Task</span>.WhenAll(tasks);</code></pre>
+<p>Start them all, then await the lot. The Select doesn't await &mdash; it just kicks off each Task and collects the references.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 7 &mdash; ResultsFromMany</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">Task.WhenAll&lt;T&gt;</span></div>
+<div class="section-label">Goal</div>
+<p>Given a list of URLs, fetch each one's response length in parallel using <code class="il">HttpClient.GetStringAsync</code>. Return a <code class="il">Dictionary&lt;string, int&gt;</code> mapping URL to length. (Use a couple of harmless URLs like <code class="il">https://example.com</code>.)</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static async</span> <span class="type">Task</span>&lt;<span class="type">Dictionary</span>&lt;<span class="type">string</span>, <span class="type">int</span>&gt;&gt; FetchLengthsAsync(<span class="type">List</span>&lt;<span class="type">string</span>&gt; urls)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I created one <code class="il">HttpClient</code>, not one per URL.</li>
+  <li>I used <code class="il">Task.WhenAll</code> on the <em>typed</em> tasks (<code class="il">Task&lt;string&gt;[]</code>), then matched results back to URLs.</li>
+  <li>I considered: what if one URL fails? (<code class="il">WhenAll</code> still throws &mdash; but only the first exception is rethrown. Look up <code class="il">.Exception.InnerExceptions</code>.)</li>
+</ul>
+<details><summary>Hint</summary>
+<p>Idiomatic shape: <code class="il">var tasks = urls.Select(u =&gt; http.GetStringAsync(u)).ToArray(); var bodies = await Task.WhenAll(tasks);</code> &mdash; then zip <code class="il">urls</code> with <code class="il">bodies.Select(b =&gt; b.Length)</code> into a dictionary.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== CANCELLATION =============== -->
+<!-- ============================================ -->
+<h2 id="sec-cancel" class="section-anchor">3 &mdash; Cancellation</h2>
+
+<div class="drill">
+<h3>Drill 8 &mdash; CancellableDelay</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">CancellationToken</span></div>
+<div class="section-label">Goal</div>
+<p>Write an async method that waits 5 seconds, but accepts a <code class="il">CancellationToken</code> and bails out early if cancelled. Call it from <code class="il">Main</code>, kick off the call, then after 1 second cancel the token and observe what happens.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static async</span> <span class="type">Task</span> WaitFiveAsync(<span class="type">CancellationToken</span> ct)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I passed the token to <code class="il">Task.Delay</code>.</li>
+  <li>Cancellation surfaces as a thrown <code class="il">OperationCanceledException</code> (specifically <code class="il">TaskCanceledException</code>) &mdash; I caught it at the call site and printed a friendly message.</li>
+  <li>I used <code class="il">CancellationTokenSource.CancelAfter(...)</code> or scheduled a manual <code class="il">.Cancel()</code> call.</li>
+</ul>
+<details><summary>Hint</summary>
+<p>The token is co-operative &mdash; it doesn't <em>force</em> anything to stop; it asks. <code class="il">Task.Delay</code> respects it. Your own loops should check <code class="il">ct.ThrowIfCancellationRequested()</code> periodically.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 9 &mdash; CancelMyLoop</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">ThrowIfCancellationRequested</span></div>
+<div class="section-label">Goal</div>
+<p>Write a method that does CPU-bound &ldquo;work&rdquo; (e.g. summing 1 to <code class="il">int.MaxValue</code> in a loop) and respects a cancellation token by checking it every 1,000,000 iterations.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used <code class="il">ct.ThrowIfCancellationRequested()</code>, not an <code class="il">if</code> branch returning a default.</li>
+  <li>I checked it on every N iterations, not every iteration &mdash; the check has overhead.</li>
+  <li>Test: cancel mid-loop, confirm the exception fires.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 10 &mdash; TimeoutPattern</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">CancelAfter</span></div>
+<div class="section-label">Goal</div>
+<p>Call <code class="il">DelayedHelloAsync</code> from Drill 1, but with a 100 ms timeout. Since DelayedHello waits 500 ms, the timeout should fire and the call should fail with <code class="il">OperationCanceledException</code>.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I used <code class="il">CancellationTokenSource cts = new(); cts.CancelAfter(TimeSpan.FromMilliseconds(100));</code></li>
+  <li>I had to modify <code class="il">DelayedHelloAsync</code> to accept a token. (Async methods that don't take a CancellationToken can't be cancelled &mdash; that's a design rule.)</li>
+</ul>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== TRAPS ====================== -->
+<!-- ============================================ -->
+<h2 id="sec-traps" class="section-anchor">4 &mdash; The classic traps</h2>
+
+<p class="callout bad"><strong>These are not optional.</strong> Every one of these patterns has shipped to production at companies you've heard of. Knowing them by name is a basic professional requirement.</p>
+
+<div class="drill">
+<h3>Drill 11 &mdash; .Result deadlock (read &amp; explain)</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">deadlock</span></div>
+<div class="section-label">Goal</div>
+<p>The classic .NET Framework / ASP.NET deadlock looks like this:</p>
+<pre><code><span class="cmt">// inside a UI button click or an old ASP.NET controller</span>
+<span class="kw">public</span> <span class="type">string</span> GetData()
+{
+    <span class="kw">return</span> SomeAsyncMethod().Result; <span class="cmt">// deadlock!</span>
+}</code></pre>
+<p>It does <strong>not</strong> deadlock in modern .NET 10 console apps. But you'll see legacy code that does this, and you'll get asked about it in interviews. In 3&ndash;5 sentences explain:</p>
+<ol>
+  <li>What &ldquo;synchronization context&rdquo; is.</li>
+  <li>Why <code class="il">.Result</code> in old ASP.NET / WinForms / WPF can deadlock.</li>
+  <li>Why modern ASP.NET Core and console apps don't deadlock (but you still shouldn't use <code class="il">.Result</code>).</li>
+</ol>
+<details><summary>Hint</summary>
+<p>Old contexts capture &ldquo;the UI thread&rdquo; (or &ldquo;the request thread&rdquo;). The awaited continuation must run on that same thread. If you call <code class="il">.Result</code>, you block that thread waiting for the task &mdash; but the task can't complete because its continuation needs the very thread you're blocking. Deadlock. Modern ASP.NET Core and console apps don't have a single-threaded context, so the continuation runs on the threadpool and the deadlock doesn't happen. But <code class="il">.Result</code> still wastes a threadpool thread blocking &mdash; you've thrown away async's benefit.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 12 &mdash; async void crime scene</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">async void</span></div>
+<div class="section-label">Goal</div>
+<p>Write this exact program. Predict what happens.</p>
+<pre><code><span class="kw">public static async void</span> Misbehave()
+{
+    <span class="kw">await</span> <span class="type">Task</span>.Delay(<span class="num">100</span>);
+    <span class="kw">throw new</span> <span class="type">Exception</span>(<span class="str">"boom"</span>);
+}
+
+<span class="kw">static async</span> <span class="type">Task</span> Main()
+{
+    <span class="kw">try</span>
+    {
+        Misbehave();
+        <span class="kw">await</span> <span class="type">Task</span>.Delay(<span class="num">500</span>);
+        <span class="type">Console</span>.WriteLine(<span class="str">"reached the end"</span>);
+    }
+    <span class="kw">catch</span> (<span class="type">Exception</span> ex)
+    {
+        <span class="type">Console</span>.WriteLine(<span class="str">"caught: "</span> + ex.Message);
+    }
+}</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I predicted the output before running.</li>
+  <li>I explained why the <code class="il">catch</code> doesn't catch the exception.</li>
+  <li>I rewrote it correctly (returning <code class="il">Task</code> and awaiting).</li>
+  <li>I can now state the one legitimate use of <code class="il">async void</code>.</li>
+</ul>
+<details><summary>Hint &mdash; after running</summary>
+<p>The exception escapes the async void method into the runtime's unobserved-task path and (usually) tears down the process. The <code class="il">try/catch</code> in <code class="il">Main</code> never sees it because <code class="il">Misbehave()</code> returned <code class="il">void</code> &mdash; there was nothing to await, nothing to bind exceptions to. The fix: return <code class="il">Task</code>, await the call. Only event handlers should use async void.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 13 &mdash; Forgotten await</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">missing await</span></div>
+<div class="section-label">Goal</div>
+<p>Write this. Predict the output.</p>
+<pre><code><span class="kw">static async</span> <span class="type">Task</span> SayHelloAsync()
+{
+    <span class="kw">await</span> <span class="type">Task</span>.Delay(<span class="num">200</span>);
+    <span class="type">Console</span>.WriteLine(<span class="str">"hello"</span>);
+}
+
+<span class="kw">static async</span> <span class="type">Task</span> Main()
+{
+    SayHelloAsync(); <span class="cmt">// note: no await</span>
+    <span class="type">Console</span>.WriteLine(<span class="str">"done"</span>);
+}</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I predicted (and ran). What printed? What didn't?</li>
+  <li>I know why C# only sometimes warns about a discarded Task.</li>
+  <li>I fixed it two ways: (a) <code class="il">await</code> the call; (b) explicitly discard with <code class="il">_ = SayHelloAsync();</code> if I really do want fire-and-forget (and accept the consequences).</li>
+</ul>
+<details><summary>Hint</summary>
+<p>You'll see <code class="il">done</code> and the program exits before <code class="il">hello</code> ever fires. The Task was created but never observed; <code class="il">Main</code> didn't await it before returning. Compiler warning CS4014 catches this when the method does have a clear discard, but it's easy to miss in larger code.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 14 &mdash; Task.Run on already-async code</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">misplaced Task.Run</span></div>
+<div class="section-label">Goal</div>
+<p>Look at this code and write 3&ndash;5 sentences explaining what's wrong:</p>
+<pre><code><span class="kw">public</span> <span class="type">Task</span>&lt;<span class="type">string</span>&gt; GetUserAsync(<span class="type">int</span> id)
+{
+    <span class="kw">return</span> <span class="type">Task</span>.Run(<span class="kw">async</span> () =&gt;
+    {
+        <span class="kw">var</span> response = <span class="kw">await</span> _http.GetStringAsync(<span class="str">$"/users/{id}"</span>);
+        <span class="kw">return</span> response;
+    });
+}</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I named the smell: wrapping an already-async call in <code class="il">Task.Run</code>.</li>
+  <li>I explained the cost (extra threadpool work for no benefit).</li>
+  <li>I wrote the corrected version.</li>
+</ul>
+<details><summary>Hint</summary>
+<p>The HTTP call is already non-blocking &mdash; awaiting it does not occupy a thread. <code class="il">Task.Run</code> here schedules a new threadpool task that just sits around awaiting another threadpool operation. Pure overhead. The right version: <code class="il">public async Task&lt;string&gt; GetUserAsync(int id) =&gt; await _http.GetStringAsync($"/users/{id}");</code> (or drop the async/await entirely and return the inner Task &mdash; both are fine).</p>
+<p><strong>When is <code class="il">Task.Run</code> the right call?</strong> When you have synchronous CPU-bound work that you want to push off the current thread (e.g. UI thread in a desktop app). Almost never in server code.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== DESIGN ===================== -->
+<!-- ============================================ -->
+<h2 id="sec-design" class="section-anchor">5 &mdash; Design questions</h2>
+
+<div class="drill">
+<h3>Drill 15 &mdash; Async all the way (no code)</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">design</span></div>
+<div class="section-label">Goal</div>
+<p>Read the saying: &ldquo;async all the way down&rdquo;. Write 4&ndash;6 sentences explaining what it means and why violating it (one sync method in the chain) defeats async entirely.</p>
+<details><summary>Hint</summary>
+<p>If method A awaits async B awaits async C, the call stack is non-blocking end to end. If anywhere in the chain you have a sync method that does <code class="il">.Result</code> to call its dependency, that sync method must occupy a thread waiting &mdash; defeating the whole point. Worse, mixing sync over async invites the deadlocks of Drill 11. Either commit to async all the way down, or stay sync all the way down.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 16 &mdash; ConfigureAwait(false) (no code)</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">ConfigureAwait</span></div>
+<div class="section-label">Goal</div>
+<p>Read <a href="https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/async-scenarios">the docs on ConfigureAwait</a>. Then answer:</p>
+<ol>
+  <li>What does <code class="il">.ConfigureAwait(false)</code> do?</li>
+  <li>Why was it considered required in library code for older .NET?</li>
+  <li>Why is it (mostly) unnecessary in modern ASP.NET Core?</li>
+  <li>What's your rule going to be? (There's no single right answer &mdash; pick one and defend it.)</li>
+</ol>
+<details><summary>Hint &mdash; my framing</summary>
+<p>It tells the await: &ldquo;don't bother capturing the current synchronization context; continue on whatever thread the task finishes on&rdquo;. In old ASP.NET / UI frameworks, omitting it meant the continuation got marshalled back to a special thread &mdash; slow, and a deadlock risk if the caller blocked on <code class="il">.Result</code>. In ASP.NET Core there's no synchronization context, so ConfigureAwait(false) is a no-op. Common rule today: <strong>only put it on library code that might be consumed by older frameworks</strong>. Application code doesn't bother.</p>
+</details>
+</div>
+
+<h2 id="after">After these</h2>
+
+<p>You now have the vocabulary for any async conversation: Task vs Task&lt;T&gt; vs ValueTask, await semantics, sequential vs parallel, cancellation, the four classic traps, and the &ldquo;async all the way&rdquo; rule.</p>
+
+<p>Topics deliberately skipped (ask for follow-ups when you want them):</p>
+<ul>
+  <li><code class="il">IAsyncEnumerable&lt;T&gt;</code> and <code class="il">await foreach</code> &mdash; streaming async data.</li>
+  <li><code class="il">Channel&lt;T&gt;</code> &mdash; producer/consumer.</li>
+  <li><code class="il">SemaphoreSlim</code> for limiting concurrency (see your existing guide).</li>
+  <li>Synchronization primitives (locks, <code class="il">Interlocked</code>) for shared state.</li>
+  <li>Custom awaitables.</li>
+</ul>
+
+<p>Bring me your captured questions when you're ready.</p>
+
+</div>
+</body>
+</html>
