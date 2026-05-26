@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Builder Pattern &mdash; Graded Exercises</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {
+  --bg: #0b1220;
+  --surface: #111a2e;
+  --surface-2: #16223c;
+  --border: #243352;
+  --text: #e6ecf5;
+  --text-dim: #9aa7c0;
+  --accent: #6aa6ff;
+  --accent-2: #b06aff;
+  --code-bg: #0a1120;
+  --ok: #4ade80;
+  --warn: #fbbf24;
+  --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg); color: var(--text);
+  font: 16px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif;
+}
+.wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px; margin-bottom: 28px;
+}
+header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
+header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
+header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
+h1, h2, h3, h4 { color: var(--text); margin-top: 1.6em; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+a { color: var(--accent); }
+code, pre, code.il { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; border: 1px solid var(--border); }
+pre {
+  background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55;
+}
+pre code { background: transparent; border: 0; padding: 0; }
+blockquote {
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+  padding: 10px 16px; margin: 12px 0;
+  color: var(--text-dim);
+  border-radius: 0 6px 6px 0;
+}
+.diagram-box {
+  background: #1e293b; border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px; overflow-x: auto;
+}
+.diagram-box pre { background: transparent; border: 0; padding: 0; color: #e6ecf5; }
+.tbl-wrap { overflow-x: auto; margin: 14px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+th { background: var(--surface-2); }
+tr:nth-child(even) td { background: var(--surface); }
+.callout {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-2);
+  padding: 12px 16px;
+  margin: 14px 0;
+  border-radius: 0 6px 6px 0;
+}
+.callout.warn { border-left-color: var(--warn); }
+.callout.ok   { border-left-color: var(--ok); }
+.callout.bad  { border-left-color: var(--bad); }
+.kw   { color: #c792ea; }
+.type { color: #82aaff; }
+.str  { color: #c3e88d; }
+.num  { color: #f78c6c; }
+.cmt  { color: #6c7a96; font-style: italic; }
+
+.exercise {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 22px;
+  margin: 28px 0;
+}
+.exercise h3 { margin-top: 0; }
+.badge {
+  display: inline-block;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+  padding: 2px 8px; border-radius: 4px;
+  text-transform: uppercase;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+.badge.lvl-1 { background: #1e3a2e; color: #4ade80; border: 1px solid #2d5a3f; }
+.badge.lvl-2 { background: #1e3a2e; color: #4ade80; border: 1px solid #2d5a3f; }
+.badge.lvl-3 { background: #3a3a1e; color: #fbbf24; border: 1px solid #5a5a2d; }
+.badge.lvl-4 { background: #3a3a1e; color: #fbbf24; border: 1px solid #5a5a2d; }
+.badge.lvl-5 { background: #3a2e1e; color: #f59e0b; border: 1px solid #5a402d; }
+.badge.lvl-6 { background: #3a1e1e; color: #f87171; border: 1px solid #5a2d2d; }
+.badge.lvl-7 { background: #3a1e1e; color: #f87171; border: 1px solid #5a2d2d; }
+.badge.lvl-8 { background: #2e1e3a; color: #c792ea; border: 1px solid #402d5a; }
+
+.checklist { list-style: none; padding-left: 0; }
+.checklist li {
+  padding: 4px 0 4px 26px;
+  position: relative;
+}
+.checklist li::before {
+  content: "";
+  position: absolute; left: 0; top: 9px;
+  width: 14px; height: 14px;
+  border: 1.5px solid var(--text-dim);
+  border-radius: 3px;
+  background: var(--code-bg);
+}
+details {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin: 14px 0;
+}
+details > summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-weight: 500;
+  user-select: none;
+}
+details[open] > summary { margin-bottom: 10px; }
+.section-label {
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin: 18px 0 6px;
+  font-weight: 600;
+}
+.toc {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 18px;
+  margin: 18px 0 28px;
+}
+.toc ol { margin: 6px 0; padding-left: 22px; }
+.toc li { margin: 3px 0; }
+.toc a { text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">C1 &rsaquo; docs &rsaquo; exercises</div>
+  <h1>Builder pattern &mdash; graded exercises</h1>
+  <div class="meta">Eight problems, ramping from trivial fluent setters to step builders and directors. Domain-agnostic. No solution code &mdash; that's the whole point.</div>
+</header>
+
+<h2 id="how">How to use this</h2>
+
+<p>Work top to bottom. Each exercise has the same shape:</p>
+
+<ul>
+  <li><strong>Goal</strong> &mdash; one sentence on what you're learning.</li>
+  <li><strong>Target API</strong> &mdash; the calling code that should compile and behave correctly when you're done. This is your spec.</li>
+  <li><strong>Requirements</strong> &mdash; constraints the implementation must satisfy.</li>
+  <li><strong>Self-check</strong> &mdash; tick these once you're confident. If any feel uncertain, you're not done.</li>
+  <li><strong>Hint</strong> &mdash; collapsed. Don't peek until you've spent at least 10 minutes stuck.</li>
+</ul>
+
+<div class="callout">
+  <strong>Rules of engagement.</strong> Write a failing test first (xUnit + Shouldly &mdash; same setup as your C1 tests). One test per behaviour. Only open the hint after you've tried. Don't ask me for the solution &mdash; ask me to <em>review</em> what you wrote, or to ask you a question that unblocks you.
+</div>
+
+<div class="toc">
+  <strong>Ladder</strong>
+  <ol>
+    <li><a href="#ex1">PizzaBuilder &mdash; the fluent setter shape</a></li>
+    <li><a href="#ex2">UserProfileBuilder &mdash; required vs optional</a></li>
+    <li><a href="#ex3">UrlBuilder &mdash; validation inside Build()</a></li>
+    <li><a href="#ex4">HttpRequestBuilder &mdash; nested builders</a></li>
+    <li><a href="#ex5">PersonBuilder &mdash; building an immutable record</a></li>
+    <li><a href="#ex6">SqlQueryBuilder &mdash; step builder (forced ordering)</a></li>
+    <li><a href="#ex7">Builder&lt;T&gt; &mdash; the generic reusable builder</a></li>
+    <li><a href="#ex8">EmailDirector &mdash; director + builder</a></li>
+  </ol>
+</div>
+
+<!-- =============== EXERCISE 1 =============== -->
+<div class="exercise" id="ex1">
+<h3><span class="badge lvl-1">Level 1 &mdash; warm-up</span>PizzaBuilder: the fluent setter shape</h3>
+
+<div class="section-label">Goal</div>
+<p>Internalise the <code class="il">SetX() &rarr; return this &rarr; Build()</code> rhythm. Nothing else.</p>
+
+<div class="section-label">Target API</div>
+<pre><code><span class="type">Pizza</span> pizza = <span class="kw">new</span> <span class="type">PizzaBuilder</span>()
+    .WithSize(<span class="type">PizzaSize</span>.Large)
+    .WithCrust(<span class="type">CrustStyle</span>.Thin)
+    .AddTopping(<span class="str">"Mushroom"</span>)
+    .AddTopping(<span class="str">"Olive"</span>)
+    .Build();
+
+<span class="type">Console</span>.WriteLine(pizza.Toppings.Count); <span class="cmt">// 2</span></code></pre>
+
+<div class="section-label">Requirements</div>
+<ul>
+  <li><code class="il">Pizza</code> is a class with read-only properties: <code class="il">Size</code>, <code class="il">Crust</code>, <code class="il">Toppings</code> (an <code class="il">IReadOnlyList&lt;string&gt;</code>).</li>
+  <li><code class="il">PizzaSize</code> and <code class="il">CrustStyle</code> are enums you define.</li>
+  <li>Every <code class="il">With*</code>/<code class="il">Add*</code> method returns the builder. The chain must compile.</li>
+  <li><code class="il">Build()</code> returns the <code class="il">Pizza</code>. No validation yet &mdash; that's exercise 2 and 3.</li>
+</ul>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I can chain in any order &mdash; <code class="il">.WithCrust().WithSize().AddTopping()</code> works the same.</li>
+  <li>Calling <code class="il">Build()</code> twice produces two independent <code class="il">Pizza</code> objects (or I can articulate why I chose to share state).</li>
+  <li>The returned <code class="il">Pizza</code>'s <code class="il">Toppings</code> list cannot be mutated by the caller after <code class="il">Build()</code> returns.</li>
+</ul>
+
+<details>
+<summary>Hint</summary>
+<p>Every fluent method has the same skeleton: store the value in a private field, <code class="il">return this;</code>. The interesting decision is the toppings list &mdash; you probably want a private <code class="il">List&lt;string&gt;</code> field that <code class="il">AddTopping</code> appends to, and <code class="il">Build()</code> hands the <code class="il">Pizza</code> an immutable snapshot of it (e.g. <code class="il">.ToList().AsReadOnly()</code> or a fresh array). Otherwise the caller could keep mutating the list through the builder after building.</p>
+</details>
+</div>
+
+<!-- =============== EXERCISE 2 =============== -->
+<div class="exercise" id="ex2">
+<h3><span class="badge lvl-2">Level 2 &mdash; easy</span>UserProfileBuilder: required vs optional</h3>
+
+<div class="section-label">Goal</div>
+<p>Make the builder distinguish between fields that <em>must</em> be set and ones that are optional. Failing fast at <code class="il">Build()</code> with a clear message.</p>
+
+<div class="section-label">Target API</div>
+<pre><code><span class="type">UserProfile</span> profile = <span class="kw">new</span> <span class="type">UserProfileBuilder</span>()
+    .WithEmail(<span class="str">"ana@example.com"</span>)
+    .WithDisplayName(<span class="str">"Ana"</span>)
+    .WithBio(<span class="str">"Likes hiking."</span>)   <span class="cmt">// optional</span>
+    .Build();
+
+<span class="cmt">// This should throw with a useful message:</span>
+<span class="kw">new</span> <span class="type">UserProfileBuilder</span>()
+    .WithDisplayName(<span class="str">"Ana"</span>)
+    .Build(); <span class="cmt">// missing Email</span></code></pre>
+
+<div class="section-label">Requirements</div>
+<ul>
+  <li>Required: <code class="il">Email</code>, <code class="il">DisplayName</code>. Optional: <code class="il">Bio</code>, <code class="il">AvatarUrl</code>.</li>
+  <li><code class="il">Build()</code> throws <code class="il">InvalidOperationException</code> if any required field is missing.</li>
+  <li>The exception message must name <em>which</em> field is missing &mdash; not just &ldquo;invalid&rdquo;.</li>
+  <li>If multiple required fields are missing, the message should mention <em>all</em> of them (don't fail on the first and hide the rest).</li>
+</ul>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I have a test for the happy path.</li>
+  <li>I have a test per required field, showing the error message names that field.</li>
+  <li>I have a test where two required fields are missing, asserting both appear in the message.</li>
+  <li>I can explain in one sentence <em>why</em> Bio being null is fine but Email being null isn't.</li>
+</ul>
+
+<details>
+<summary>Hint</summary>
+<p>Two common shapes: (a) keep the fields as <code class="il">string?</code> and check <code class="il">string.IsNullOrWhiteSpace</code> in <code class="il">Build()</code>, or (b) keep an internal <code class="il">List&lt;string&gt; _errors</code> that <code class="il">Build()</code> populates and then throws if non-empty. (b) scales better &mdash; one pass collects all errors, then one throw. (a) is simpler if you only have two required fields.</p>
+</details>
+</div>
+
+<!-- =============== EXERCISE 3 =============== -->
+<div class="exercise" id="ex3">
+<h3><span class="badge lvl-3">Level 3 &mdash; medium</span>UrlBuilder: validation inside Build()</h3>
+
+<div class="section-label">Goal</div>
+<p>Move from &ldquo;is the field set?&rdquo; to &ldquo;is the field <em>valid</em>?&rdquo;. The builder becomes the single gate that guarantees the resulting object is well-formed.</p>
+
+<div class="section-label">Target API</div>
+<pre><code><span class="type">Url</span> url = <span class="kw">new</span> <span class="type">UrlBuilder</span>()
+    .WithScheme(<span class="str">"https"</span>)
+    .WithHost(<span class="str">"example.com"</span>)
+    .WithPort(<span class="num">8443</span>)
+    .WithPath(<span class="str">"/api/users"</span>)
+    .WithQuery(<span class="str">"page"</span>, <span class="str">"1"</span>)
+    .WithQuery(<span class="str">"size"</span>, <span class="str">"20"</span>)
+    .Build();
+
+url.ToString(); <span class="cmt">// "https://example.com:8443/api/users?page=1&amp;size=20"</span></code></pre>
+
+<div class="section-label">Requirements</div>
+<ul>
+  <li>Scheme must be <code class="il">"http"</code> or <code class="il">"https"</code> &mdash; anything else throws.</li>
+  <li>Host is required and must not contain spaces or slashes.</li>
+  <li>Port is optional. If set, must be in <code class="il">1..65535</code>. If unset, omit from the rendered URL.</li>
+  <li>Path is optional. If set, must start with <code class="il">/</code>.</li>
+  <li>Query parameters: zero or more, preserve insertion order in the output.</li>
+  <li>The resulting <code class="il">Url</code> is immutable. Once built, no mutation possible.</li>
+</ul>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Each rule above has at least one passing test and one failing-input test.</li>
+  <li>The <code class="il">Url</code> type has no public setters &mdash; only the builder can construct it.</li>
+  <li>I can build two URLs from one builder instance and they're independent. (Or I deliberately disallow it &mdash; document the choice.)</li>
+  <li>I've considered: what about the user calling <code class="il">.WithPort(70000)</code>? Does it throw at the call site, or at <code class="il">Build()</code>? Which is better, and why?</li>
+</ul>
+
+<details>
+<summary>Hint</summary>
+<p>The question in the last self-check item is the heart of this exercise. Two schools of thought:</p>
+<ul>
+  <li><strong>Throw early (at the setter)</strong> &mdash; fails close to the mistake, easier to debug, but the setter is no longer a &ldquo;pure intention&rdquo;.</li>
+  <li><strong>Throw late (in Build)</strong> &mdash; lets you collect every problem at once, but the failing line number is far from the bad input.</li>
+</ul>
+<p>Both are defensible. Pick one consciously and write the choice down in a comment on <code class="il">Build()</code>.</p>
+</details>
+</div>
+
+<!-- =============== EXERCISE 4 =============== -->
+<div class="exercise" id="ex4">
+<h3><span class="badge lvl-4">Level 4 &mdash; medium</span>HttpRequestBuilder: nested builders</h3>
+
+<div class="section-label">Goal</div>
+<p>Compose builders. One builder hands control to a child builder for a sub-concept, then takes control back. This is exactly the C1 pattern: <code class="il">AdventureBuilder &rarr; NodeBuilder &rarr; ChoiceBuilder</code>.</p>
+
+<div class="section-label">Target API</div>
+<pre><code><span class="type">HttpRequest</span> request = <span class="kw">new</span> <span class="type">HttpRequestBuilder</span>()
+    .WithMethod(<span class="str">"POST"</span>)
+    .WithUrl(<span class="str">"https://api.example.com/orders"</span>)
+    .WithHeaders(h =&gt; h
+        .Add(<span class="str">"Authorization"</span>, <span class="str">"Bearer xyz"</span>)
+        .Add(<span class="str">"Accept"</span>, <span class="str">"application/json"</span>))
+    .WithBody(b =&gt; b
+        .WithContentType(<span class="str">"application/json"</span>)
+        .WithJson(<span class="str">"{ \"product\": \"book\" }"</span>))
+    .Build();</code></pre>
+
+<div class="section-label">Requirements</div>
+<ul>
+  <li><code class="il">WithHeaders</code> takes an <code class="il">Action&lt;HeadersBuilder&gt;</code>. The lambda configures a fresh <code class="il">HeadersBuilder</code>; the parent absorbs the result.</li>
+  <li><code class="il">WithBody</code> takes an <code class="il">Action&lt;BodyBuilder&gt;</code>, same shape.</li>
+  <li>Each child builder is independently testable in isolation.</li>
+  <li>The parent builder owns final validation of the whole request.</li>
+</ul>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I can write a unit test that only exercises <code class="il">HeadersBuilder</code> &mdash; no <code class="il">HttpRequestBuilder</code> involved.</li>
+  <li>The child builders aren't exposed for the caller to <code class="il">new</code> directly &mdash; they're reached only through the lambda. (Or I made a deliberate decision to expose them. Why?)</li>
+  <li>I can articulate why this is better than <code class="il">.AddHeader(name, value).AddHeader(name, value).AddHeader(...)</code> flat on the parent.</li>
+</ul>
+
+<details>
+<summary>Hint</summary>
+<p>Inside <code class="il">WithHeaders</code>: create a <code class="il">new HeadersBuilder()</code>, invoke the lambda passing it in, then read the headers off it and store on the parent. Something like:</p>
+<pre><code><span class="kw">public</span> <span class="type">HttpRequestBuilder</span> WithHeaders(<span class="type">Action</span>&lt;<span class="type">HeadersBuilder</span>&gt; configure)
+{
+    <span class="kw">var</span> sub = <span class="kw">new</span> <span class="type">HeadersBuilder</span>();
+    configure(sub);
+    _headers = sub.GetHeaders(); <span class="cmt">// or however you expose them</span>
+    <span class="kw">return</span> <span class="kw">this</span>;
+}</code></pre>
+<p>The key insight: the parent never <em>reaches into</em> the child. It hands the child to a lambda, lets the caller configure it, then pulls the finished result out. That's how the child stays a self-contained, testable unit.</p>
+</details>
+</div>
+
+<!-- =============== EXERCISE 5 =============== -->
+<div class="exercise" id="ex5">
+<h3><span class="badge lvl-5">Level 5 &mdash; medium-hard</span>PersonBuilder: building an immutable record</h3>
+
+<div class="section-label">Goal</div>
+<p>Understand why Builder exists <em>for</em> immutability. Records with many init-only properties hit a wall when you have ordering or conditional logic &mdash; that's the gap a builder fills.</p>
+
+<div class="section-label">Target API</div>
+<pre><code><span class="kw">public sealed record</span> <span class="type">Person</span>(
+    <span class="type">string</span> FirstName,
+    <span class="type">string</span> LastName,
+    <span class="type">DateOnly</span> BirthDate,
+    <span class="type">string</span>? MiddleName,
+    <span class="type">string</span>? Suffix,
+    <span class="type">IReadOnlyList</span>&lt;<span class="type">string</span>&gt; Nicknames);
+
+<span class="type">Person</span> p = <span class="kw">new</span> <span class="type">PersonBuilder</span>()
+    .WithFirstName(<span class="str">"Ana"</span>)
+    .WithLastName(<span class="str">"Silva"</span>)
+    .BornOn(<span class="kw">new</span> <span class="type">DateOnly</span>(<span class="num">1990</span>, <span class="num">3</span>, <span class="num">14</span>))
+    .AddNickname(<span class="str">"Ani"</span>)
+    .AddNickname(<span class="str">"AS"</span>)
+    .Build();
+
+p <span class="kw">is</span> { FirstName: <span class="str">"Ana"</span>, Nicknames.Count: <span class="num">2</span> }; <span class="cmt">// true</span></code></pre>
+
+<div class="section-label">Requirements</div>
+<ul>
+  <li><code class="il">Person</code> is a <code class="il">sealed record</code> with a positional constructor. <strong>Do not add a parameterless constructor.</strong></li>
+  <li>All <code class="il">Person</code> properties are init-only (records give you this for free with positional syntax).</li>
+  <li>The builder accumulates state mutably, then constructs the <code class="il">Person</code> in one shot inside <code class="il">Build()</code>.</li>
+  <li>Required: <code class="il">FirstName</code>, <code class="il">LastName</code>, <code class="il">BirthDate</code>. Optional: the rest.</li>
+  <li>Nicknames are deduplicated case-insensitively, but the original casing of the <em>first</em> occurrence is preserved.</li>
+</ul>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I can answer: why couldn't the caller just use <code class="il">new Person(...)</code> directly?</li>
+  <li>My deduplication test covers: adding <code class="il">"Ani"</code> then <code class="il">"ANI"</code> &mdash; only one nickname remains, spelled <code class="il">"Ani"</code>.</li>
+  <li>The <code class="il">Person</code> instance has no way to be mutated after construction. (Try assigning to a property in a test &mdash; it should be a compile error.)</li>
+  <li>I understand the trade-off: the record is forever immutable; the builder is throwaway scaffolding.</li>
+</ul>
+
+<details>
+<summary>Hint</summary>
+<p>The first self-check question is the lesson. The caller <em>can</em> use <code class="il">new Person(...)</code> directly &mdash; but they'd have to: pass <code class="il">null</code> for unset optionals, build the <code class="il">Nicknames</code> list (with dedup) before the call, remember the parameter order. The builder hides all of that.</p>
+<p>For dedup: a <code class="il">HashSet&lt;string&gt;</code> with <code class="il">StringComparer.OrdinalIgnoreCase</code> tracks &ldquo;already seen&rdquo;, while a parallel <code class="il">List&lt;string&gt;</code> preserves original casing and insertion order.</p>
+</details>
+</div>
+
+<!-- =============== EXERCISE 6 =============== -->
+<div class="exercise" id="ex6">
+<h3><span class="badge lvl-6">Level 6 &mdash; hard</span>SqlQueryBuilder: step builder (forced ordering)</h3>
+
+<div class="section-label">Goal</div>
+<p>Use the type system to enforce that the caller does things in the right order. Once you've called <code class="il">.From(...)</code> you can call <code class="il">.Where(...)</code>, but not before. The compiler stops invalid sequences before they run.</p>
+
+<div class="section-label">Target API</div>
+<pre><code><span class="cmt">// Valid &mdash; compiles:</span>
+<span class="type">string</span> sql = <span class="type">SqlQuery</span>.Select(<span class="str">"Id"</span>, <span class="str">"Name"</span>)
+    .From(<span class="str">"Users"</span>)
+    .Where(<span class="str">"Active = 1"</span>)
+    .OrderBy(<span class="str">"Name"</span>)
+    .Build();
+
+<span class="cmt">// Invalid &mdash; should NOT compile:</span>
+<span class="type">SqlQuery</span>.Select(<span class="str">"Id"</span>)
+    .Where(<span class="str">"Active = 1"</span>)   <span class="cmt">// compile error: no FROM yet</span>
+    .From(<span class="str">"Users"</span>)
+    .Build();
+
+<span class="cmt">// Also invalid:</span>
+<span class="type">SqlQuery</span>.Select(<span class="str">"Id"</span>)
+    .From(<span class="str">"Users"</span>)
+    .OrderBy(<span class="str">"Name"</span>)
+    .Where(<span class="str">"Active = 1"</span>) <span class="cmt">// compile error: cannot WHERE after ORDER BY</span>
+    .Build();</code></pre>
+
+<div class="section-label">Requirements</div>
+<ul>
+  <li>Order enforced at compile time: <code class="il">SELECT &rarr; FROM &rarr; WHERE? &rarr; ORDER BY? &rarr; Build</code>.</li>
+  <li><code class="il">WHERE</code> and <code class="il">ORDER BY</code> are optional, but neither can be repeated.</li>
+  <li>The <code class="il">SqlQuery</code> entry point is a static class with a <code class="il">Select(...)</code> factory.</li>
+  <li>No runtime checks for ordering &mdash; the compiler is the only enforcer.</li>
+</ul>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I have a passing test for a complete query.</li>
+  <li>I tried to write each invalid example above as a test &mdash; and confirmed the code <em>fails to compile</em>. (Leave the broken line commented out with a note: &ldquo;uncomment to verify compile error&rdquo;.)</li>
+  <li>I can explain what makes this a <em>step</em> builder vs a regular builder.</li>
+  <li>I understand the cost: more interfaces, more types, harder to extend. When is this worth it? When is it overkill?</li>
+</ul>
+
+<details>
+<summary>Hint</summary>
+<p>The mechanism: each step's method returns a <em>different interface</em> exposing only the methods valid at the next step. <code class="il">Select()</code> returns <code class="il">IFromStep</code> (which only has <code class="il">From</code>). <code class="il">From()</code> returns <code class="il">IWhereOrOrderStep</code> (which has <code class="il">Where</code>, <code class="il">OrderBy</code>, <code class="il">Build</code>). And so on.</p>
+<p>One concrete class can implement all the step interfaces &mdash; the interfaces are just <em>views</em> onto the same builder, restricting what's reachable at each call site.</p>
+<pre><code><span class="kw">public interface</span> <span class="type">IFromStep</span> {
+    <span class="type">IWhereOrOrderStep</span> From(<span class="type">string</span> table);
+}
+<span class="kw">public interface</span> <span class="type">IWhereOrOrderStep</span> {
+    <span class="type">IOrderStep</span> Where(<span class="type">string</span> predicate);
+    <span class="type">IBuildStep</span> OrderBy(<span class="type">string</span> column);
+    <span class="type">string</span> Build();
+}
+<span class="cmt">// ...</span></code></pre>
+</details>
+</div>
+
+<!-- =============== EXERCISE 7 =============== -->
+<div class="exercise" id="ex7">
+<h3><span class="badge lvl-7">Level 7 &mdash; hard</span>Builder&lt;T&gt;: the generic reusable builder</h3>
+
+<div class="section-label">Goal</div>
+<p>Strip the builder concept down to its abstract core. One generic builder type, parameterised by what it builds. You'll discover where the abstraction works and where it leaks.</p>
+
+<div class="section-label">Target API</div>
+<pre><code><span class="type">Book</span> book = <span class="kw">new</span> <span class="type">Builder</span>&lt;<span class="type">Book</span>&gt;()
+    .With(b =&gt; b.Title, <span class="str">"Practical C#"</span>)
+    .With(b =&gt; b.Pages, <span class="num">320</span>)
+    .With(b =&gt; b.Author, <span class="str">"Matt Eland"</span>)
+    .Build();
+
+<span class="type">Car</span> car = <span class="kw">new</span> <span class="type">Builder</span>&lt;<span class="type">Car</span>&gt;()
+    .With(c =&gt; c.Make, <span class="str">"Toyota"</span>)
+    .With(c =&gt; c.Model, <span class="str">"Corolla"</span>)
+    .Build();</code></pre>
+
+<div class="section-label">Requirements</div>
+<ul>
+  <li><code class="il">Builder&lt;T&gt;</code> works for any <code class="il">T</code> with a parameterless constructor and settable properties.</li>
+  <li><code class="il">With&lt;TProp&gt;(Expression&lt;Func&lt;T, TProp&gt;&gt; selector, TProp value)</code> &mdash; the expression identifies the property; the value is what to set.</li>
+  <li><code class="il">Build()</code> instantiates <code class="il">T</code>, applies all the <code class="il">With</code> calls in order, returns the result.</li>
+  <li>Type-safe: <code class="il">.With(b =&gt; b.Pages, "twenty")</code> is a compile error (Pages is <code class="il">int</code>).</li>
+</ul>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I parsed the <code class="il">Expression&lt;Func&lt;T, TProp&gt;&gt;</code> to extract a <code class="il">PropertyInfo</code>.</li>
+  <li>I have tests for: setting one property, multiple properties, and a wrong-type assignment failing to compile.</li>
+  <li>I can list at least three things this generic builder <em>can't</em> do that the hand-written ones can. (Validation? Required fields? Nested children? Immutable records?)</li>
+  <li>I can explain when this is worth it (lots of similar DTOs) and when it isn't (each type needs distinct rules).</li>
+</ul>
+
+<details>
+<summary>Hint</summary>
+<p>Expression parsing: an <code class="il">Expression&lt;Func&lt;T, TProp&gt;&gt;</code> like <code class="il">b =&gt; b.Pages</code> has a <code class="il">Body</code> that's a <code class="il">MemberExpression</code>. Cast it, grab <code class="il">.Member</code>, cast to <code class="il">PropertyInfo</code>, call <code class="il">SetValue</code> on the instance.</p>
+<pre><code><span class="kw">var</span> body = (<span class="type">MemberExpression</span>)selector.Body;
+<span class="kw">var</span> prop = (<span class="type">PropertyInfo</span>)body.Member;
+<span class="cmt">// store (prop, value) until Build()</span></code></pre>
+<p>Storage shape: a <code class="il">List&lt;Action&lt;T&gt;&gt;</code> where each action does <code class="il">prop.SetValue(instance, value)</code> works nicely &mdash; <code class="il">Build()</code> just news up a <code class="il">T</code> and runs them all.</p>
+</details>
+</div>
+
+<!-- =============== EXERCISE 8 =============== -->
+<div class="exercise" id="ex8">
+<h3><span class="badge lvl-8">Level 8 &mdash; capstone</span>EmailDirector: director + builder</h3>
+
+<div class="section-label">Goal</div>
+<p>Separate the <em>how to assemble</em> (builder) from the <em>what to assemble</em> (director). Multiple directors share one builder, each producing a different preset configuration. This is the original Gang-of-Four shape that most modern code skips.</p>
+
+<div class="section-label">Target API</div>
+<pre><code><span class="kw">var</span> builder = <span class="kw">new</span> <span class="type">EmailBuilder</span>();
+
+<span class="type">Email</span> welcome  = <span class="kw">new</span> <span class="type">WelcomeEmailDirector</span>().Construct(builder, recipient: <span class="str">"ana@x.com"</span>);
+<span class="type">Email</span> reset    = <span class="kw">new</span> <span class="type">PasswordResetDirector</span>().Construct(builder, recipient: <span class="str">"ana@x.com"</span>, token: <span class="str">"abc123"</span>);
+<span class="type">Email</span> newsletter = <span class="kw">new</span> <span class="type">NewsletterDirector</span>().Construct(builder, recipient: <span class="str">"ana@x.com"</span>, articleIds: [<span class="num">7</span>, <span class="num">12</span>]);</code></pre>
+
+<div class="section-label">Requirements</div>
+<ul>
+  <li><code class="il">EmailBuilder</code> exposes <em>only</em> generic primitives: <code class="il">WithFrom</code>, <code class="il">WithTo</code>, <code class="il">WithSubject</code>, <code class="il">WithBody</code>, <code class="il">AddAttachment</code>, <code class="il">Build</code>. It knows nothing about &ldquo;welcome&rdquo; or &ldquo;password reset&rdquo;.</li>
+  <li>Each <code class="il">*Director</code> encapsulates the recipe for one email type &mdash; choosing the subject template, body template, sender address, attachments &mdash; by calling the builder's primitives.</li>
+  <li>The same <code class="il">EmailBuilder</code> instance can be reused across directors. After each <code class="il">Construct</code>, the builder is reset for the next caller.</li>
+  <li>Directors share no inheritance &mdash; they don't extend each other. They just both know how to drive the builder.</li>
+</ul>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I have one director for each: Welcome, PasswordReset, Newsletter.</li>
+  <li>Adding a new email type (e.g. <code class="il">InvoiceEmailDirector</code>) does <strong>not</strong> require modifying <code class="il">EmailBuilder</code>. Demonstrate by adding one.</li>
+  <li>I can name which SOLID principle this satisfies (and which one it would violate if the builder grew <code class="il">WithWelcomeTemplate()</code>, <code class="il">WithResetTemplate()</code> methods instead).</li>
+  <li>I considered: should the builder auto-reset after <code class="il">Build()</code>, or should the director do it explicitly? What are the trade-offs?</li>
+</ul>
+
+<details>
+<summary>Hint</summary>
+<p>Director shape:</p>
+<pre><code><span class="kw">public class</span> <span class="type">WelcomeEmailDirector</span>
+{
+    <span class="kw">public</span> <span class="type">Email</span> Construct(<span class="type">EmailBuilder</span> builder, <span class="type">string</span> recipient)
+    {
+        <span class="kw">return</span> builder
+            .WithFrom(<span class="str">"hello@app.com"</span>)
+            .WithTo(recipient)
+            .WithSubject(<span class="str">"Welcome to the app!"</span>)
+            .WithBody(<span class="str">"Glad to have you..."</span>)
+            .Build();
+    }
+}</code></pre>
+<p>The principle: <code class="il">EmailBuilder</code> is <strong>open for extension, closed for modification</strong> (Open-Closed). New email types arrive as new directors &mdash; the builder stays untouched. If you instead added a <code class="il">.WithWelcomeTemplate()</code> method, you'd have to edit the builder every time a new email type appeared. That's the trap directors avoid.</p>
+</details>
+</div>
+
+<h2 id="afterward">Once you've done all eight</h2>
+
+<p>You've covered the full Builder vocabulary. To pressure-test your understanding, try these on your own without writing code:</p>
+
+<ul>
+  <li>Look at <code class="il">C1/ConsoleAppAdventureGame.Engine/Builder/</code>. Which exercise above is it closest to? What additional concern does it handle that none of the exercises did?</li>
+  <li>When would you <em>not</em> use a Builder? Name two concrete situations where a constructor or object initializer is genuinely better.</li>
+  <li>If a class has only two required fields and nothing else, what's the smallest amount of code that achieves the Builder's guarantees without being a Builder?</li>
+</ul>
+
+<p>Ask me when you want any of these reviewed &mdash; I'll ask you questions rather than answer them outright.</p>
+
+</div>
+</body>
+</html>

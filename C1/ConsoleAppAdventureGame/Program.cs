@@ -9,7 +9,8 @@ try
     Console.OutputEncoding = System.Text.Encoding.UTF8;
 
     //Adventure adventure = SampleAdventure.BuildAdventure();
-    Adventure adventure = SampleAdventure.BuildMinimalAdventureUsingBuilder();
+    //Adventure adventure = SampleAdventure.BuildMinimalAdventureUsingBuilder();
+    Adventure adventure = LargerStorySample.BuildAdventureUsingBuilder();
     SpectreAdventureRenderer renderer = new();
 
     adventure.Run(renderer);
