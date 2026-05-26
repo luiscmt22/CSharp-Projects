@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="EnigmaSimulator.Domain/EnigmaSimulator.Domain.csproj" />
+  <Project Path="EnigmaSimulator.Tests/EnigmaSimulator.Tests.csproj" />
+  <Project Path="EnigmaSimulator/EnigmaSimulator.csproj" />
+</Solution>
