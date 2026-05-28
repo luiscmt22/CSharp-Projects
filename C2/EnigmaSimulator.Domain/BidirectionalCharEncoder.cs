@@ -25,7 +25,7 @@ public class BidirectionalCharEncoder
         // Adjust input character based on offset
         // Using modulo(%) to wrap around the alphabet
         int inputIndex = input - 'A';
-        int adjustedIndex = (inputIndex + offset + inputIndex) % AlphabetSize;
+        int adjustedIndex = (inputIndex + offset + AlphabetSize) % AlphabetSize;
         char adjustedInput = (char)('A' + adjustedIndex);
 
         Dictionary<char, char> mappings = isForward ? _forwardMappings 
