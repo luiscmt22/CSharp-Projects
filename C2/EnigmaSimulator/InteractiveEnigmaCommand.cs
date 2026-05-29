@@ -1,0 +1,26 @@
+using EnigmaSimulator.Domain;
+using Spectre.Console;
+using Spectre.Console.Cli;
+
+namespace EnigmaSimulator;
+
+public class InteractiveEnigmaCommand(EnigmaMachine enigma) : Command
+{
+    public override int Execute(CommandContext context)
+    {
+        AnsiConsole.MarkupLine("Enigma will encode until you press " +
+                               "[cyan]Enter[/].");
+        AnsiConsole.WriteLine();
+        char output;
+        do
+        {
+            ConsoleKeyInfo? key = AnsiConsole.Console.Input.ReadKey(intercept: true);
+            char input = key.GetValueOrDefault().KeyChar;
+            output = enigma.Encode(input);
+            AnsiConsole.Write(output);
+
+        } while (!Environment.NewLine.Contains(output));
+
+        return 0;
+    }
+}

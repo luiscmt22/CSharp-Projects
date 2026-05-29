@@ -1,9 +1,41 @@
-﻿using EnigmaSimulator.Domain;
+﻿using EnigmaSimulator;
+using EnigmaSimulator.Domain;
+using Microsoft.Extensions.DependencyInjection;
+using Spectre.Console;
+using Spectre.Console.Cli;
 
-EnigmaMachine machine = new(
-    new Plugboard(),
-    new Rotor(RotorSets.Enigma3, position: '1'),
-    new Rotor(RotorSets.Enigma2, position: '1'),
-    new Rotor(RotorSets.Enigma1, position: '1'),
-    new Reflector(ReflectorSets.ReflectorB)
-);
+try
+{
+    AnsiConsole.Write(new FigletText("Enigma")
+        .Color(Color.Black));
+    AnsiConsole.WriteLine();
+
+    ServiceCollection services = new();
+    services.AddScoped<EnigmaMachine>(_ => new EnigmaMachine(
+        new Plugboard(),
+        new Rotor(RotorSets.Enigma3),
+        new Rotor(RotorSets.Enigma2),
+        new Rotor(RotorSets.Enigma1),
+        new Reflector(ReflectorSets.ReflectorB)
+        ));
+
+    CommandApp app = new(new TypeRegistrar(services));
+    app.Configure(config =>
+    {
+        config.AddCommand<InteractiveEnigmaCommand>("interactive")
+            .WithAlias("i")
+            .WithDescription("Encripts keystrokes as you type them using" +
+                             "Enigma.");
+        config.AddCommand<EncodeCommand>("encode")
+            .WithAlias("e")
+            .WithDescription("Encodes a message using Enigma and display the output.")
+            .WithExample("encode Hello");
+    });
+
+    return app.Run(args);
+}
+catch(Exception ex)
+{
+    AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
+    return 1;
+}

@@ -25,8 +25,8 @@ public class Rotor : IEnigmaModule
     public bool Advance()
     {
         bool hadNotch = HasNotch(Position);
-        const int AlphabetSize = 26;
-        Position = (Position % AlphabetSize) + 1;
+        const int alphabetSize = 26;
+        Position = (Position % alphabetSize) + 1;
         return hadNotch;
     }
 }
