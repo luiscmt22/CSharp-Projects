@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TypeRegistrar &amp; TypeResolver &mdash; the Adapter Pattern in Action</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {
+  --bg: #0b1220; --surface: #111a2e; --surface-2: #16223c;
+  --border: #243352; --text: #e6ecf5; --text-dim: #9aa7c0;
+  --accent: #6aa6ff; --accent-2: #b06aff; --code-bg: #0a1120;
+  --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 28px; }
+header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
+header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
+header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
+h1, h2, h3, h4 { color: var(--text); margin-top: 1.6em; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+a { color: var(--accent); }
+code, pre, code.il { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; border: 1px solid var(--border); }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55; }
+pre code { background: transparent; border: 0; padding: 0; }
+blockquote { border-left: 3px solid var(--accent); background: var(--surface);
+  padding: 10px 16px; margin: 12px 0; color: var(--text-dim); border-radius: 0 6px 6px 0; }
+.diagram-box { background: #1e293b; border: 1px solid var(--border); border-radius: 8px; padding: 14px; overflow-x: auto; }
+.diagram-box pre { background: transparent; border: 0; padding: 0; color: #e6ecf5; }
+.tbl-wrap { overflow-x: auto; margin: 14px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+th { background: var(--surface-2); }
+tr:nth-child(even) td { background: var(--surface); }
+.callout { background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-2); padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; }
+.callout.warn { border-left-color: var(--warn); }
+.kw   { color: #c792ea; }
+.type { color: #82aaff; }
+.str  { color: #c3e88d; }
+.num  { color: #f78c6c; }
+.cmt  { color: #6c7a96; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">C2 &rsaquo; docs</div>
+  <h1>TypeRegistrar &amp; TypeResolver &mdash; the Adapter pattern in action</h1>
+  <div class="meta">Why your <code class="il">EnigmaSimulator</code> project has two small classes that just forward calls into Microsoft's DI container, and what they're solving.</div>
+</header>
+
+<h2 id="setup">The setup</h2>
+
+<p>Your <code class="il">Program.cs</code> wires the CLI like this:</p>
+
+<pre><code><span class="type">ServiceCollection</span> services = <span class="kw">new</span>();
+services.AddScoped&lt;<span class="type">EnigmaMachine</span>&gt;(...);   <span class="cmt">// Microsoft.Extensions.DependencyInjection</span>
+
+<span class="type">CommandApp</span> app = <span class="kw">new</span>(<span class="kw">new</span> <span class="type">TypeRegistrar</span>(services));   <span class="cmt">// Spectre.Console.Cli</span></code></pre>
+
+<p>Two libraries are talking to each other:</p>
+
+<ul>
+  <li><strong>Microsoft.Extensions.DependencyInjection</strong> &mdash; the standard .NET dependency injection container. Defines <code class="il">IServiceCollection</code> (where you register services) and <code class="il">IServiceProvider</code> (where you ask for them at runtime).</li>
+  <li><strong>Spectre.Console.Cli</strong> &mdash; the command-line framework. To resolve your <code class="il">EncodeCommand</code>'s constructor parameter <code class="il">EnigmaMachine enigma</code>, it needs <em>some</em> way to ask a DI container "give me an EnigmaMachine".</li>
+</ul>
+
+<h2 id="why-not-just-use-microsoft">Why doesn't Spectre just use Microsoft DI?</h2>
+
+<p>Because that would force <strong>every Spectre user</strong> to take a dependency on <code class="il">Microsoft.Extensions.DependencyInjection</code>. Many CLI apps don't need DI at all &mdash; they're tiny single-file utilities. Forcing them to drag in a whole DI library is rude.</p>
+
+<p>Other CLI authors might use a different DI container entirely &mdash; Autofac, Lamar, Castle Windsor. Spectre can't pick one without locking out the others.</p>
+
+<p>So Spectre defines its <strong>own minimal interface</strong> &mdash; <code class="il">ITypeRegistrar</code> and <code class="il">ITypeResolver</code> &mdash; and says "give me anything that implements these two interfaces, and I'll use it". You bring your favourite container; Spectre stays neutral.</p>
+
+<p>This is a common design choice in serious .NET libraries: declare a small abstraction over DI, let the user wire their container into it. ASP.NET Core's <code class="il">IServiceProvider</code> is the same idea at scale.</p>
+
+<h2 id="problem">The problem in one diagram</h2>
+
+<div class="diagram-box"><pre>
+   Spectre.Console.Cli                Microsoft DI
+
+   needs:                             provides:
+   &#x250c;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;                  &#x250c;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;
+   &#x2502; ITypeRegistrar &#x2502;     ???    &#x2502; IServiceCollection &#x2502;
+   &#x2502; ITypeResolver  &#x2502;  &lt;&minus;&minus;&minus;&minus;&minus;&minus;&gt;  &#x2502; IServiceProvider   &#x2502;
+   &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;                  &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;
+
+   Same purpose (DI), incompatible shapes. They can't talk directly.
+</pre></div>
+
+<p>You can't pass an <code class="il">IServiceCollection</code> to Spectre &mdash; Spectre doesn't know that type. The solution is <strong>an adapter</strong>: a thin class that implements Spectre's interface but does its actual work by calling into Microsoft DI.</p>
+
+<h2 id="adapter">The Adapter pattern (recap)</h2>
+
+<p>From your <code class="il">DesignPatterns_Drills.html</code>:</p>
+
+<blockquote>
+"Adapter = make A look like B." Used when two systems have the same intent but incompatible shapes &mdash; you wrap one in a class that implements the other's interface.
+</blockquote>
+
+<p>In your <code class="il">LegacyLogger</code> drill, you wrapped an old logger so it implemented the new <code class="il">ILogger</code> interface. Same shape here:</p>
+
+<div class="tbl-wrap"><table>
+<thead><tr><th>Adapter drill</th><th>This case</th></tr></thead>
+<tbody>
+<tr><td><code class="il">LegacyLoggerAdapter</code></td><td><code class="il">TypeRegistrar</code> / <code class="il">TypeResolver</code></td></tr>
+<tr><td>Implements: <code class="il">ILogger</code> (new)</td><td>Implements: <code class="il">ITypeRegistrar</code> / <code class="il">ITypeResolver</code> (Spectre's)</td></tr>
+<tr><td>Wraps: <code class="il">OldLogger</code> (legacy)</td><td>Wraps: <code class="il">IServiceCollection</code> / <code class="il">IServiceProvider</code> (Microsoft's)</td></tr>
+<tr><td>Each method translates calls</td><td>Each method translates calls</td></tr>
+</tbody>
+</table></div>
+
+<h2 id="why-two">Why two classes, not one?</h2>
+
+<p>This is the subtle bit. Microsoft DI has a <strong>build-time</strong> object and a <strong>runtime</strong> object:</p>
+
+<ul>
+  <li><code class="il">IServiceCollection</code> &mdash; the <em>configuration</em>. You call <code class="il">AddScoped</code>, <code class="il">AddSingleton</code>, etc. on it during setup. Once you're done registering, you "build" it into a service provider.</li>
+  <li><code class="il">IServiceProvider</code> &mdash; the <em>runtime container</em>. You call <code class="il">GetService(typeof(EnigmaMachine))</code> on it to actually create instances.</li>
+</ul>
+
+<p>Spectre mirrors this split:</p>
+
+<ul>
+  <li><code class="il">ITypeRegistrar</code> &mdash; for registering services. Has <code class="il">Register</code>, <code class="il">RegisterInstance</code>, <code class="il">RegisterLazy</code>, and a <code class="il">Build()</code> method.</li>
+  <li><code class="il">ITypeResolver</code> &mdash; for resolving services. Has one method: <code class="il">Resolve(Type)</code>.</li>
+</ul>
+
+<p>So you need <strong>two adapters</strong>:</p>
+
+<div class="diagram-box"><pre>
+   TypeRegistrar adapts                   TypeResolver adapts
+   IServiceCollection                     IServiceProvider
+   &#x2502;                                       &#x2502;
+   &#x2502;                                       &#x2502;
+   &#x2514;&minus;&minus;&minus;&minus;&minus; on Build(), creates &minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;
+</pre></div>
+
+<h2 id="walk-registrar">Walking through TypeRegistrar</h2>
+
+<pre><code><span class="kw">public sealed class</span> <span class="type">TypeRegistrar</span> : <span class="type">ITypeRegistrar</span>
+{
+    <span class="kw">private readonly</span> <span class="type">IServiceCollection</span> _builder;
+
+    <span class="kw">public</span> <span class="type">TypeRegistrar</span>(<span class="type">IServiceCollection</span> builder)
+    {
+        _builder = builder;
+    }
+
+    <span class="kw">public</span> <span class="type">ITypeResolver</span> Build()
+    {
+        <span class="kw">return new</span> <span class="type">TypeResolver</span>(_builder.BuildServiceProvider());
+    }
+
+    <span class="kw">public void</span> Register(<span class="type">Type</span> service, <span class="type">Type</span> implementation)
+    {
+        _builder.AddSingleton(service, implementation);
+    }
+
+    <span class="kw">public void</span> RegisterInstance(<span class="type">Type</span> service, <span class="kw">object</span> implementation)
+    {
+        _builder.AddSingleton(service, implementation);
+    }
+
+    <span class="kw">public void</span> RegisterLazy(<span class="type">Type</span> service, <span class="type">Func</span>&lt;<span class="kw">object</span>&gt; func)
+    {
+        <span class="kw">if</span> (func <span class="kw">is null</span>) <span class="kw">throw new</span> <span class="type">ArgumentNullException</span>(<span class="kw">nameof</span>(func));
+
+        _builder.AddSingleton(service, (provider) =&gt; func());
+    }
+}</code></pre>
+
+<p>Line by line:</p>
+
+<ul>
+  <li><strong>Constructor</strong>: takes the <code class="il">IServiceCollection</code> the caller already populated (in your case, the one with <code class="il">EnigmaMachine</code> already registered).</li>
+  <li><strong><code class="il">Build()</code></strong>: Spectre calls this once when the command app starts. It triggers Microsoft's <code class="il">.BuildServiceProvider()</code> &mdash; turning the registration list into a live container &mdash; and wraps the result in a <code class="il">TypeResolver</code>. The transition from build-time to runtime happens here.</li>
+  <li><strong><code class="il">Register</code> / <code class="il">RegisterInstance</code> / <code class="il">RegisterLazy</code></strong>: Spectre may want to add its own internal services (the command classes themselves, for instance). These methods forward Spectre's registration requests into the underlying Microsoft container.</li>
+</ul>
+
+<p>Notice all three Register methods use <code class="il">AddSingleton</code>. That's a deliberate simplification: Spectre's commands typically live for the duration of one CLI invocation, so singleton lifetime is fine. If you wanted scoped or transient, you'd customise here.</p>
+
+<h2 id="walk-resolver">Walking through TypeResolver</h2>
+
+<pre><code><span class="kw">public sealed class</span> <span class="type">TypeResolver</span> : <span class="type">ITypeResolver</span>, <span class="type">IDisposable</span>
+{
+    <span class="kw">private readonly</span> <span class="type">IServiceProvider</span> _provider;
+
+    <span class="kw">public</span> <span class="type">TypeResolver</span>(<span class="type">IServiceProvider</span> provider)
+    {
+        _provider = provider ?? <span class="kw">throw new</span> <span class="type">ArgumentNullException</span>(<span class="kw">nameof</span>(provider));
+    }
+
+    <span class="kw">public</span> <span class="kw">object</span>? Resolve(<span class="type">Type</span>? type)
+    {
+        <span class="kw">if</span> (type == <span class="kw">null</span>) <span class="kw">return null</span>;
+        <span class="kw">return</span> _provider.GetService(type);
+    }
+
+    <span class="kw">public void</span> Dispose()
+    {
+        <span class="kw">if</span> (_provider <span class="kw">is</span> <span class="type">IDisposable</span> disposable) disposable.Dispose();
+    }
+}</code></pre>
+
+<ul>
+  <li><strong>Constructor</strong>: takes the built <code class="il">IServiceProvider</code> and stores it.</li>
+  <li><strong><code class="il">Resolve</code></strong>: forwards Spectre's "give me an instance of this type" call to Microsoft's <code class="il">GetService</code>. This is where your <code class="il">EncodeCommand(EnigmaMachine enigma)</code> constructor parameter actually gets satisfied &mdash; Spectre asks the resolver for an <code class="il">EnigmaMachine</code>, the resolver asks Microsoft DI, Microsoft DI builds one.</li>
+  <li><strong><code class="il">Dispose</code></strong>: cleans up the Microsoft container at the end. The container itself implements <code class="il">IDisposable</code>, so this is just polite cleanup.</li>
+</ul>
+
+<h2 id="flow">Putting it all together &mdash; the runtime flow</h2>
+
+<ol>
+  <li>You create a <code class="il">ServiceCollection</code> and call <code class="il">AddScoped&lt;EnigmaMachine&gt;(...)</code>. Microsoft DI knows how to build an <code class="il">EnigmaMachine</code>.</li>
+  <li>You wrap that collection in a <code class="il">TypeRegistrar</code> and hand it to <code class="il">CommandApp</code>.</li>
+  <li>You configure commands and call <code class="il">app.Run(args)</code>.</li>
+  <li>Spectre parses the command line, decides the user wants <code class="il">EncodeCommand</code>.</li>
+  <li>Spectre needs to instantiate <code class="il">EncodeCommand</code>. Its constructor takes <code class="il">EnigmaMachine enigma</code>. Spectre calls <code class="il">TypeResolver.Resolve(typeof(EnigmaMachine))</code>.</li>
+  <li>Your <code class="il">TypeResolver</code> forwards to <code class="il">IServiceProvider.GetService(typeof(EnigmaMachine))</code>.</li>
+  <li>Microsoft DI runs the factory you registered, builds the rotor chain, returns an <code class="il">EnigmaMachine</code>.</li>
+  <li>The <code class="il">EnigmaMachine</code> bubbles back through the resolver to Spectre.</li>
+  <li>Spectre constructs <code class="il">EncodeCommand</code> with the dependency satisfied.</li>
+  <li>Spectre calls <code class="il">Execute</code>. Your code runs.</li>
+</ol>
+
+<p>The user never sees this. They just type <code class="il">enigma encode Hello</code> and a cipher comes out. All the wiring stays invisible &mdash; which is the entire point of dependency injection.</p>
+
+<h2 id="generalising">Generalising the lesson</h2>
+
+<p>This is a pattern you'll see whenever <strong>two libraries with the same intent but different APIs need to cooperate</strong>:</p>
+
+<ul>
+  <li>An ORM that wants to use any logging framework &mdash; defines its own <code class="il">ILogger</code> abstraction, ships adapters for Serilog, NLog, Microsoft.Extensions.Logging.</li>
+  <li>A test framework that wants to discover tests from any IoC container &mdash; defines a small adapter interface.</li>
+  <li>An HTTP client middleware that wants to integrate with any tracing library &mdash; abstract over the tracer.</li>
+</ul>
+
+<p>The shape is always the same:</p>
+
+<ol>
+  <li>Library A defines a small interface (their abstraction).</li>
+  <li>You implement that interface in an adapter class.</li>
+  <li>The adapter delegates to library B.</li>
+  <li>Library A talks to your adapter, never to library B directly.</li>
+</ol>
+
+<p>When you see boilerplate-looking adapter classes in someone else's codebase, this is almost always what's happening. They're the seams between independent libraries.</p>
+
+<h2 id="why-care">Why you should care</h2>
+
+<p>Two reasons:</p>
+
+<ol>
+  <li><strong>You'll recognise the pattern.</strong> Next time you reach for a library and it says "implement <code class="il">ISomethingResolver</code>", you'll know what to do without re-learning.</li>
+  <li><strong>You can write your own libraries this way.</strong> If you ever build something that needs DI but shouldn't dictate which DI container the user uses, declare a small interface, document the adapter shape, and let consumers wire their preferred container.</li>
+</ol>
+
+<h2 id="why-copy">A note on copying code from examples</h2>
+
+<p>The comment at the top of both files (<code class="il">// Code taken from https://github.com/spectreconsole/examples/...</code>) is good practice &mdash; it tells the next reader (often future-you) where this came from. Adapter classes are notoriously dull to write but easy to get subtly wrong, so the maintainers of Spectre publish reference implementations. Using them as-is is fine.</p>
+
+<p>If you ever modify one, leave the source comment but add a note about what you changed and why.</p>
+
+</div>
+</body>
+</html>

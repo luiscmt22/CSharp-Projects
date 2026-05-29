@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spectre.Console.Cli &mdash; Commands, Settings, and the Full CLI Flow</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {
+  --bg: #0b1220; --surface: #111a2e; --surface-2: #16223c;
+  --border: #243352; --text: #e6ecf5; --text-dim: #9aa7c0;
+  --accent: #6aa6ff; --accent-2: #b06aff; --code-bg: #0a1120;
+  --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 28px; }
+header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
+header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
+header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
+h1, h2, h3, h4 { color: var(--text); margin-top: 1.6em; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+a { color: var(--accent); }
+code, pre, code.il { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; border: 1px solid var(--border); }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55; }
+pre code { background: transparent; border: 0; padding: 0; }
+blockquote { border-left: 3px solid var(--accent); background: var(--surface);
+  padding: 10px 16px; margin: 12px 0; color: var(--text-dim); border-radius: 0 6px 6px 0; }
+.diagram-box { background: #1e293b; border: 1px solid var(--border); border-radius: 8px; padding: 14px; overflow-x: auto; }
+.diagram-box pre { background: transparent; border: 0; padding: 0; color: #e6ecf5; }
+.tbl-wrap { overflow-x: auto; margin: 14px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+th { background: var(--surface-2); }
+tr:nth-child(even) td { background: var(--surface); }
+.callout { background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-2); padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; }
+.callout.warn { border-left-color: var(--warn); }
+.callout.ok   { border-left-color: var(--ok); }
+.kw   { color: #c792ea; }
+.type { color: #82aaff; }
+.str  { color: #c3e88d; }
+.num  { color: #f78c6c; }
+.cmt  { color: #6c7a96; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">C2 &rsaquo; docs</div>
+  <h1>Spectre.Console.Cli &mdash; commands, settings, and the full CLI flow</h1>
+  <div class="meta">How <code class="il">EncodeCommand</code> and <code class="il">InteractiveEnigmaCommand</code> become real CLI commands, how Spectre parses arguments into them, and where validation hooks in.</div>
+</header>
+
+<h2 id="overview">What Spectre.Console.Cli is</h2>
+
+<p>It's a framework for building command-line tools that have <strong>subcommands</strong> &mdash; the kind of CLI where you type <code class="il">git commit</code> or <code class="il">docker build</code>, not just a single executable with flags. Your <code class="il">EnigmaSimulator</code> is one of those: you can run <code class="il">enigma encode Hello</code> or <code class="il">enigma interactive</code>.</p>
+
+<p>Spectre handles three big things for you:</p>
+
+<ol>
+  <li><strong>Parsing</strong> the command line: figuring out which subcommand was invoked, mapping arguments and flags to strongly-typed properties.</li>
+  <li><strong>Dispatching</strong>: instantiating the right command class (using your DI container via <code class="il">ITypeRegistrar</code>) and calling its <code class="il">Execute</code> method.</li>
+  <li><strong>Help text</strong>: auto-generated <code class="il">--help</code> output based on your descriptions and examples.</li>
+</ol>
+
+<p>You provide the command classes, the settings shapes, and the registration. Spectre wires the rest.</p>
+
+<blockquote>This is the <strong>Command pattern</strong> from the GoF playbook, encoded into a library. Each subcommand is a class that knows how to execute itself. The framework's job is to pick the right one and run it. Your <code class="il">DesignPatterns_Drills.html</code> doesn't cover this pattern directly &mdash; we deliberately skipped it &mdash; but the shape will feel familiar if you know Strategy, since both bundle behaviour into an object that someone else invokes.</blockquote>
+
+<h2 id="anatomy">Anatomy of a Spectre command</h2>
+
+<p>Every command inherits from one of two base classes:</p>
+
+<div class="tbl-wrap"><table>
+<thead><tr><th>Base class</th><th>Use when</th></tr></thead>
+<tbody>
+<tr><td><code class="il">Command</code></td><td>Your command takes no arguments or options &mdash; just runs.</td></tr>
+<tr><td><code class="il">Command&lt;TSettings&gt;</code></td><td>Your command needs typed arguments / options. <code class="il">TSettings</code> is a class you define.</td></tr>
+</tbody>
+</table></div>
+
+<p>Both have a virtual <code class="il">Execute</code> method you override.</p>
+
+<h3 id="example-no-settings">Example 1 &mdash; no settings (your InteractiveEnigmaCommand)</h3>
+
+<pre><code><span class="kw">public class</span> <span class="type">InteractiveEnigmaCommand</span>(<span class="type">EnigmaMachine</span> enigma) : <span class="type">Command</span>
+{
+    <span class="kw">public override int</span> Execute(<span class="type">CommandContext</span> context)
+    {
+        <span class="cmt">// ... read keystrokes, encode, print ...</span>
+        <span class="kw">return</span> <span class="num">0</span>;
+    }
+}</code></pre>
+
+<p>Three things to notice:</p>
+
+<ol>
+  <li><strong>Primary constructor</strong> takes the dependency <code class="il">EnigmaMachine enigma</code>. Spectre uses your <code class="il">TypeResolver</code> to satisfy this when it constructs the command.</li>
+  <li><strong>Inherits from <code class="il">Command</code></strong> (no generic). This command has no command-line arguments to parse.</li>
+  <li><strong>Execute returns <code class="il">int</code></strong>: the process exit code. <code class="il">0</code> means success. Any non-zero value means failure. The shell can branch on this.</li>
+</ol>
+
+<h3 id="example-with-settings">Example 2 &mdash; with settings (your EncodeCommand)</h3>
+
+<pre><code><span class="kw">public class</span> <span class="type">EncodeCommand</span>(<span class="type">EnigmaMachine</span> enigma) : <span class="type">Command</span>&lt;<span class="type">EncodeCommand</span>.<span class="type">Settings</span>&gt;
+{
+    <span class="kw">public class</span> <span class="type">Settings</span> : <span class="type">CommandSettings</span>
+    {
+        [<span class="type">CommandArgument</span>(<span class="num">0</span>, <span class="str">"[Input]"</span>)]
+        <span class="kw">public required string</span> Input { <span class="kw">get</span>; <span class="kw">init</span>; }
+    }
+
+    <span class="kw">public override int</span> Execute(<span class="type">CommandContext</span> context, <span class="type">Settings</span> settings)
+    {
+        <span class="type">string</span> output = enigma.Encode(settings.Input);
+        <span class="type">AnsiConsole</span>.MarkupLine(<span class="str">$"Output: [yellow]{output}[/]"</span>);
+        <span class="kw">return</span> <span class="num">0</span>;
+    }
+
+    <span class="kw">public override</span> <span class="type">ValidationResult</span> Validate(<span class="type">CommandContext</span> context, <span class="type">Settings</span> settings)
+    {
+        <span class="kw">if</span> (<span class="type">string</span>.IsNullOrWhiteSpace(settings.Input))
+            <span class="kw">return</span> <span class="type">ValidationResult</span>.Error(<span class="str">"Input is required"</span>);
+
+        <span class="kw">return base</span>.Validate(context, settings);
+    }
+}</code></pre>
+
+<p>More moving parts. Let's break them down.</p>
+
+<h2 id="settings">The Settings class</h2>
+
+<p><code class="il">Settings</code> is a regular C# class &mdash; usually nested inside the command for organisation, but it doesn't have to be. It defines the <strong>shape</strong> of the input the user provides on the command line.</p>
+
+<p>It inherits from <code class="il">CommandSettings</code>, which gives it some Spectre plumbing (mostly internal). Your job is to add properties for each piece of input you want, and decorate them with attributes.</p>
+
+<h3 id="argument">CommandArgument</h3>
+
+<pre><code>[<span class="type">CommandArgument</span>(<span class="num">0</span>, <span class="str">"[Input]"</span>)]
+<span class="kw">public required string</span> Input { <span class="kw">get</span>; <span class="kw">init</span>; }</code></pre>
+
+<p>Arguments are <strong>positional</strong> &mdash; the user types them in a specific order, no flag name needed. Example: <code class="il">enigma encode Hello</code> &mdash; "Hello" is a positional argument.</p>
+
+<div class="tbl-wrap"><table>
+<thead><tr><th>Part</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code class="il">0</code></td><td>Position (0-indexed). First positional argument after the command name.</td></tr>
+<tr><td><code class="il">"[Input]"</code></td><td>Template string. Square brackets <code class="il">[ ]</code> = optional. Angle brackets <code class="il">&lt; &gt;</code> = required (different from "required" the C# keyword &mdash; this controls help-text display and parser strictness).</td></tr>
+<tr><td><code class="il">required</code></td><td>C# 11 keyword. The compiler enforces that the property is set during construction. Spectre will set it from the command line.</td></tr>
+<tr><td><code class="il">init</code></td><td>The property can be set during object initialisation but not after.</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="option">CommandOption (not used in your code, but the other half of the picture)</h3>
+
+<p>Options are <strong>named flags</strong>: <code class="il">--verbose</code>, <code class="il">--config myfile.json</code>, etc.</p>
+
+<pre><code>[<span class="type">CommandOption</span>(<span class="str">"-v|--verbose"</span>)]
+<span class="kw">public bool</span> Verbose { <span class="kw">get</span>; <span class="kw">init</span>; }
+
+[<span class="type">CommandOption</span>(<span class="str">"-c|--config &lt;PATH&gt;"</span>)]
+<span class="kw">public string</span>? ConfigPath { <span class="kw">get</span>; <span class="kw">init</span>; }</code></pre>
+
+<p>Template <code class="il">"-v|--verbose"</code> lets the user type either form. <code class="il">&lt;PATH&gt;</code> indicates the option takes a value.</p>
+
+<p>Options can also be marked as required, have default values, or take a list of values. The Spectre docs cover all variants &mdash; the principle is the same as <code class="il">CommandArgument</code>.</p>
+
+<h2 id="execute">Execute &mdash; where your code runs</h2>
+
+<pre><code><span class="kw">public override int</span> Execute(<span class="type">CommandContext</span> context, <span class="type">Settings</span> settings)
+{
+    <span class="type">string</span> output = enigma.Encode(settings.Input);
+    <span class="type">AnsiConsole</span>.MarkupLine(<span class="str">$"Output: [yellow]{output}[/]"</span>);
+    <span class="kw">return</span> <span class="num">0</span>;
+}</code></pre>
+
+<p>By the time <code class="il">Execute</code> is called, Spectre has already:</p>
+
+<ul>
+  <li>Parsed the command line.</li>
+  <li>Built a <code class="il">Settings</code> instance with the parsed values.</li>
+  <li>Run <code class="il">Validate</code> (see below).</li>
+  <li>Resolved any constructor dependencies through your <code class="il">TypeResolver</code>.</li>
+</ul>
+
+<p>Your job is the actual work. Read <code class="il">settings.Input</code>, do the thing, write the output, return an exit code.</p>
+
+<p><code class="il">CommandContext</code> gives you access to the raw command-line, remaining arguments, and the command name. You'll rarely need it for typical commands.</p>
+
+<h2 id="ansi">AnsiConsole &mdash; the rich output layer</h2>
+
+<p><code class="il">AnsiConsole</code> is the Spectre.Console (not Cli) equivalent of <code class="il">System.Console</code>, with markup support:</p>
+
+<pre><code><span class="type">AnsiConsole</span>.MarkupLine(<span class="str">$"Output: [yellow]{output}[/]"</span>);</code></pre>
+
+<p>The <code class="il">[yellow]...[/]</code> is Spectre's lightweight markup &mdash; renders as yellow text in a terminal that supports ANSI colors, plain text otherwise. Other tags: <code class="il">[red]</code>, <code class="il">[bold]</code>, <code class="il">[italic]</code>, <code class="il">[link=https://...]click[/]</code>, and many more.</p>
+
+<p>You can also draw tables, trees, progress bars, prompts, etc. through <code class="il">AnsiConsole</code>. It's a separate library from Cli but they're designed to work together.</p>
+
+<h2 id="validate">Validate &mdash; catching bad input early</h2>
+
+<pre><code><span class="kw">public override</span> <span class="type">ValidationResult</span> Validate(<span class="type">CommandContext</span> context, <span class="type">Settings</span> settings)
+{
+    <span class="kw">if</span> (<span class="type">string</span>.IsNullOrWhiteSpace(settings.Input))
+        <span class="kw">return</span> <span class="type">ValidationResult</span>.Error(<span class="str">"Input is required"</span>);
+
+    <span class="kw">return base</span>.Validate(context, settings);
+}</code></pre>
+
+<p>Spectre calls <code class="il">Validate</code> <em>before</em> <code class="il">Execute</code>. Return <code class="il">ValidationResult.Error(...)</code> to abort with a user-friendly message; return <code class="il">base.Validate(...)</code> (which yields <code class="il">ValidationResult.Success()</code>) to proceed.</p>
+
+<p>This is the right place for:</p>
+<ul>
+  <li>Cross-field checks ("if <code class="il">--from</code> is set, <code class="il">--to</code> must also be set").</li>
+  <li>Format checks ("input must be a valid URL").</li>
+  <li>Bounds checks ("count must be between 1 and 100").</li>
+</ul>
+
+<p>Not the right place for: <strong>business logic validation</strong> (anything that requires loading data, calling an API, hitting the database). That goes inside <code class="il">Execute</code> where you can produce richer error output and you have your dependencies fully wired.</p>
+
+<div class="callout warn"><strong>Note on your specific case:</strong> the <code class="il">required string Input</code> property combined with the <code class="il">[Input]</code> template (square brackets &mdash; optional) is slightly contradictory. The C# keyword <code class="il">required</code> says "must be set during construction", but the template says "may be omitted on the command line". The runtime behaviour depends on how Spectre handles the missing case. Your <code class="il">Validate</code> override saves you either way by catching the empty string before <code class="il">Execute</code> runs. If you wanted to be tidier, you could change the template to <code class="il">"&lt;Input&gt;"</code> to make it required at the CLI level too &mdash; though the validation still has value for whitespace-only input.</div>
+
+<h2 id="dispatch">CommandApp &mdash; the dispatcher</h2>
+
+<p>The framework needs to know which command classes exist and what names map to them. That's <code class="il">CommandApp</code> + <code class="il">Configure</code>:</p>
+
+<pre><code><span class="type">CommandApp</span> app = <span class="kw">new</span>(<span class="kw">new</span> <span class="type">TypeRegistrar</span>(services));
+
+app.Configure(config =&gt;
+{
+    config.AddCommand&lt;<span class="type">InteractiveEnigmaCommand</span>&gt;(<span class="str">"interactive"</span>)
+        .WithAlias(<span class="str">"i"</span>)
+        .WithDescription(<span class="str">"Encrypts keystrokes as you type them using Enigma."</span>);
+
+    config.AddCommand&lt;<span class="type">EncodeCommand</span>&gt;(<span class="str">"encode"</span>)
+        .WithAlias(<span class="str">"e"</span>)
+        .WithDescription(<span class="str">"Encodes a message using Enigma and display the output."</span>)
+        .WithExample(<span class="str">"encode Hello"</span>);
+});
+
+<span class="kw">return</span> app.Run(args);</code></pre>
+
+<h3 id="addcommand">AddCommand&lt;TCommand&gt;(name)</h3>
+
+<p>Registers a command class under a name. The user types this name to invoke the command: <code class="il">enigma encode Hello</code>.</p>
+
+<h3 id="withalias">WithAlias</h3>
+
+<p>A shorter form. <code class="il">enigma e Hello</code> works too. Useful for commands the user runs often.</p>
+
+<h3 id="withdescription">WithDescription</h3>
+
+<p>Text shown in <code class="il">--help</code> output. Don't skip this &mdash; it's free documentation.</p>
+
+<h3 id="withexample">WithExample</h3>
+
+<p>Adds a usage example to the help text. Great for non-obvious commands.</p>
+
+<h3 id="run">Run(args)</h3>
+
+<p>Kicks off parsing and dispatching. Returns the exit code from whichever command's <code class="il">Execute</code> ran, or a non-zero code if parsing/validation failed.</p>
+
+<h2 id="full-flow">The full request-to-response flow</h2>
+
+<p>The user types <code class="il">enigma encode Hello</code>. Step by step:</p>
+
+<ol>
+  <li><code class="il">app.Run(args)</code> receives <code class="il">["encode", "Hello"]</code>.</li>
+  <li>Spectre matches <code class="il">"encode"</code> to the <code class="il">EncodeCommand</code> registration.</li>
+  <li>Spectre parses the remaining args (<code class="il">["Hello"]</code>) according to the <code class="il">EncodeCommand.Settings</code> shape. Position 0 is the <code class="il">Input</code> property.</li>
+  <li>Spectre constructs a <code class="il">Settings</code> instance: <code class="il">new EncodeCommand.Settings { Input = "Hello" }</code>.</li>
+  <li>Spectre asks the <code class="il">TypeResolver</code> for an <code class="il">EncodeCommand</code> instance. The resolver asks Microsoft DI, which builds it &mdash; supplying the <code class="il">EnigmaMachine</code> dependency from the registered factory.</li>
+  <li>Spectre calls <code class="il">command.Validate(context, settings)</code>. Your override checks for empty input. Returns success.</li>
+  <li>Spectre calls <code class="il">command.Execute(context, settings)</code>. Your code runs: encodes <code class="il">"Hello"</code>, writes <code class="il">"Output: ILBDA"</code> in yellow, returns 0.</li>
+  <li><code class="il">app.Run</code> returns 0 to <code class="il">Main</code>, which returns 0 to the OS.</li>
+</ol>
+
+<h2 id="errors">Error handling</h2>
+
+<p>Your <code class="il">Program.cs</code> wraps the whole thing in a try/catch:</p>
+
+<pre><code><span class="kw">try</span>
+{
+    <span class="cmt">// ... AnsiConsole.Write(figlet) ... services ... app.Configure ...</span>
+    <span class="kw">return</span> app.Run(args);
+}
+<span class="kw">catch</span>(<span class="type">Exception</span> ex)
+{
+    <span class="type">AnsiConsole</span>.WriteException(ex, <span class="type">ExceptionFormats</span>.ShortenEverything);
+    <span class="kw">return</span> <span class="num">1</span>;
+}</code></pre>
+
+<p>This is the boundary catch from your exception handling drills &mdash; the only place in your code where catching a generic <code class="il">Exception</code> is appropriate. Anything that escapes from a command (a NullReferenceException, an IOException, anything) gets caught here, rendered nicely via <code class="il">AnsiConsole.WriteException</code>, and the process exits with code 1.</p>
+
+<p><code class="il">ExceptionFormats.ShortenEverything</code> trims the stack trace and namespace noise so the user sees something readable instead of a wall of <code class="il">at System.Collections.Generic.List`1...</code> lines.</p>
+
+<h2 id="generalising">Generalising</h2>
+
+<p>Once you know this pattern, you can build a CLI for anything by following the recipe:</p>
+
+<ol>
+  <li>Create a <code class="il">Settings</code> class for each command's input shape.</li>
+  <li>Create a command class inheriting from <code class="il">Command&lt;TSettings&gt;</code> (or <code class="il">Command</code>).</li>
+  <li>Put your dependencies in the constructor.</li>
+  <li>Implement <code class="il">Execute</code>.</li>
+  <li>Optionally override <code class="il">Validate</code> for early input checks.</li>
+  <li>Register the command in <code class="il">CommandApp.Configure</code> with name, alias, description, examples.</li>
+</ol>
+
+<p>Add new commands by repeating the recipe &mdash; no changes to the dispatcher logic. That's <strong>Open-Closed in action</strong>: open for extension, closed for modification, exactly like the Strategy drill where adding a new export format needed only a new class.</p>
+
+<h2 id="topics-skipped">Topics deliberately skipped here</h2>
+
+<ul>
+  <li><strong>Branches</strong> &mdash; nested subcommands like <code class="il">git remote add</code>. Same pattern as commands but with a parent &ldquo;branch&rdquo; that groups them.</li>
+  <li><strong>Default commands</strong> &mdash; what runs when the user types just <code class="il">enigma</code> with no subcommand.</li>
+  <li><strong>Async execution</strong> &mdash; <code class="il">AsyncCommand&lt;TSettings&gt;</code> if your work involves <code class="il">await</code>.</li>
+  <li><strong>Pipeline interceptors</strong> &mdash; for cross-cutting concerns like logging or telemetry.</li>
+  <li><strong>Custom prompts</strong> &mdash; <code class="il">AnsiConsole.Prompt(...)</code> for interactive input, separate from CLI args.</li>
+</ul>
+
+<p>The Spectre.Console.Cli docs cover these well. The mental model is the same &mdash; commands as classes, settings as types, framework as dispatcher &mdash; just with more knobs.</p>
+
+</div>
+</body>
+</html>

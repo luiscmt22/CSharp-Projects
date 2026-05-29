@@ -24,11 +24,11 @@ try
     {
         config.AddCommand<InteractiveEnigmaCommand>("interactive")
             .WithAlias("i")
-            .WithDescription("Encripts keystrokes as you type them using" +
+            .WithDescription("Encrypts keystrokes as you type them using" +
                              "Enigma.");
         config.AddCommand<EncodeCommand>("encode")
             .WithAlias("e")
-            .WithDescription("Encodes a message using Enigma and display the output.")
+            .WithDescription("Encrypts a message using Enigma and display the output.")
             .WithExample("encode Hello");
     });
 
