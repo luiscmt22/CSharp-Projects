@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="ConsoleRolePlayingGame.GameManagement/ConsoleRolePlayingGame.GameManagement.csproj" />
+  <Project Path="ConsoleRolePlayingGame.Overworld.Tests/ConsoleRolePlayingGame.Overworld.Tests.csproj" />
+  <Project Path="ConsoleRolePlayingGame.Overworld/ConsoleRolePlayingGame.Overworld.csproj" />
+  <Project Path="ConsoleRolePlayingGame/ConsoleRolePlayingGame.csproj" />
+</Solution>
