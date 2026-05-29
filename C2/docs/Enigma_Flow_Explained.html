@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>How Enigma Works &mdash; Physical Machine &amp; Your Code's Flow</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {
+  --bg: #0b1220; --surface: #111a2e; --surface-2: #16223c;
+  --border: #243352; --text: #e6ecf5; --text-dim: #9aa7c0;
+  --accent: #6aa6ff; --accent-2: #b06aff; --code-bg: #0a1120;
+  --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 28px; }
+header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
+header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
+header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
+h1, h2, h3, h4 { color: var(--text); margin-top: 1.6em; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+a { color: var(--accent); }
+code, pre, code.il { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; border: 1px solid var(--border); }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55; }
+pre code { background: transparent; border: 0; padding: 0; }
+blockquote { border-left: 3px solid var(--accent); background: var(--surface);
+  padding: 10px 16px; margin: 12px 0; color: var(--text-dim); border-radius: 0 6px 6px 0; }
+.diagram-box { background: #1e293b; border: 1px solid var(--border); border-radius: 8px; padding: 14px; overflow-x: auto; }
+.diagram-box pre { background: transparent; border: 0; padding: 0; color: #e6ecf5; }
+.tbl-wrap { overflow-x: auto; margin: 14px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+th { background: var(--surface-2); }
+tr:nth-child(even) td { background: var(--surface); }
+.callout { background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-2); padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; }
+.callout.warn { border-left-color: var(--warn); }
+.callout.ok   { border-left-color: var(--ok); }
+.kw   { color: #c792ea; }
+.type { color: #82aaff; }
+.str  { color: #c3e88d; }
+.num  { color: #f78c6c; }
+.cmt  { color: #6c7a96; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">C2 &rsaquo; docs</div>
+  <h1>How Enigma works &mdash; the physical machine and how your code mirrors it</h1>
+  <div class="meta">Reference doc covering the rotor model, signal flow, and why your <code class="il">IEnigmaModule</code> chain looks the way it does.</div>
+</header>
+
+<h2 id="why">Why this doc exists</h2>
+
+<p>You can write correct code for a thing you don't fully understand — your <code class="il">Reflector</code>, <code class="il">Rotor</code>, and <code class="il">BidirectionalCharEncoder</code> all pass tests. But the bigger picture (why these classes exist, why <code class="il">Process</code> is recursive, why there's a <code class="il">RotorAdvancer</code>) only clicks once you have the machine in your head physically. This doc lays out both layers: the real Enigma, and how your code mirrors it.</p>
+
+<h2 id="rotor">Part 1 &mdash; What a rotor physically is</h2>
+
+<p>A rotor is a <strong>wheel</strong> with <strong>26 contacts on each face</strong> (left and right). Inside, fixed wires permanently connect specific left contacts to specific right contacts. Each rotor has its own wiring &mdash; "Rotor I" and "Rotor II" differ only by which contacts the internal wires connect.</p>
+
+<div class="diagram-box"><pre>
+        Side view of one rotor (sliced in half so you see the wires):
+
+  External casing (FIXED)                External casing (FIXED)
+  &#x250c;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;       &#x250c;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;
+  &#x2502;  A  &#x25cf;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;         &#x2502;       &#x2502;  A  &#x25cf;              &#x2502;
+  &#x2502;  B  &#x25cf;    &#x2502;         &#x2502;       &#x2502;  B  &#x25cf;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;         &#x2502;
+  &#x2502;  C  &#x25cf;    &#x2502;  Inside &#x2502;       &#x2502;  C  &#x25cf;    &#x2502;         &#x2502;
+  &#x2502;  ...     &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x253c;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;    &#x2502;         &#x2502;
+  &#x2502;                    &#x2502;  fixed wire &#x2502;    &#x2502;         &#x2502;
+  &#x2502;          &#x250c;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x253c;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;    &#x2502;         &#x2502;
+  &#x2502;  Z  &#x25cf;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;         &#x2502;       &#x2502;  ...     &#x2502;         &#x2502;
+  &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;       &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;
+        (left face)                          (right face)
+</pre></div>
+
+<p>That wiring is permanent. If you took the rotor apart and re-soldered the wires differently, you'd have a different rotor.</p>
+
+<p>The disc sits inside a <strong>fixed casing</strong> with 26 labels around it: <code class="il">A B C D ... Z</code>. The casing never moves. The disc inside can spin.</p>
+
+<h3 id="two-frames">Two coordinate systems</h3>
+
+<div class="tbl-wrap"><table>
+<thead><tr><th>Frame</th><th>What it is</th><th>When you use it</th></tr></thead>
+<tbody>
+<tr><td><strong>External (casing)</strong></td><td>The fixed alphabet labels A&ndash;Z painted on the machine's casing.</td><td>Keyboard input. Lamp output. What the operator sees.</td></tr>
+<tr><td><strong>Internal (contacts)</strong></td><td>The numbered contacts 0&ndash;25 on the rotor itself, which spin with the wheel.</td><td>The wiring lookup. The dictionary in <code class="il">BidirectionalCharEncoder</code>.</td></tr>
+</tbody>
+</table></div>
+
+<p>The rotor's rotation is the <strong>conversion factor</strong> between them.</p>
+
+<h3 id="offset">"Offset" is just the rotation amount</h3>
+
+<p>If the rotor sits so contact 0 is aligned with the casing's <code class="il">A</code> label, <code class="il">offset = 0</code>. Rotate by 3 steps and now contact 3 is at the <code class="il">A</code> label &mdash; <code class="il">offset = 3</code>. That's all <code class="il">offset</code> means: a number that records where the disc currently sits.</p>
+
+<h3 id="two-questions">Two questions, two formulas</h3>
+
+<div class="tbl-wrap"><table>
+<thead><tr><th>The question</th><th>Formula</th><th>Read as</th></tr></thead>
+<tbody>
+<tr><td>"I have a label. Which <strong>contact</strong> is at it?"</td><td><code class="il">contact = label + offset</code></td><td>Go INTO the rotor's frame</td></tr>
+<tr><td>"I have a contact. Which <strong>label</strong> is it at?"</td><td><code class="il">label = contact &minus; offset</code></td><td>Come OUT of the rotor's frame</td></tr>
+</tbody>
+</table></div>
+
+<p>Add to go in. Subtract to come out. Same operation, opposite direction &mdash; like translating English to French and back. <code class="il">+26</code> wrapping is just to keep C#'s <code class="il">%</code> happy when the subtraction goes negative.</p>
+
+<p>That's why <code class="il">BidirectionalCharEncoder.Encode</code> shifts twice:</p>
+
+<pre><code><span class="cmt">// Go in:</span>
+<span class="kw">int</span> adjustedIndex = (inputIndex + offset + AlphabetSize) % AlphabetSize;
+
+<span class="cmt">// The wiring lookup happens here, in contact space:</span>
+<span class="type">char</span> encodedChar = mappings.GetValueOrDefault(adjustedInput, input);
+
+<span class="cmt">// Come out:</span>
+<span class="kw">int</span> finalIndex = (encodedIndex - offset + AlphabetSize) % AlphabetSize;</code></pre>
+
+<h2 id="machine">Part 2 &mdash; The full machine</h2>
+
+<p>A real Enigma had:</p>
+
+<ol>
+  <li>A <strong>keyboard</strong> (26 keys).</li>
+  <li>A <strong>plugboard</strong> (Steckerbrett) &mdash; optional letter-pair swaps before and after the rotors. (Your code skips this.)</li>
+  <li>Three <strong>rotors</strong> in series (later models had four). Each is a wheel as described above.</li>
+  <li>A <strong>reflector</strong> (Umkehrwalze) &mdash; like a rotor but with no second face. The wires inside connect contacts in pairs (A&harr;Y, B&harr;R, etc.). Whatever contact current enters, it bounces back out a different contact and returns the way it came.</li>
+  <li>A <strong>lamp board</strong> (26 lamps, one per letter). Whichever wire the current exits, that lamp lights.</li>
+</ol>
+
+<h3 id="signal-path">Signal path of one keypress</h3>
+
+<div class="diagram-box"><pre>
+key A  &#x2192;  Rotor1  &#x2192;  Rotor2  &#x2192;  Rotor3  &#x2192;  Reflector
+                                                       &#x2502;
+                                                       &#x2502;  (bounces)
+                                                       &#x2502;
+lamp Q  &#x2190;  Rotor1  &#x2190;  Rotor2  &#x2190;  Rotor3  &#x2190;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;
+
+(each rotor encodes TWICE per keypress &mdash; once going forward, once coming back)
+</pre></div>
+
+<h3 id="stepping">Stepping &mdash; what happens BEFORE the signal flows</h3>
+
+<p>The instant you press a key, before any current flows:</p>
+
+<ol>
+  <li><strong>The rightmost rotor always advances by 1.</strong></li>
+  <li>If that rotor just <em>passed its notch</em>, the middle rotor advances too.</li>
+  <li>If the middle rotor just passed its notch, the left rotor advances too. (Cascade.)</li>
+</ol>
+
+<p>Each rotor has a notch at a specific position &mdash; a physical bump on the wheel that "catches" the next rotor's pawl when it passes. That position is documented as a letter (Rotor I notches at Q, Rotor II at E, etc.) but the letter is just a label for a position, exactly like the wiring contacts.</p>
+
+<p>This is why pressing <code class="il">A</code> ten times in a row produces ten different lamp letters: the rotors are in a different position for each keypress, so the wiring takes a different path through them each time.</p>
+
+<h3 id="self-inverse">Two crucial properties</h3>
+
+<ol>
+  <li><strong>Self-inverse.</strong> Same machine state encrypts AND decrypts. Press A, lamp Q lights. Reset the machine to the same start state, press Q, lamp A lights. This is the magic of the reflector + symmetric path (the wire traverses each rotor twice, once in each direction).</li>
+  <li><strong>A never encrypts to itself.</strong> The reflector wires letters in pairs, so the signal can never loop back to the contact it came from. This was the cryptographic property the Allies eventually exploited.</li>
+</ol>
+
+<h2 id="code-chain">Part 3 &mdash; How your code mirrors the machine</h2>
+
+<p>Your modules are wired in this order:</p>
+
+<div class="diagram-box"><pre>
+InputFilter &rarr; InputNormalizer &rarr; RotorAdvancer &rarr; R1 &rarr; R2 &rarr; R3 &rarr; Reflector
+</pre></div>
+
+<p>Each one implements <code class="il">IEnigmaModule</code>. The chain is built by setting each module's <code class="il">NextModule</code> property to point to the next one. The reflector's <code class="il">NextModule</code> is <code class="il">null</code> &mdash; that's the terminator.</p>
+
+<h3 id="default-process">The recursive Process method</h3>
+
+<p>Most modules use the <strong>default implementation</strong> provided by the interface:</p>
+
+<pre><code><span class="kw">char</span> output = Encode(input, isForward: <span class="kw">true</span>);          <span class="cmt">// 1. me, forward</span>
+output = NextModule?.Process(output) ?? output;             <span class="cmt">// 2. next module recursively</span>
+<span class="kw">return</span> Encode(output, isForward: <span class="kw">false</span>);                 <span class="cmt">// 3. me, backward</span></code></pre>
+
+<p>This is <strong>recursion-shaped delegation</strong>: each module encodes the input forward, hands it down the chain, then encodes whatever comes back &mdash; backward. The chain's U-shape is the signal's physical path through the machine.</p>
+
+<h3 id="walkthrough">Walked example &mdash; one keypress</h3>
+
+<p>Caller does <code class="il">machine.Encode('a')</code>. Trace:</p>
+
+<div class="tbl-wrap"><table>
+<thead><tr><th>#</th><th>Where</th><th>What happens</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><code class="il">InputFilter.Process('a')</code></td><td>Is it a letter? Yes. Hand <code class="il">'a'</code> to next module. <em>(Overrides default Process to short-circuit non-letters.)</em></td></tr>
+<tr><td>2</td><td><code class="il">InputNormalizer.Process('a')</code></td><td>Uppercase &rarr; <code class="il">'A'</code>. Hand to next.</td></tr>
+<tr><td>3</td><td><code class="il">RotorAdvancer.Process('A')</code></td><td><strong>Step the rotors</strong> (cascade from R1 outward). Then hand <code class="il">'A'</code> to R1.</td></tr>
+<tr><td>4</td><td><code class="il">R1.Process('A')</code></td><td>Encode forward at R1's new position &rarr; (say) <code class="il">'X'</code>. Hand <code class="il">'X'</code> to R2.</td></tr>
+<tr><td>5</td><td><code class="il">R2.Process('X')</code></td><td>Encode forward &rarr; <code class="il">'M'</code>. Hand to R3.</td></tr>
+<tr><td>6</td><td><code class="il">R3.Process('M')</code></td><td>Encode forward &rarr; <code class="il">'K'</code>. Hand to Reflector.</td></tr>
+<tr><td>7</td><td><code class="il">Reflector.Process('K')</code></td><td>Forward through reflector wiring &rarr; <code class="il">'P'</code>. <code class="il">NextModule</code> is null. Encode <code class="il">'P'</code> "backward" (reflector wiring is symmetric, so this matches the forward). Return <code class="il">'P'</code>.</td></tr>
+<tr><td>8</td><td><code class="il">R3.Process</code> resumes</td><td>Got <code class="il">'P'</code> from inside. Encode it <strong>backward</strong> &rarr; <code class="il">'D'</code>. Return.</td></tr>
+<tr><td>9</td><td><code class="il">R2.Process</code> resumes</td><td>Got <code class="il">'D'</code>. Encode backward &rarr; <code class="il">'F'</code>. Return.</td></tr>
+<tr><td>10</td><td><code class="il">R1.Process</code> resumes</td><td>Got <code class="il">'F'</code>. Encode backward &rarr; <code class="il">'Q'</code>. Return.</td></tr>
+<tr><td>11</td><td><code class="il">RotorAdvancer.Process</code> resumes</td><td>Got <code class="il">'Q'</code>. Encode (no-op for this module). Return.</td></tr>
+<tr><td>12</td><td><code class="il">InputNormalizer.Process</code> resumes</td><td>Got <code class="il">'Q'</code>. Return.</td></tr>
+<tr><td>13</td><td><code class="il">InputFilter.Process</code> resumes</td><td>Got <code class="il">'Q'</code>. Return to caller.</td></tr>
+</tbody>
+</table></div>
+
+<p>Output: <code class="il">'Q'</code>. The lamp Q lights.</p>
+
+<h3 id="key-insight">The key insight</h3>
+
+<p>Look at the trace pattern:</p>
+
+<div class="diagram-box"><pre>
+forward through R1 &rarr; forward through R2 &rarr; forward through R3 &rarr; reflector
+                                                                            &darr;
+backward through R1 &larr; backward through R2 &larr; backward through R3 &larr;&minus;&minus;&minus;&minus;
+</pre></div>
+
+<p>That is literally the physical signal path. The recursive shape of <code class="il">Process</code> creates the U-turn for free. Each rotor's <code class="il">Encode</code> is called twice &mdash; once on the way in (<code class="il">isForward: true</code>), once on the way back (<code class="il">isForward: false</code>) &mdash; which mirrors the wire going through the rotor in both directions.</p>
+
+<h2 id="rotor-advancer">Part 4 &mdash; Why RotorAdvancer is a separate class</h2>
+
+<p>Real Enigma steps the rotors <em>before</em> the signal flows. In your code, that means: when the chain reaches <code class="il">RotorAdvancer.Process</code>, it mutates rotor state (advances <code class="il">Position</code> on each rotor that should step), then hands off. By the time R1 sees the input, its <code class="il">Position</code> is already the new value.</p>
+
+<p>This is why <code class="il">RotorAdvancer</code> is positioned <strong>before</strong> the rotors in the chain. Order matters.</p>
+
+<h3 id="cascade">The cascade logic</h3>
+
+<pre><code><span class="kw">public char</span> Process(<span class="type">char</span> input)
+{
+    <span class="type">Queue</span>&lt;<span class="type">Rotor</span>&gt; rotorsToAdvance = BuildRotorAdvancementQueue();
+
+    <span class="kw">bool</span> shouldAdvance = <span class="kw">true</span>;  <span class="cmt">// always advance the first</span>
+    <span class="kw">while</span> (shouldAdvance &amp;&amp; rotorsToAdvance.Count &gt; <span class="num">0</span>)
+    {
+        <span class="type">Rotor</span> rotor = rotorsToAdvance.Dequeue();
+        shouldAdvance = rotor.Advance();  <span class="cmt">// true if this rotor was sitting on a notch</span>
+    }
+
+    <span class="kw">return</span> NextModule?.Process(input) ?? input;
+}</code></pre>
+
+<p>Read the loop as: "advance the next rotor. If it <em>was on its notch</em> before stepping, the rotor behind it should also step. Otherwise stop."</p>
+
+<p>And <code class="il">Rotor.Advance</code>:</p>
+
+<pre><code><span class="kw">public bool</span> Advance()
+{
+    <span class="kw">bool</span> hadNotch = HasNotch(Position);            <span class="cmt">// check BEFORE moving</span>
+    Position = (Position % AlphabetSize) + <span class="num">1</span>;      <span class="cmt">// move forward, wrap 26 &rarr; 1</span>
+    <span class="kw">return</span> hadNotch;                               <span class="cmt">// signal upward</span>
+}</code></pre>
+
+<p>The crucial bit: <strong>check the notch BEFORE advancing, then advance</strong>. The return value tells <code class="il">RotorAdvancer</code> "I was on my notch, cascade further."</p>
+
+<h3 id="cascade-example">Cascade example</h3>
+
+<p>Three rotors. R1 notch at V (position 22). R2 notch at E (position 5). Initial positions: (1, 5, 1).</p>
+
+<p><strong>Most keypresses</strong> &mdash; cascade stops at R1:</p>
+
+<ul>
+  <li>Advance R1 (pos 1, not at notch &rarr; <code class="il">hadNotch = false</code>). R1 &rarr; 2. <code class="il">shouldAdvance = false</code>.</li>
+  <li>Loop exits. R2 and R3 untouched.</li>
+  <li>Positions: (2, 5, 1).</li>
+</ul>
+
+<p><strong>When R1 is at position 22 (V, its notch)</strong> AND R2 is at position 5 (E, its notch) &mdash; full cascade:</p>
+
+<ul>
+  <li>Advance R1 (was at notch &rarr; <code class="il">hadNotch = true</code>). R1 &rarr; 23. <code class="il">shouldAdvance = true</code>.</li>
+  <li>Advance R2 (was at notch &rarr; <code class="il">hadNotch = true</code>). R2 &rarr; 6. <code class="il">shouldAdvance = true</code>.</li>
+  <li>Advance R3 (not at notch &rarr; <code class="il">hadNotch = false</code>). R3 &rarr; 2. <code class="il">shouldAdvance = false</code>.</li>
+  <li>Loop exits. All three stepped.</li>
+</ul>
+
+<h2 id="recap">Part 5 &mdash; Mental model recap</h2>
+
+<ol>
+  <li>A <strong>rotor</strong> is a wheel with fixed internal wiring. It spins, so the same input pin connects to a different internal contact depending on rotation.</li>
+  <li>The <strong>reflector</strong> is a half-rotor that bounces the signal back so it traverses the rotors twice.</li>
+  <li>Rotors <strong>step</strong> before each keypress. Rightmost always; others cascade only when the rotor in front passes its notch.</li>
+  <li>Your <code class="il">IEnigmaModule</code> chain mirrors this physical structure exactly:
+    <ul>
+      <li>The <strong>chain order</strong> is the signal path.</li>
+      <li><strong><code class="il">Process</code>'s recursive shape</strong> (encode-forward, delegate, encode-backward) is the wire going in and coming out of each rotor.</li>
+      <li><strong><code class="il">RotorAdvancer</code></strong> sits before the rotors in the chain because real Enigma steps rotors before encoding.</li>
+      <li><strong><code class="il">InputFilter</code> and <code class="il">InputNormalizer</code></strong> are upstream guards: only valid letters, only uppercase, before the encoding machinery touches them.</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="properties">Part 6 &mdash; Properties to remember (and test for)</h2>
+
+<ul>
+  <li><strong>Self-inverse:</strong> encoding a message twice (with the same starting machine state both times) gives back the original. Good integration test target.</li>
+  <li><strong>A letter never encodes to itself:</strong> in any single keypress, the output letter differs from the input letter. Good property-based test.</li>
+  <li><strong>The same letter pressed twice gives different outputs</strong> (because the rotors stepped). Good test for the stepping mechanism.</li>
+  <li><strong>26<sup>n</sup> distinct rotor positions for n rotors:</strong> 17,576 for three rotors. After that many keypresses, positions cycle. Not directly testable but useful to know.</li>
+</ul>
+
+<h2 id="differences">Part 7 &mdash; What your simulator does NOT do (yet)</h2>
+
+<ul>
+  <li><strong>No plugboard.</strong> Real Enigma had 10 cable pairs that swapped letters before AND after the rotors. Adds enormous key space but isn't conceptually different from a fixed substitution + symmetric path.</li>
+  <li><strong>"Double-stepping" anomaly.</strong> Real Enigma had a mechanical quirk where the middle rotor sometimes stepped twice in a row. Your simulator's cascade is the "clean" version. Most learning-purpose simulators skip this.</li>
+  <li><strong>No ring setting.</strong> Real Enigma had a second adjustment per rotor (Ringstellung) that offset the wiring relative to the position labels. Effectively a second offset. Not in your model.</li>
+</ul>
+
+<p>None of these affect the core mental model. They're additional knobs on the same machine.</p>
+
+<h2 id="if-fuzzy">If something here is still fuzzy</h2>
+
+<p>The most common stumbling block is the "subtract offset on the way out" formula in <code class="il">BidirectionalCharEncoder</code>. If that piece feels mysterious, re-read Part 1's "Two questions, two formulas" table. The key insight: going INTO the rotor is a different question than coming OUT, so they have inverse formulas (one adds, one subtracts).</p>
+
+<p>The second most common stumbling block is "why is <code class="il">Process</code> recursive but not really recursive?" Answer: it's <em>delegation</em>, not recursion. Each module calls <code class="il">Process</code> on a <em>different object</em> (its <code class="il">NextModule</code>), so it's not the same function calling itself &mdash; it's the same <em>shape</em> of method called on different receivers. The chain pattern.</p>
+
+</div>
+</body>
+</html>

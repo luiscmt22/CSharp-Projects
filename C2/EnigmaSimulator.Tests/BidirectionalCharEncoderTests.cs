@@ -1,4 +1,5 @@
 using EnigmaSimulator.Domain;
+using EnigmaSimulator.Domain.Utilities;
 using Shouldly;
 
 namespace EnigmaSimulator.Tests;
