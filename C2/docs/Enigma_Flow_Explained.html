@@ -61,27 +61,34 @@ tr:nth-child(even) td { background: var(--surface); }
 
 <h2 id="rotor">Part 1 &mdash; What a rotor physically is</h2>
 
-<p>A rotor is a <strong>wheel</strong> with <strong>26 contacts on each face</strong> (left and right). Inside, fixed wires permanently connect specific left contacts to specific right contacts. Each rotor has its own wiring &mdash; "Rotor I" and "Rotor II" differ only by which contacts the internal wires connect.</p>
+<p>A rotor is <strong>one solid disc</strong> &mdash; like a hockey puck &mdash; with <strong>26 metal pins on its left face</strong> and <strong>26 metal pins on its right face</strong>, arranged around the circumference. Inside the disc, <strong>26 wires</strong> permanently connect specific left pins to specific right pins, crossing through the body of the disc. Each rotor has its own wiring pattern &mdash; "Rotor I" and "Rotor II" differ only by which left pin connects to which right pin.</p>
 
 <div class="diagram-box"><pre>
-        Side view of one rotor (sliced in half so you see the wires):
+   Imagine slicing one disc edge-on so you can see the wires inside it:
 
-  External casing (FIXED)                External casing (FIXED)
-  &#x250c;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;       &#x250c;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;
-  &#x2502;  A  &#x25cf;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;         &#x2502;       &#x2502;  A  &#x25cf;              &#x2502;
-  &#x2502;  B  &#x25cf;    &#x2502;         &#x2502;       &#x2502;  B  &#x25cf;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;         &#x2502;
-  &#x2502;  C  &#x25cf;    &#x2502;  Inside &#x2502;       &#x2502;  C  &#x25cf;    &#x2502;         &#x2502;
-  &#x2502;  ...     &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x253c;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;    &#x2502;         &#x2502;
-  &#x2502;                    &#x2502;  fixed wire &#x2502;    &#x2502;         &#x2502;
-  &#x2502;          &#x250c;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x253c;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;    &#x2502;         &#x2502;
-  &#x2502;  Z  &#x25cf;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;         &#x2502;       &#x2502;  ...     &#x2502;         &#x2502;
-  &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;       &#x2514;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2518;
-        (left face)                          (right face)
+                  &larr;&minus;&minus;&minus;&minus;&minus; one disc &minus;&minus;&minus;&minus;&minus;&rarr;
+
+     LEFT FACE                                    RIGHT FACE
+   (26 pins around                            (26 pins around
+    the circumference)                         the circumference)
+
+         A  &#x25cf;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&#x25cf;  Q
+         B  &#x25cf;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&#x25cf;  E
+         C  &#x25cf;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&#x25cf;  X
+         D  &#x25cf;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&#x25cf;  L
+              (wires cross each other inside the disc body)
+         ...                                                ...
+         Z  &#x25cf;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&minus;&#x25cf;  J
+
+  Each wire goes through the disc, from a pin on the left face
+  to a pin on the right face. The pin labels (A&minus;Z) on the diagram
+  show which casing label that pin sits behind &mdash; we'll talk about
+  the casing below.
 </pre></div>
 
-<p>That wiring is permanent. If you took the rotor apart and re-soldered the wires differently, you'd have a different rotor.</p>
+<p>That wiring is permanent. If you took the disc apart and re-soldered the wires differently, you'd have a different rotor.</p>
 
-<p>The disc sits inside a <strong>fixed casing</strong> with 26 labels around it: <code class="il">A B C D ... Z</code>. The casing never moves. The disc inside can spin.</p>
+<p>The disc sits inside the machine's <strong>fixed casing</strong>. The casing has 26 labels (A&ndash;Z) painted around each face. The casing never moves. <em>The disc inside can spin.</em> When the disc spins, the pins on it move &mdash; so the pin currently sitting behind casing label A is different depending on the disc's rotation.</p>
 
 <h3 id="two-frames">Two coordinate systems</h3>
 
