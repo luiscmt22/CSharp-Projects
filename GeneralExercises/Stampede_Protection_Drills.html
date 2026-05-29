@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Stampede Protection &mdash; Blank-Page Drills</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {
+  --bg: #0b1220; --surface: #111a2e; --surface-2: #16223c;
+  --border: #243352; --text: #e6ecf5; --text-dim: #9aa7c0;
+  --accent: #6aa6ff; --accent-2: #b06aff; --code-bg: #0a1120;
+  --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 28px; }
+header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
+header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
+header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
+h1, h2, h3, h4 { color: var(--text); margin-top: 1.6em; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+a { color: var(--accent); }
+code, pre, code.il { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; border: 1px solid var(--border); }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55; }
+pre code { background: transparent; border: 0; padding: 0; }
+blockquote { border-left: 3px solid var(--accent); background: var(--surface);
+  padding: 10px 16px; margin: 12px 0; color: var(--text-dim); border-radius: 0 6px 6px 0; }
+.callout { background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-2); padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; }
+.callout.warn { border-left-color: var(--warn); }
+.callout.bad  { border-left-color: var(--bad); }
+.callout.ok   { border-left-color: var(--ok); }
+.kw   { color: #c792ea; }
+.type { color: #82aaff; }
+.str  { color: #c3e88d; }
+.num  { color: #f78c6c; }
+.cmt  { color: #6c7a96; font-style: italic; }
+.drill { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 20px; margin: 20px 0; }
+.drill h3 { margin-top: 0; font-size: 17px; }
+.drill .meta-row { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-dim); margin-bottom: 8px; }
+.drill .meta-row span.tag { background: var(--surface-2); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; }
+.drill .meta-row span.tag.time { color: var(--accent); }
+.drill .meta-row span.tag.topic { color: var(--accent-2); }
+.drill .meta-row span.tag.level { color: var(--ok); }
+.section-label { text-transform: uppercase; font-size: 10px; letter-spacing: 0.08em;
+  color: var(--text-dim); margin: 14px 0 4px; font-weight: 600; }
+.checklist { list-style: none; padding-left: 0; margin: 4px 0; }
+.checklist li { padding: 3px 0 3px 26px; position: relative; font-size: 14px; }
+.checklist li::before { content: ""; position: absolute; left: 0; top: 8px; width: 13px; height: 13px;
+  border: 1.5px solid var(--text-dim); border-radius: 3px; background: var(--code-bg); }
+details { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 8px 12px; margin: 10px 0; }
+details > summary { cursor: pointer; color: var(--accent); font-weight: 500; user-select: none; font-size: 13px; }
+details[open] > summary { margin-bottom: 8px; }
+.toc { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 18px; margin: 18px 0 28px; font-size: 14px; }
+.toc ol { margin: 6px 0; padding-left: 22px; }
+.toc li { margin: 2px 0; }
+.toc a { text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+.section-anchor { padding-top: 12px; }
+.stretch { background: rgba(106, 166, 255, 0.06); border-left: 3px solid var(--accent);
+  padding: 8px 12px; margin: 10px 0; border-radius: 0 4px 4px 0; font-size: 13px; }
+.stretch strong { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">GeneralExercises &rsaquo; Stampede protection</div>
+  <h1>Stampede protection &mdash; blank-page drills</h1>
+  <div class="meta">8 drills covering the cache-stampede problem and the <code class="il">Lazy&lt;Task&lt;T&gt;&gt;</code> de-duplication pattern. Companion to <code class="il">_Organized/08-Concurrency-and-Async/31-Stampede-Protection-With-Lazy-Task.html</code>.</div>
+</header>
+
+<h2 id="why">Why this matters</h2>
+
+<p>Cache stampedes don&rsquo;t crash your app &mdash; they just quietly turn your fast cache into the slow service&rsquo;s biggest fan during peak hours. The pattern that fixes them is small but takes a moment to internalise: <em>one fetch, many shared waiters</em>. These drills walk you from &ldquo;spot the bug&rdquo; up to &ldquo;refactor a real-world cache&rdquo;.</p>
+
+<blockquote>Read <code class="il">_Organized/08-Concurrency-and-Async/31-Stampede-Protection-With-Lazy-Task.html</code> first if you haven&rsquo;t. The drills assume you&rsquo;ve seen the whiteboard mental model.</blockquote>
+
+<h2 id="setup">Setup</h2>
+
+<p>A console app on .NET 10. You&rsquo;ll need <code class="il">System.Collections.Concurrent</code> and <code class="il">System.Threading.Tasks</code>. For the load-simulation drills, <code class="il">Task.WhenAll(Enumerable.Range(0, N).Select(_ =&gt; method()))</code> is your friend.</p>
+
+<div class="toc">
+  <strong>Drill index</strong>
+  <ol>
+    <li><a href="#sec-spot">Spot the stampede (drills 1&ndash;2)</a></li>
+    <li><a href="#sec-build">Build the pattern (drills 3&ndash;5)</a></li>
+    <li><a href="#sec-edge">Edge cases &amp; failures (drills 6&ndash;7)</a></li>
+    <li><a href="#sec-real">Real-world refactor (drill 8)</a></li>
+  </ol>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-spot" class="section-anchor">1 &mdash; Spot the stampede</h2>
+
+<div class="drill">
+<h3>Drill 1 &mdash; Count the calls</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">stampede / reading code</span><span class="tag level">warm-up</span></div>
+<div class="section-label">Goal</div>
+<p>Read the cache below and answer: if 5 threads call <code class="il">GetAsync("X")</code> at the same instant from a cold cache, how many times does <code class="il">FetchFromSlowService("X")</code> run? Justify with the code, line by line.</p>
+<div class="section-label">Code</div>
+<pre><code><span class="kw">public class</span> NaiveCache
+{
+    <span class="kw">private readonly</span> <span class="type">ConcurrentDictionary</span>&lt;<span class="type">string</span>, <span class="type">string</span>&gt; _store = <span class="kw">new</span>();
+    <span class="kw">private readonly</span> <span class="type">Slow</span> _slow;
+    <span class="kw">public</span> NaiveCache(<span class="type">Slow</span> slow) =&gt; _slow = slow;
+
+    <span class="kw">public async</span> <span class="type">Task</span>&lt;<span class="type">string</span>&gt; GetAsync(<span class="type">string</span> key)
+    {
+        <span class="kw">if</span> (_store.TryGetValue(key, <span class="kw">out var</span> hit)) <span class="kw">return</span> hit;
+        <span class="kw">var</span> fresh = <span class="kw">await</span> _slow.FetchAsync(key);
+        _store.TryAdd(key, fresh);
+        <span class="kw">return</span> fresh;
+    }
+}</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I can name the exact moment when concurrent callers diverge.</li>
+  <li>I can explain why <code class="il">TryAdd</code> doesn&rsquo;t fix this.</li>
+  <li>I can describe the worst case in terms of slow-service load.</li>
+</ul>
+<details><summary>Reveal answer</summary>
+<p>Five times. Each thread enters <code class="il">GetAsync</code>, all five hit <code class="il">TryGetValue</code> before any of them has written, all five take the &ldquo;miss&rdquo; branch, all five call <code class="il">FetchAsync</code>. <code class="il">TryAdd</code> is concurrent-safe but it only protects the write; it doesn&rsquo;t collapse the five fetches into one. Worst case: a traffic burst right after eviction multiplies your slow-service load by the burst size.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 2 &mdash; Predict before you run</h3>
+<div class="meta-row"><span class="tag time">15 min</span><span class="tag topic">measure</span><span class="tag level">warm-up</span></div>
+<div class="section-label">Goal</div>
+<p>Build a tiny harness. Implement <code class="il">SlowService</code> with a counter (<code class="il">Interlocked.Increment</code>) and a 500 ms <code class="il">Task.Delay</code>. Wire it through the naive cache from drill 1. Fire 20 simultaneous <code class="il">GetAsync("X")</code> calls. Predict the counter value before running. Run. Compare.</p>
+<div class="section-label">Signature hint</div>
+<pre><code><span class="kw">public class</span> SlowService
+{
+    <span class="kw">public int</span> CallCount;
+    <span class="kw">public async</span> <span class="type">Task</span>&lt;<span class="type">string</span>&gt; FetchAsync(<span class="type">string</span> key) { ... }
+}
+
+<span class="cmt">// In Main</span>
+<span class="kw">var</span> tasks = <span class="type">Enumerable</span>.Range(<span class="num">0</span>, <span class="num">20</span>)
+                  .Select(_ =&gt; cache.GetAsync(<span class="str">"X"</span>));
+<span class="kw">await</span> <span class="type">Task</span>.WhenAll(tasks);
+<span class="type">Console</span>.WriteLine(slow.CallCount);</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>My prediction matched the observed number (or I can explain the mismatch).</li>
+  <li>I used <code class="il">Interlocked.Increment</code>, not <code class="il">CallCount++</code> &mdash; I can say why.</li>
+  <li>I can re-run the test and get the same answer (mostly &mdash; it&rsquo;s a race).</li>
+</ul>
+<details><summary>Reveal expected behaviour</summary>
+<p>You&rsquo;ll see something close to 20, occasionally less. The exact count is non-deterministic because each thread schedules <code class="il">FetchAsync</code> at slightly different moments. <code class="il">CallCount++</code> is read-modify-write across threads, so without <code class="il">Interlocked</code> you can lose increments and report a lower number than reality.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-build" class="section-anchor">2 &mdash; Build the pattern</h2>
+
+<div class="drill">
+<h3>Drill 3 &mdash; Lazy basics, sync</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">Lazy&lt;T&gt;</span><span class="tag level">core</span></div>
+<div class="section-label">Goal</div>
+<p>Write a class that wraps an expensive sync computation (e.g. computing the millionth Fibonacci number with the slow recursive version &mdash; or just <code class="il">Thread.Sleep(2000)</code>). Wrap it in <code class="il">Lazy&lt;long&gt;</code>. From <code class="il">Main</code>, kick off 5 parallel tasks that all read <code class="il">.Value</code>. Print the total wall-clock time.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Total time is roughly the time of ONE computation, not five.</li>
+  <li>If I add a <code class="il">Console.WriteLine("computing")</code> inside the factory, it prints once.</li>
+  <li>I used <code class="il">new Lazy&lt;long&gt;(factory)</code> with no second argument. I know what the default is.</li>
+</ul>
+<details><summary>Reveal</summary>
+<p>Default thread-safety mode is <code class="il">ExecutionAndPublication</code> &mdash; one factory invocation, one stored value. The four non-winners block until the winner finishes, then all five return.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 4 &mdash; Lazy&lt;Task&lt;T&gt;&gt;</h3>
+<div class="meta-row"><span class="tag time">15 min</span><span class="tag topic">Lazy + Task</span><span class="tag level">core</span></div>
+<div class="section-label">Goal</div>
+<p>Same shape as drill 3, but the inner work is <em>async</em>. Wrap an async fetch (1 s delay + return a GUID string) in <code class="il">Lazy&lt;Task&lt;string&gt;&gt;</code>. From <code class="il">Main</code>, kick off 5 parallel callers that each <code class="il">await lazy.Value</code>. All 5 must receive the <strong>same GUID</strong>.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">var</span> lazy = <span class="kw">new</span> <span class="type">Lazy</span>&lt;<span class="type">Task</span>&lt;<span class="type">string</span>&gt;&gt;(<span class="kw">async</span> () =&gt;
+{
+    <span class="kw">await</span> <span class="type">Task</span>.Delay(<span class="num">1000</span>);
+    <span class="kw">return</span> <span class="type">Guid</span>.NewGuid().ToString();
+});</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>All 5 awaiters received the same GUID.</li>
+  <li>Total wall-clock is ~1 s, not 5 s.</li>
+  <li>I can articulate why the factory ran once but each awaiter got a result.</li>
+</ul>
+<details><summary>Reveal</summary>
+<p>The Lazy stores a <code class="il">Task&lt;string&gt;</code>. The factory runs once and produces one Task. Five awaiters each await the same Task; the Task completes once with one result; all five awaiters wake up with that same result.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 5 &mdash; In-flight dictionary</h3>
+<div class="meta-row"><span class="tag time">25 min</span><span class="tag topic">ConcurrentDictionary + Lazy + Task</span><span class="tag level">key drill</span></div>
+<div class="section-label">Goal</div>
+<p>Rewrite the naive cache from drill 1 so it survives drill 2&rsquo;s harness with <code class="il">CallCount == 1</code> for 20 simultaneous calls to the same key, and <code class="il">CallCount == 3</code> for 60 simultaneous calls split across 3 keys (20 per key).</p>
+<div class="section-label">Constraints</div>
+<ul class="checklist">
+  <li>No <code class="il">SemaphoreSlim</code>.</li>
+  <li>No global lock.</li>
+  <li>Once a key is cached, the in-flight dictionary must not contain its entry.</li>
+</ul>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>20 concurrent same-key calls &rArr; <code class="il">CallCount == 1</code>.</li>
+  <li>60 concurrent split calls &rArr; <code class="il">CallCount == 3</code>.</li>
+  <li>After awaiting them all, <code class="il">inFlight.Count == 0</code>.</li>
+  <li>My factory uses <code class="il">try/finally</code> and I can explain what the <code class="il">finally</code> protects.</li>
+</ul>
+<details><summary>Reveal sketch</summary>
+<pre><code><span class="kw">public async</span> <span class="type">Task</span>&lt;<span class="type">string</span>&gt; GetAsync(<span class="type">string</span> key)
+{
+    <span class="kw">if</span> (_store.TryGetValue(key, <span class="kw">out var</span> hit)) <span class="kw">return</span> hit;
+
+    <span class="kw">var</span> lazy = _inFlight.GetOrAdd(key, k =&gt;
+        <span class="kw">new</span> <span class="type">Lazy</span>&lt;<span class="type">Task</span>&lt;<span class="type">string</span>&gt;&gt;(<span class="kw">async</span> () =&gt;
+        {
+            <span class="kw">try</span>
+            {
+                <span class="kw">var</span> fresh = <span class="kw">await</span> _slow.FetchAsync(k);
+                _store.TryAdd(k, fresh);
+                <span class="kw">return</span> fresh;
+            }
+            <span class="kw">finally</span> { _inFlight.TryRemove(k, <span class="kw">out</span> _); }
+        }));
+
+    <span class="kw">return await</span> lazy.Value;
+}</code></pre>
+</details>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-edge" class="section-anchor">3 &mdash; Edge cases &amp; failures</h2>
+
+<div class="drill">
+<h3>Drill 6 &mdash; The leak you can&rsquo;t see</h3>
+<div class="meta-row"><span class="tag time">15 min</span><span class="tag topic">memory hygiene</span><span class="tag level">trap</span></div>
+<div class="section-label">Goal</div>
+<p>Take your drill 5 solution. Remove the <code class="il">finally { TryRemove }</code>. Fire 1,000 calls across 1,000 distinct keys. Print <code class="il">inFlight.Count</code> after all calls complete.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I can articulate why the count is what it is, even though every Task has completed.</li>
+  <li>I can describe the production symptom of this bug (it&rsquo;s not a crash).</li>
+  <li>I added the <code class="il">finally</code> back and re-ran &mdash; the count is now 0.</li>
+</ul>
+<details><summary>Reveal</summary>
+<p>Without cleanup, <code class="il">inFlight.Count == 1000</code> &mdash; one stale Lazy per key, holding a completed Task. The Tasks themselves are fine; the dictionary just keeps a reference to them forever. In production this shows up as steady working-set growth that GC can&rsquo;t reclaim, eventually triggering OOM in services with many distinct keys.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 7 &mdash; What happens when the fetch fails?</h3>
+<div class="meta-row"><span class="tag time">20 min</span><span class="tag topic">faulted Tasks</span><span class="tag level">trap</span></div>
+<div class="section-label">Goal</div>
+<p>Modify the slow service so it throws <code class="il">new TimeoutException()</code> 50% of the time. Run 5 simultaneous calls for the same key. Predict what each caller sees. Run. Then run a 6th call after the others finish. What does the 6th call see?</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>All 5 concurrent callers received the same exception.</li>
+  <li>The 6th call (after cleanup) either succeeded or got a fresh failure &mdash; not the cached exception.</li>
+  <li>I can name the property of <code class="il">Task</code> that makes &ldquo;all awaiters see the same exception&rdquo; the natural behaviour.</li>
+</ul>
+<details><summary>Reveal</summary>
+<p>The 5 awaiters all await the same faulted Task and observe the same exception &mdash; that&rsquo;s Task semantics. Because the <code class="il">finally</code> ran (yes, even on exception), the entry was removed from <code class="il">_inFlight</code>. The 6th call thus enters cold and starts a fresh fetch &mdash; it does NOT see the previous failure. This is usually the right behaviour for transient errors. If you want a backoff (&ldquo;don&rsquo;t retry for 30 s after a failure&rdquo;) you build that on top &mdash; with a different cache that explicitly remembers failures.</p>
+</details>
+<div class="stretch"><strong>Stretch:</strong> Now add a &ldquo;remember the failure for 5 seconds&rdquo; layer. Where does it live &mdash; in the in-flight map, in the result cache, or in a separate failure cache? Justify.</div>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-real" class="section-anchor">4 &mdash; Real-world refactor</h2>
+
+<div class="drill">
+<h3>Drill 8 &mdash; Refactor a real cache</h3>
+<div class="meta-row"><span class="tag time">45 min</span><span class="tag topic">applied refactor</span><span class="tag level">capstone</span></div>
+<div class="section-label">Goal</div>
+<p>Find a cache in your codebase that wraps an async call. (Most production codebases have at least one.) Audit it:</p>
+<ol>
+  <li>Could a stampede happen? Under what conditions?</li>
+  <li>If you instrumented the inner call with a counter and fired 50 simultaneous requests for the same key, what would you measure?</li>
+  <li>What&rsquo;s the cost of the worst case &mdash; in latency, in DB load, in API quota?</li>
+  <li>Apply the <code class="il">Lazy&lt;Task&lt;T&gt;&gt;</code> pattern. Re-run the 50-request test.</li>
+</ol>
+<p>Reference implementation: see <code class="il">BioBraga/Services/Integration/CachedPrimaveraIntegrationService.cs</code>. It wraps the per-article and batched Primavera stock reads with the exact pattern this drill set covers.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I identified at least one cache that could stampede.</li>
+  <li>I added the in-flight dictionary + Lazy without changing the public interface.</li>
+  <li>The counter shows ONE inner call for 50 simultaneous concurrent requests (down from 50).</li>
+  <li>I considered the batched-read case (if relevant) and explained how my changes affect it.</li>
+  <li>I left a comment near the in-flight map explaining the pattern for the next reader.</li>
+</ul>
+<div class="stretch"><strong>Stretch:</strong> Write a unit test that proves the de-duplication. Use a fake inner service with a call counter; fire <code class="il">Task.WhenAll</code> of N concurrent calls; assert <code class="il">counter == 1</code>. Bonus: assert the dictionary count is 0 afterwards.</div>
+</div>
+
+<!-- ============================================ -->
+<h2 id="design">5 &mdash; Design question (no code)</h2>
+
+<div class="drill">
+<h3>Drill 9 &mdash; When NOT to apply this pattern</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">design</span><span class="tag level">reflection</span></div>
+<div class="section-label">Goal</div>
+<p>Name three situations where you should NOT apply the <code class="il">Lazy&lt;Task&lt;T&gt;&gt;</code> stampede pattern. For each, explain why.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>At least one of my three is &ldquo;the answer depends on the caller, not on the key&rdquo;.</li>
+  <li>At least one of my three is &ldquo;multi-instance deployment&rdquo;.</li>
+  <li>At least one of my three involves per-request state.</li>
+</ul>
+<details><summary>Reveal</summary>
+<ol>
+  <li><strong>Per-caller answers.</strong> If &ldquo;get user&rdquo; returns the <em>current</em> user (which depends on the request context, not a key), sharing one Task across callers would return the first caller&rsquo;s identity to everyone &mdash; a security disaster.</li>
+  <li><strong>Multi-instance deployment.</strong> The in-flight dict is per-process. Two app servers each de-dup their own traffic but not each other&rsquo;s. You&rsquo;d need a distributed lock at that point.</li>
+  <li><strong>Per-request scoped services.</strong> If the &ldquo;cache&rdquo; lives only for one HTTP request, there&rsquo;s no other thread to stampede against &mdash; the pattern adds complexity with no payoff.</li>
+</ol>
+</details>
+</div>
+
+</div>
+</body>
+</html>
