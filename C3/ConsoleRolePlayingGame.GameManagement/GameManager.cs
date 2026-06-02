@@ -1,6 +1,10 @@
-﻿namespace ConsoleRolePlayingGame.GameManagement;
+﻿using ConsoleRolePlayingGame.Overworld;
+
+namespace ConsoleRolePlayingGame.GameManagement;
 
 public class GameManager
 {
-    public List<string> Party { get; set; }
+    public PlayerParty Party { get; set; }
+    public WorldMap Map { get; set; }
+    public GameStatus Status { get; set; }
 }

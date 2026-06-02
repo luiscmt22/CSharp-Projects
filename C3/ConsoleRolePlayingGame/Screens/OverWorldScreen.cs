@@ -1,11 +1,6 @@
-using ConsoleRolePlayingGame.GameManagement;
-using ConsoleRolePlayingGame.Visuals;
-using Spectre.Console;
-using Spectre.Console.Rendering;
-
 namespace ConsoleRolePlayingGame.Screens;
 
-public class OverWorldScreen(GameManager game, IAnsiConsole console)
+public class OverworldScreen(GameManager game, IAnsiConsole console)
 {
     public const int Size = 21;
     private readonly Layout _layout = new Layout("Root")

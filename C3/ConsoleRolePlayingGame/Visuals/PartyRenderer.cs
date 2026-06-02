@@ -4,17 +4,22 @@ using Spectre.Console.Rendering;
 
 namespace ConsoleRolePlayingGame.Visuals;
 
-public class PartyRenderer(List<string> party)
+public class PartyRenderer(PlayerParty party)
 {
     public IRenderable GenerateVisual()
     {
-        var table = new Table();
-        table.AddColumn(new TableColumn("[bold yellow]Party[/]"));
-        foreach (var member in party)
-        {
-            table.AddRow(member);
-        }
-
-        return table;
+        IRenderable partyMarkdown =
+            new Rows(
+                new Markup("[bold]Hero[/]"),
+                new Padder(
+                    new BarChart()
+                        .AddItem("[Red]Health[/]", party.Health, Color.Red)
+                        .AddItem("[Blue]MP[/]", party.Mana, Color.Blue)
+                        .WithMaxValue(PlayerParty.MaxStat)
+                        .ShowValues()
+            ));
+        return new Panel(partyMarkdown)
+            .Header($"[yellow]{party.Name}[/]")
+            .Border(BoxBorder.Rounded);
     }
 }
