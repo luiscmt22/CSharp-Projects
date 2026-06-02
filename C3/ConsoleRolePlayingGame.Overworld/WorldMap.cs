@@ -1,11 +1,12 @@
-﻿using ConsoleRolePlayingGame.Overworld.Structure;
+﻿using ConsoleRolePlayingGame.Overworld.Generators;
+using ConsoleRolePlayingGame.Overworld.Structure;
     
 namespace ConsoleRolePlayingGame.Overworld;
 
 public class WorldMap(MapGenerator map)
 {
-    private readonly List<IMapEntity> _entities = [];
-    public IEnumerable<IMapEntity> Entities => _entities;
+    //private readonly List<IMapEntity> _entities = [];
+    //public IEnumerable<IMapEntity> Entities => _entities;
 
     public MapCell[,] GetMapWindow(Pos topleft, int width, int height)
     {
@@ -23,13 +24,13 @@ public class WorldMap(MapGenerator map)
         return mapWindow;
     }
 
-    public void AddEntity(IMapEntity entity)
-    {
-        _entities.Add(entity);
-    }
+    // public void AddEntity(IMapEntity entity)
+    // {
+    //     _entities.Add(entity);
+    // }
 
-    public void RemoveEntity(IMapEntity entity)
-    {
-        _entities.Remove(entity);
-    }
+    // public void RemoveEntity(IMapEntity entity)
+    // {
+    //     _entities.Remove(entity);
+    // }
 }

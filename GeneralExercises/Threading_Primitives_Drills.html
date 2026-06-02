@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Threading primitives &mdash; Blank-Page Drills</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {
+  --bg: #0b1220; --surface: #111a2e; --surface-2: #16223c;
+  --border: #243352; --text: #e6ecf5; --text-dim: #9aa7c0;
+  --accent: #6aa6ff; --accent-2: #b06aff; --code-bg: #0a1120;
+  --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 28px; }
+header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
+header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
+header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
+h1, h2, h3, h4 { color: var(--text); margin-top: 1.6em; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+a { color: var(--accent); }
+code, pre, code.il { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; border: 1px solid var(--border); }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55; }
+pre code { background: transparent; border: 0; padding: 0; }
+blockquote { border-left: 3px solid var(--accent); background: var(--surface);
+  padding: 10px 16px; margin: 12px 0; color: var(--text-dim); border-radius: 0 6px 6px 0; }
+.callout { background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-2); padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; }
+.callout.warn { border-left-color: var(--warn); }
+.callout.bad  { border-left-color: var(--bad); }
+.callout.ok   { border-left-color: var(--ok); }
+.kw   { color: #c792ea; }
+.type { color: #82aaff; }
+.str  { color: #c3e88d; }
+.num  { color: #f78c6c; }
+.cmt  { color: #6c7a96; font-style: italic; }
+.drill { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 20px; margin: 20px 0; }
+.drill h3 { margin-top: 0; font-size: 17px; }
+.drill .meta-row { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-dim); margin-bottom: 8px; }
+.drill .meta-row span.tag { background: var(--surface-2); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; }
+.drill .meta-row span.tag.time { color: var(--accent); }
+.drill .meta-row span.tag.topic { color: var(--accent-2); }
+.drill .meta-row span.tag.level { color: var(--ok); }
+.section-label { text-transform: uppercase; font-size: 10px; letter-spacing: 0.08em;
+  color: var(--text-dim); margin: 14px 0 4px; font-weight: 600; }
+.checklist { list-style: none; padding-left: 0; margin: 4px 0; }
+.checklist li { padding: 3px 0 3px 26px; position: relative; font-size: 14px; }
+.checklist li::before { content: ""; position: absolute; left: 0; top: 8px; width: 13px; height: 13px;
+  border: 1.5px solid var(--text-dim); border-radius: 3px; background: var(--code-bg); }
+details { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 8px 12px; margin: 10px 0; }
+details > summary { cursor: pointer; color: var(--accent); font-weight: 500; user-select: none; font-size: 13px; }
+details[open] > summary { margin-bottom: 8px; }
+.toc { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 18px; margin: 18px 0 28px; font-size: 14px; }
+.toc ol { margin: 6px 0; padding-left: 22px; }
+.toc li { margin: 2px 0; }
+.toc a { text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+.section-anchor { padding-top: 12px; }
+.stretch { background: rgba(106, 166, 255, 0.06); border-left: 3px solid var(--accent);
+  padding: 8px 12px; margin: 10px 0; border-radius: 0 4px 4px 0; font-size: 13px; }
+.stretch strong { color: var(--accent); }
+.tbl-wrap { overflow-x: auto; margin: 14px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+th { background: var(--surface-2); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">GeneralExercises &rsaquo; Threading primitives</div>
+  <h1>Threading primitives &mdash; blank-page drills</h1>
+  <div class="meta">11 drills covering <code class="il">lock</code>, <code class="il">Interlocked</code>, <code class="il">SemaphoreSlim</code>, and the traps around them. Sits next to <code class="il">Stampede_Protection_Drills.html</code> in the concurrency family.</div>
+</header>
+
+<h2 id="why">Why this matters</h2>
+
+<p>If your code never goes parallel, you never need these. The moment it does &mdash; background workers, ASP.NET request handling, parallel LINQ, libraries that internally use threads &mdash; shared mutable state stops behaving the way single-threaded intuition expects. These drills build the reflex for <em>spotting</em> the unsafe code and <em>picking</em> the right primitive to fix it.</p>
+
+<blockquote>You learned <code class="il">lock</code> via <code class="il">PerlinNoiseProvider</code> in C3 (Practical C#, page ~83). That class is the live example referenced throughout these drills.</blockquote>
+
+<h2 id="setup">Setup</h2>
+
+<p>Console app on .NET 10. You&rsquo;ll lean on <code class="il">System.Threading</code> and <code class="il">System.Threading.Tasks</code>. For load simulation, the pattern from the stampede drills works here too: <code class="il">Task.WhenAll(Enumerable.Range(0, N).Select(_ =&gt; method()))</code> or <code class="il">Parallel.For</code> for CPU-bound bursts.</p>
+
+<div class="callout">
+<p><strong>Recommended order:</strong> work the sections in order. <code class="il">lock</code> first (the mental model for all the others), <code class="il">Interlocked</code> second (the lock-free escape hatch for simple cases), <code class="il">SemaphoreSlim</code> third (the async-safe version), then the traps.</p>
+</div>
+
+<div class="toc">
+  <strong>Drill index</strong>
+  <ol>
+    <li><a href="#sec-lock">lock fundamentals (drills 1&ndash;3)</a></li>
+    <li><a href="#sec-interlocked">Interlocked &mdash; lock-free atomics (drills 4&ndash;5)</a></li>
+    <li><a href="#sec-semaphore">SemaphoreSlim &mdash; async-safe gates (drills 6&ndash;8)</a></li>
+    <li><a href="#sec-traps">Traps: deadlock, oversync, lock(this) (drills 9&ndash;10)</a></li>
+    <li><a href="#sec-design">Design question (drill 11)</a></li>
+  </ol>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-lock" class="section-anchor">1 &mdash; lock fundamentals</h2>
+
+<div class="drill">
+<h3>Drill 1 &mdash; Spot the race</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">reading code</span><span class="tag level">warm-up</span></div>
+<div class="section-label">Goal</div>
+<p>Read the class below. If 1,000 threads each call <code class="il">Add(1)</code> exactly once concurrently, what value does <code class="il">Total</code> hold afterwards? Pick one: exactly 1000 / at most 1000 / could be less than 1000 / undefined. Justify with the code, line by line.</p>
+<div class="section-label">Code</div>
+<pre><code><span class="kw">public class</span> Counter
+{
+    <span class="kw">public int</span> Total;
+    <span class="kw">public void</span> Add(<span class="kw">int</span> n) =&gt; Total += n;
+}</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I can name why <code class="il">Total += n</code> is not atomic, even though it&rsquo;s one line of C#.</li>
+  <li>I can describe the three CPU operations hiding inside that one line.</li>
+  <li>I know which threads &ldquo;win&rdquo; in the race and which threads &ldquo;lose&rdquo; their write.</li>
+</ul>
+<details><summary>Reveal</summary>
+<p>Could be less than 1000. <code class="il">Total += n</code> compiles to three operations: <strong>read</strong> Total into a register, <strong>add</strong> n, <strong>write</strong> the result back. Two threads can both read the same old value (say 7), both add 1, both write 8 &mdash; one increment is lost. Run this in a tight loop and you&rsquo;ll see the final value drift below 1000 by 1&ndash;100 depending on contention. This is the canonical &ldquo;lost update&rdquo; race &mdash; it&rsquo;s the bug <code class="il">lock</code> exists to prevent.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 2 &mdash; Lock the counter</h3>
+<div class="meta-row"><span class="tag time">15 min</span><span class="tag topic">lock</span><span class="tag level">core</span></div>
+<div class="section-label">Goal</div>
+<p>Take drill 1&rsquo;s class. Add the smallest possible <code class="il">lock</code> region that guarantees <code class="il">Total == 1000</code> after 1,000 concurrent <code class="il">Add(1)</code> calls. Then write a test that demonstrates it: spawn 1,000 tasks, <code class="il">Task.WhenAll</code>, assert <code class="il">counter.Total == 1000</code>. Run it 100 times in a row &mdash; it must pass every time.</p>
+<div class="section-label">Constraints</div>
+<ul class="checklist">
+  <li>Use the <code class="il">Lock</code> type (capital L, .NET 9+), not <code class="il">object</code>.</li>
+  <li>The lock field must be <code class="il">private readonly</code>.</li>
+  <li>Anything that doesn&rsquo;t touch <code class="il">Total</code> stays outside the lock.</li>
+</ul>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>100/100 runs report <code class="il">Total == 1000</code>.</li>
+  <li>I can explain why the lock isn&rsquo;t <code class="il">static</code> here, even though I used <code class="il">static</code> in <code class="il">PerlinNoiseProvider</code>.</li>
+  <li>I can articulate the rule: &ldquo;lock granularity follows resource granularity.&rdquo;</li>
+</ul>
+<details><summary>Reveal sketch</summary>
+<pre><code><span class="kw">public class</span> Counter
+{
+    <span class="kw">private readonly</span> <span class="type">Lock</span> _lock = <span class="kw">new</span>();
+    <span class="kw">public int</span> Total;
+    <span class="kw">public void</span> Add(<span class="kw">int</span> n)
+    {
+        <span class="kw">lock</span> (_lock) Total += n;
+    }
+}</code></pre>
+<p>Instance-level lock because <code class="il">Total</code> is an instance field &mdash; two different <code class="il">Counter</code> instances are independent and shouldn&rsquo;t block each other. In <code class="il">PerlinNoiseProvider</code> the lock was static because the protected resource (<code class="il">Noise.Seed</code>) was static.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 3 &mdash; Why lock(this) is wrong</h3>
+<div class="meta-row"><span class="tag time">15 min</span><span class="tag topic">lock object choice</span><span class="tag level">trap</span></div>
+<div class="section-label">Goal</div>
+<p>Build a tiny class <code class="il">BadCounter</code> that uses <code class="il">lock(this)</code> internally. From outside the class, write code that <em>weaponises</em> this design choice to deadlock or starve the counter. Then refactor to <code class="il">lock(_lock)</code> with a private field. Show that the outside attack no longer works.</p>
+<div class="section-label">Hint</div>
+<p>If outside code can do <code class="il">lock(counter) { Thread.Sleep(...); }</code>, what happens to anyone calling <code class="il">counter.Add(1)</code> in another thread?</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I demonstrated outside code holding the counter hostage with <code class="il">lock(counter)</code>.</li>
+  <li>After refactoring, the same outside attempt has no effect.</li>
+  <li>I can give the same argument for why <code class="il">lock(typeof(BadCounter))</code> and <code class="il">lock("some string")</code> are also bad.</li>
+</ul>
+<details><summary>Reveal</summary>
+<p><code class="il">this</code> is a public reference &mdash; anyone holding a reference to your object can lock on it. The fix is the standard idiom: a <code class="il">private readonly Lock _lock = new();</code> that nobody outside the class can name, so nobody outside can compete for it. <code class="il">typeof(T)</code> is even worse (it&rsquo;s a process-wide singleton). String literals are interned &mdash; two unrelated classes locking on <code class="il">"sync"</code> would silently share a lock and serialize against each other. <strong>Lock objects must be unobservable from outside.</strong></p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-interlocked" class="section-anchor">2 &mdash; Interlocked: lock-free atomics</h2>
+
+<div class="drill">
+<h3>Drill 4 &mdash; Interlocked.Increment</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">Interlocked</span><span class="tag level">core</span></div>
+<div class="section-label">Goal</div>
+<p>Rewrite drill 2&rsquo;s <code class="il">Counter</code> using <code class="il">Interlocked.Add(ref Total, n)</code> instead of <code class="il">lock</code>. Same correctness guarantee, no lock object. Benchmark both versions doing 10 million increments across 8 threads. Report the speed difference.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li><code class="il">Interlocked</code> version produces the correct total.</li>
+  <li>I measured: the lock-free version is meaningfully faster (typically 2&ndash;10x for this workload).</li>
+  <li>I can name why <code class="il">Interlocked</code> works here but <em>can&rsquo;t</em> replace the lock in <code class="il">PerlinNoiseProvider</code>.</li>
+</ul>
+<details><summary>Reveal</summary>
+<p><code class="il">Interlocked</code> uses a CPU instruction (LOCK XADD on x86) to perform read-modify-write atomically &mdash; no OS-level lock, no context switch. It&rsquo;s ~10x cheaper than <code class="il">lock</code> in the uncontended case. The catch: it only handles <em>single-variable</em> operations (increment, add, exchange, compare-and-swap). <code class="il">PerlinNoiseProvider</code> needs to keep <strong>two</strong> operations consistent (set Seed, then read CalcPixel2D&rsquo;s use of that Seed) &mdash; that&rsquo;s a multi-step critical section, beyond what Interlocked can express. Rule of thumb: if you&rsquo;re protecting one variable, try Interlocked first.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 5 &mdash; CompareExchange (the lock-free Swiss Army knife)</h3>
+<div class="meta-row"><span class="tag time">25 min</span><span class="tag topic">Interlocked.CompareExchange</span><span class="tag level">stretch</span></div>
+<div class="section-label">Goal</div>
+<p>Implement a thread-safe &ldquo;set the maximum ever seen&rdquo; method &mdash; <code class="il">UpdateMaxIfGreater(int candidate)</code> &mdash; <strong>without using <code class="il">lock</code></strong>. Only <code class="il">Interlocked.CompareExchange</code>. Fire 1,000 concurrent calls with random values; afterwards, the stored max must equal the true max.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public class</span> MaxTracker
+{
+    <span class="kw">private int</span> _max;
+    <span class="kw">public int</span> Max =&gt; _max;
+    <span class="kw">public void</span> UpdateMaxIfGreater(<span class="kw">int</span> candidate) { <span class="cmt">/* your code */</span> }
+}</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Test passes deterministically over 100 runs.</li>
+  <li>My method has a <code class="il">while</code> or <code class="il">do/while</code> loop. I can explain why.</li>
+  <li>I can describe the CAS pattern in one sentence: &ldquo;read snapshot, compute new, swap-if-unchanged, retry.&rdquo;</li>
+</ul>
+<details><summary>Reveal sketch</summary>
+<pre><code><span class="kw">public void</span> UpdateMaxIfGreater(<span class="kw">int</span> candidate)
+{
+    <span class="kw">int</span> snapshot;
+    <span class="kw">do</span>
+    {
+        snapshot = _max;
+        <span class="kw">if</span> (candidate &lt;= snapshot) <span class="kw">return</span>;
+    }
+    <span class="kw">while</span> (<span class="type">Interlocked</span>.CompareExchange(<span class="kw">ref</span> _max, candidate, snapshot) != snapshot);
+}</code></pre>
+<p>CAS = compare-and-swap. The CPU instruction means: &ldquo;set <code class="il">_max</code> to <code class="il">candidate</code> only if it&rsquo;s still equal to <code class="il">snapshot</code>; tell me what it actually was.&rdquo; If another thread changed it between our read and our swap, we loop and try again with the new value. This is how every lock-free data structure works underneath.</p>
+</details>
+<div class="stretch"><strong>Stretch:</strong> Implement a thread-safe <em>append-only</em> integer list using CompareExchange &mdash; no <code class="il">lock</code>, no <code class="il">ConcurrentBag</code>. The hard part is growing the backing array atomically.</div>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-semaphore" class="section-anchor">3 &mdash; SemaphoreSlim: async-safe gates</h2>
+
+<div class="drill">
+<h3>Drill 6 &mdash; Why lock can&rsquo;t await</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">lock vs async</span><span class="tag level">warm-up</span></div>
+<div class="section-label">Goal</div>
+<p>Try to compile this code. Read the compiler error. Explain in your own words <em>why</em> the language designers refused to let you write it.</p>
+<pre><code><span class="kw">public async</span> <span class="type">Task</span>&lt;<span class="type">string</span>&gt; FetchAsync(<span class="kw">private readonly</span> <span class="type">Lock</span> _lock)
+{
+    <span class="kw">lock</span> (_lock)
+    {
+        <span class="kw">return await</span> _httpClient.GetStringAsync(<span class="str">"..."</span>);
+    }
+}</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I can quote the compiler error.</li>
+  <li>I can explain why <code class="il">lock</code> relies on thread identity, and why <code class="il">await</code> may resume on a different thread.</li>
+  <li>I can name the primitive that solves this: <code class="il">SemaphoreSlim.WaitAsync</code>.</li>
+</ul>
+<details><summary>Reveal</summary>
+<p>CS1996: &ldquo;Cannot await in the body of a lock statement.&rdquo; <code class="il">lock</code> is built on <code class="il">Monitor</code>, which uses thread identity &mdash; whichever thread <em>entered</em> must be the same thread that <em>exits</em>. <code class="il">await</code> can return on a different thread (thread pool resumption), so the &ldquo;exit&rdquo; thread would be a different thread than the &ldquo;enter&rdquo; thread &mdash; an immediate <code class="il">SynchronizationLockException</code> if the language allowed it. <code class="il">SemaphoreSlim</code> uses a counter, not thread identity, so it works across awaits.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 7 &mdash; SemaphoreSlim as an async lock</h3>
+<div class="meta-row"><span class="tag time">20 min</span><span class="tag topic">SemaphoreSlim(1,1)</span><span class="tag level">core</span></div>
+<div class="section-label">Goal</div>
+<p>Write a class <code class="il">AsyncCounter</code> with an async <code class="il">AddAsync(int n)</code> that does <code class="il">await Task.Delay(10)</code> before incrementing the total. Protect it with <code class="il">SemaphoreSlim(1, 1)</code>. Fire 100 concurrent <code class="il">AddAsync(1)</code> calls. Total must equal 100.</p>
+<div class="section-label">Constraints</div>
+<ul class="checklist">
+  <li>Use <code class="il">try/finally</code> with <code class="il">_sem.Release()</code> in the finally. Required &mdash; an unreleased semaphore is a permanent deadlock.</li>
+  <li>The semaphore field must be <code class="il">private readonly</code>.</li>
+  <li>Do not <code class="il">Dispose</code> the semaphore between calls.</li>
+</ul>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Total is exactly 100, every run.</li>
+  <li>I can articulate why <code class="il">SemaphoreSlim(1, 1)</code> behaves like an async-safe lock.</li>
+  <li>I can explain the second argument (initial = max = 1) and what would happen with <code class="il">(0, 1)</code> instead.</li>
+</ul>
+<details><summary>Reveal sketch</summary>
+<pre><code><span class="kw">public class</span> AsyncCounter
+{
+    <span class="kw">private readonly</span> <span class="type">SemaphoreSlim</span> _sem = <span class="kw">new</span>(<span class="num">1</span>, <span class="num">1</span>);
+    <span class="kw">public int</span> Total;
+
+    <span class="kw">public async</span> <span class="type">Task</span> AddAsync(<span class="kw">int</span> n)
+    {
+        <span class="kw">await</span> _sem.WaitAsync();
+        <span class="kw">try</span>
+        {
+            <span class="kw">await</span> <span class="type">Task</span>.Delay(<span class="num">10</span>);
+            Total += n;
+        }
+        <span class="kw">finally</span> { _sem.Release(); }
+    }
+}</code></pre>
+<p><code class="il">(1, 1)</code> means &ldquo;initial count 1, max count 1&rdquo; &mdash; exactly one caller through at a time. <code class="il">(0, 1)</code> would start the semaphore <em>closed</em>; no one passes until someone calls <code class="il">Release</code> first. That&rsquo;s the &ldquo;signal&rdquo; pattern, not the &ldquo;mutex&rdquo; pattern.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 8 &mdash; Throttle concurrent calls to N</h3>
+<div class="meta-row"><span class="tag time">25 min</span><span class="tag topic">SemaphoreSlim(N, N)</span><span class="tag level">key drill</span></div>
+<div class="section-label">Goal</div>
+<p>You have an HTTP API that crashes if more than 5 simultaneous requests hit it. Build <code class="il">ThrottledClient</code> with a <code class="il">FetchAsync(url)</code> method that guarantees at most 5 in-flight calls, regardless of how many callers there are. Test it: fire 100 concurrent <code class="il">FetchAsync</code> calls (each one a 200 ms <code class="il">Task.Delay</code>), measure peak concurrency.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I observed peak concurrency was exactly 5.</li>
+  <li>Total wall-clock was roughly <code class="il">(100 / 5) * 200ms = 4s</code>, not 200 ms.</li>
+  <li>I tracked peak concurrency with an <code class="il">Interlocked</code>-based counter &mdash; tying drill 4 back in.</li>
+  <li>I supported <code class="il">CancellationToken</code> via <code class="il">WaitAsync(ct)</code>.</li>
+</ul>
+<details><summary>Reveal sketch</summary>
+<pre><code><span class="kw">public class</span> ThrottledClient
+{
+    <span class="kw">private readonly</span> <span class="type">SemaphoreSlim</span> _sem = <span class="kw">new</span>(<span class="num">5</span>, <span class="num">5</span>);
+
+    <span class="kw">public async</span> <span class="type">Task</span>&lt;<span class="type">string</span>&gt; FetchAsync(<span class="type">string</span> url, <span class="type">CancellationToken</span> ct = <span class="kw">default</span>)
+    {
+        <span class="kw">await</span> _sem.WaitAsync(ct);
+        <span class="kw">try</span> { <span class="kw">return await</span> _http.GetStringAsync(url, ct); }
+        <span class="kw">finally</span> { _sem.Release(); }
+    }
+}</code></pre>
+<p>This is exactly how production codebases throttle calls to fragile downstream services. The pattern is so common that you&rsquo;ll see it 10+ times in any sizeable repo. The semaphore acts as a &ldquo;permit pool&rdquo; &mdash; <code class="il">WaitAsync</code> takes one, <code class="il">Release</code> returns one.</p>
+</details>
+<div class="stretch"><strong>Stretch:</strong> Add a timeout: if a caller can&rsquo;t acquire a permit within 2 seconds, throw <code class="il">TimeoutException</code>. Hint: <code class="il">WaitAsync(TimeSpan)</code> returns <code class="il">bool</code>.</div>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-traps" class="section-anchor">4 &mdash; Traps</h2>
+
+<div class="drill">
+<h3>Drill 9 &mdash; Build a deadlock, then fix it</h3>
+<div class="meta-row"><span class="tag time">30 min</span><span class="tag topic">deadlock / lock ordering</span><span class="tag level">key drill</span></div>
+<div class="section-label">Goal</div>
+<p>Write two classes <code class="il">Account</code> with a <code class="il">Transfer(Account from, Account to, decimal amount)</code> method that locks both accounts before moving money. Run two threads in opposing directions: thread A does <code class="il">Transfer(X, Y, 10)</code>, thread B does <code class="il">Transfer(Y, X, 10)</code>. Run a few hundred times until the program hangs.</p>
+<p>Then refactor: enforce a deterministic lock acquisition order (e.g. lock the account with the lower <code class="il">Id</code> first). Show the deadlock no longer occurs.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I reproduced the hang (took multiple tries &mdash; deadlocks are timing-sensitive).</li>
+  <li>I can draw the wait-for cycle: A holds X, wants Y; B holds Y, wants X.</li>
+  <li>After ordering, the refactored version cannot form a cycle &mdash; both threads will request the same lock first.</li>
+  <li>I can name the four conditions that must <em>all</em> hold for any deadlock (Coffman conditions).</li>
+</ul>
+<details><summary>Reveal</summary>
+<p>Coffman conditions: mutual exclusion, hold-and-wait, no preemption, circular wait. Break <em>any one</em> and deadlock becomes impossible. Lock-ordering breaks &ldquo;circular wait&rdquo; &mdash; if every thread takes locks in the same global order, no cycle can form. Lock-timeouts (<code class="il">Monitor.TryEnter(timeout)</code>) break &ldquo;no preemption&rdquo;. Both are valid; ordering is preferred when feasible because it doesn&rsquo;t require failure handling.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 10 &mdash; When NOT to add a lock</h3>
+<div class="meta-row"><span class="tag time">15 min</span><span class="tag topic">over-synchronisation</span><span class="tag level">reflection</span></div>
+<div class="section-label">Goal</div>
+<p>Below are 5 code snippets. For each, decide: <strong>needs a lock</strong> / <strong>does not need a lock</strong>. Justify each answer in one sentence.</p>
+<ol>
+  <li>A read-only field set in the constructor and never mutated again, read by many threads.</li>
+  <li>A <code class="il">List&lt;int&gt;</code> field on a singleton service, mutated by <code class="il">Add</code> from multiple background workers.</li>
+  <li>A <code class="il">Dictionary&lt;string, User&gt;</code> populated once at startup, then read by many request threads.</li>
+  <li>An instance method on a class registered as <code class="il">AddScoped</code> in DI, touching instance fields.</li>
+  <li>A method that returns <code class="il">DateTime.UtcNow.AddDays(7)</code> &mdash; no fields involved.</li>
+</ol>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I gave 5 answers and 5 justifications.</li>
+  <li>I can articulate the rule that decides each case in one sentence.</li>
+</ul>
+<details><summary>Reveal</summary>
+<ol>
+  <li><strong>No lock.</strong> Immutable after construction &mdash; readers can&rsquo;t see a torn state.</li>
+  <li><strong>Lock (or use <code class="il">ConcurrentBag</code>/<code class="il">ConcurrentQueue</code>).</strong> <code class="il">List&lt;T&gt;</code> is not thread-safe for writes.</li>
+  <li><strong>No lock.</strong> Same as #1: immutable after population.</li>
+  <li><strong>No lock.</strong> A scoped service has one instance per request &mdash; no other thread can reach those fields.</li>
+  <li><strong>No lock.</strong> No shared state. Pure function &mdash; safe by construction.</li>
+</ol>
+<p>The unifying rule: <strong>locks protect shared <em>mutable</em> state.</strong> Drop either word and you usually don&rsquo;t need a lock. Most lock-bugs in real codebases are over-synchronisation &mdash; locks defending state that nothing actually mutates.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-design" class="section-anchor">5 &mdash; Design question</h2>
+
+<div class="drill">
+<h3>Drill 11 &mdash; Pick the right primitive</h3>
+<div class="meta-row"><span class="tag time">15 min</span><span class="tag topic">design</span><span class="tag level">reflection</span></div>
+<div class="section-label">Goal</div>
+<p>For each scenario below, pick one of: <code class="il">lock</code>, <code class="il">Interlocked</code>, <code class="il">SemaphoreSlim</code>, <code class="il">ReaderWriterLockSlim</code>, <strong>or "no primitive needed"</strong>. Justify each pick.</p>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>#</th><th>Scenario</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>A hit-counter incremented from many request threads. Read every minute by a metrics dump.</td></tr>
+<tr><td>2</td><td>A cache that reads 1,000 times per second and writes once a minute (when a stale entry is refreshed).</td></tr>
+<tr><td>3</td><td>Limit your app to 3 concurrent calls to a fragile third-party API.</td></tr>
+<tr><td>4</td><td>A method that needs to <code class="il">await</code> an HTTP call while holding a critical section, to prevent two requests from creating duplicate database rows for the same key.</td></tr>
+<tr><td>5</td><td>A <code class="il">Dictionary&lt;string, User&gt;</code> populated at startup and never mutated afterwards.</td></tr>
+<tr><td>6</td><td>Update two fields atomically: <code class="il">_lastValue</code> and <code class="il">_lastTimestamp</code>, written together so reads always see them in sync.</td></tr>
+</tbody>
+</table>
+</div>
+<details><summary>Reveal</summary>
+<ol>
+  <li><strong><code class="il">Interlocked.Increment</code>.</strong> Single int variable, no compound operation &mdash; lock-free wins.</li>
+  <li><strong><code class="il">ReaderWriterLockSlim</code>.</strong> Wildly read-skewed workload &mdash; many readers can hold the read lock simultaneously.</li>
+  <li><strong><code class="il">SemaphoreSlim(3, 3)</code>.</strong> The textbook permit-pool case.</li>
+  <li><strong><code class="il">SemaphoreSlim(1, 1)</code>.</strong> Need <code class="il">await</code> inside critical section &mdash; <code class="il">lock</code> won&rsquo;t compile.</li>
+  <li><strong>No primitive needed.</strong> Immutable after init.</li>
+  <li><strong><code class="il">lock</code>.</strong> Two fields, must be consistent &mdash; <code class="il">Interlocked</code> can&rsquo;t handle two variables at once.</li>
+</ol>
+<p>The mental model that drives every answer: <em>What is the smallest set of operations that must appear atomic to outside observers?</em> Then match the primitive that delivers exactly that &mdash; no more, no less.</p>
+</details>
+</div>
+
+</div>
+</body>
+</html>
