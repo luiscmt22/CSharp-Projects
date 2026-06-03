@@ -1,3 +1,5 @@
+using ConsoleRolePlayingGame.Overworld.Structure;
+
 namespace ConsoleRolePlayingGame.Screens;
 
 public class OverworldScreen(GameManager game, IAnsiConsole console)
@@ -26,5 +28,36 @@ public class OverworldScreen(GameManager game, IAnsiConsole console)
             _helpRenderer.GenerateVisual())
         );
         return _layout;
+    }
+
+    public void HandlePlayerInput()
+    {
+        ConsoleKeyInfo? keyInfo = console.Input.ReadKey(intercept: true);
+
+        if (keyInfo.HasValue)
+        {
+            switch (keyInfo.Value.Key)
+            {
+                case ConsoleKey.A:
+                case ConsoleKey.LeftArrow:
+                    game.MoveParty(Direction.West);
+                    break;
+                case ConsoleKey.W:
+                case ConsoleKey.UpArrow:
+                    game.MoveParty(Direction.North);
+                    break;
+                case ConsoleKey.S:
+                case ConsoleKey.DownArrow:
+                    game.MoveParty(Direction.South);
+                    break;
+                case ConsoleKey.D:
+                case ConsoleKey.RightArrow:
+                    game.MoveParty(Direction.East);
+                    break;
+                case ConsoleKey.Escape:
+                    game.Quit(); //Eventually change to open MenuScreen instead of terminating.
+                    break;
+            }
+        } 
     }
 }

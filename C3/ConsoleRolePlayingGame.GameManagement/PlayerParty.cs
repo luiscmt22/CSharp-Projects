@@ -5,8 +5,8 @@ namespace ConsoleRolePlayingGame.GameManagement;
 
 public class PlayerParty : IMapEntity
 {
-    public EntityType Type => EntityType.Party;
-    public Pos MapPos { get; set; }
+    public EntityType EntityType => EntityType.Party;
+    public Pos MapPos { get; set; } = new(0, 0);
     public string Name { get; init; } = "The Party";
 
     public const int MaxStat = 10;
@@ -15,8 +15,8 @@ public class PlayerParty : IMapEntity
     public int Mana { get; set; } = MaxStat;
 
 
-    public void move(Direction direction)
+    public void Move(Direction direction)
     {
-        MapPos = MapPos.move(direction);
+        MapPos = MapPos.Move(direction);
     }
 }

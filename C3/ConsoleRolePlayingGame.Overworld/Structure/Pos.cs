@@ -2,7 +2,7 @@ namespace ConsoleRolePlayingGame.Overworld.Structure;
 
 public record Pos(int X, int Y)
 {
-    public Pos move(Direction direction)
+    public Pos Move(Direction direction)
     {
         return direction switch
         {

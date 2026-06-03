@@ -1,8 +1,5 @@
-using ConsoleRolePlayingGame.GameManagement;
 using ConsoleRolePlayingGame.Overworld.Entities;
 using ConsoleRolePlayingGame.Overworld.Structure;
-using Spectre.Console;
-using Spectre.Console.Rendering;
 
 namespace ConsoleRolePlayingGame.Visuals;
 
@@ -11,9 +8,9 @@ public class MapRenderer(GameManager game, int width, int height)
     public IRenderable GenerateVisual()
     {
         Pos center = game.Party.MapPos;
-        int OffsetX = (int)Math.Ceiling(width / 2.0);
-        int OffsetY = (int)Math.Ceiling(height / 2.0);
-        Pos upperLeft = new Pos(center.X - OffsetX, center.Y - OffsetY);
+        int offsetX = (int)Math.Ceiling(width / 2.0);
+        int offsetY = (int)Math.Ceiling(height / 2.0);
+        Pos upperLeft = new Pos(center.X - offsetX, center.Y - offsetY);
         
         MapCell[,] window = game.Map.GetMapWindow(upperLeft, width, height);
         Canvas canvas = new (window.GetLength(0), window.GetLength(1));
@@ -36,7 +33,7 @@ public class MapRenderer(GameManager game, int width, int height)
         return entity is not null
             ? entity.EntityType switch
             {
-                EntityType.Party => Color.Green,
+                EntityType.Party => Color.Yellow,
                 EntityType.Enemy => Color.Red,
                 _ => Color.DarkMagenta
             }

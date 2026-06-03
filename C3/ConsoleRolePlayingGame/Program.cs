@@ -1,5 +1,7 @@
 ﻿IAnsiConsole console = AnsiConsole.Console;
 
+console.Write(new FigletText("Console RPG").Centered().Color(Color.GreenYellow));
+
 try
 {
     ServiceCollection services = new();
@@ -18,13 +20,20 @@ try
     services.AddTransient<ScreenManager>();
     services.AddTransient<OverworldScreen>();
 
+    console.Write(new Markup("[grey]Generating world...[/]"));
+
     ServiceProvider serviceProvider = services.BuildServiceProvider();
+
+    console.Write(new Markup("[grey]Generating world..2[/]"));
 
     GameManager game = serviceProvider.GetRequiredService<GameManager>();
     ScreenManager screens = serviceProvider.GetRequiredService<ScreenManager>();
 
+    console.Write(new Markup("[green]World generated![/]\nPress any key to start..."));
+
     while (game.Status != GameStatus.Terminated)
     {
+        console.WriteLine("loop top");
         screens.ShowScreen();
         game.Update();
     }
@@ -32,6 +41,7 @@ try
 }
 catch (Exception ex)
 {
-    console.WriteException(ex, ExceptionFormats.ShortenEverything);
+    //Console.Write(ex);
+    console.WriteException(ex, ExceptionFormats.Default);
     console.Input.ReadKey(intercept: false);
 }

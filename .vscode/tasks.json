@@ -1,0 +1,15 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "build C3 Debug",
+        "type": "shell",
+        "command": "dotnet",
+        "args": [
+          "build",
+          "${workspaceFolder}/c3/ConsoleRolePlayingGame/ConsoleRolePlayingGame.csproj"
+        ],
+        "problemMatcher": "$msCompile"
+      }
+    ]
+  }
