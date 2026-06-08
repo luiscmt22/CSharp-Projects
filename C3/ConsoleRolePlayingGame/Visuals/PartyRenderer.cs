@@ -13,7 +13,7 @@ public class PartyRenderer(PlayerParty party)
                 new Markup("[bold]Hero[/]"),
                 new Padder(
                     new BarChart()
-                        .AddItem("[Red]Health[/]", party.Health, Color.Red)
+                        .AddItem("[Red]HP[/]", party.Health, Color.Red)
                         .AddItem("[Blue]MP[/]", party.Mana, Color.Blue)
                         .WithMaxValue(PlayerParty.MaxStat)
                         .ShowValues()

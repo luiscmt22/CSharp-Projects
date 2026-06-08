@@ -20,16 +20,12 @@ public class ScreenManager(GameManager game,
                 console.Write(overworldScreen.GenerateVisual());
                 overworldScreen.HandlePlayerInput();
                 break;
-            case GameStatus.Terminated:
+            case GameStatus.GameOver:
                 console.MarkupLine("[red]Game Over[/]");
                 console.MarkupLine("[yellow]Press any key to exit...[/]");
-                console.Input.ReadKey(intercept: false);
+                console.Input.ReadKey(intercept: true);
+                game.Quit();
                 break;
         }
-    }
-    
-    public void ShowScreen()
-    {
-        Run();
     }
 }

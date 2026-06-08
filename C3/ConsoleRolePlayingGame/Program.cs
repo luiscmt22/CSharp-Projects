@@ -34,7 +34,7 @@ try
     while (game.Status != GameStatus.Terminated)
     {
         console.WriteLine("loop top");
-        screens.ShowScreen();
+        screens.Run();
         game.Update();
     }
     
@@ -42,6 +42,6 @@ try
 catch (Exception ex)
 {
     //Console.Write(ex);
-    console.WriteException(ex, ExceptionFormats.Default);
+    console.WriteException(ex, ExceptionFormats.ShortenEverything);
     console.Input.ReadKey(intercept: false);
 }

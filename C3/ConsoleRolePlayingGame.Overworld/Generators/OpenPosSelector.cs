@@ -20,7 +20,7 @@ public class OpenPosSelector(WorldMap map)
             if (rand.NextDouble() < 0.5) yOffset = -yOffset;
 
             pos = new Pos(source.X + xOffset, source.Y + yOffset);
-        }while (occupied.Contains(pos) || !map.IsPositionValid(pos));
+        }while (occupied.Contains(pos));
 
         return pos;
     }

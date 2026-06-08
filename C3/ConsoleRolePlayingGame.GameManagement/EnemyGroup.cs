@@ -29,17 +29,6 @@ public class EnemyGroup(Pos initialPos) : IMapEntity
         Pos newPos = MapPos.Move(direction);
         bool blocked = map.Entities.OfType<EnemyGroup>().Any(e => e.MapPos == newPos && e != this); //Clean
 
-        if (!blocked && map.IsPositionValid(newPos)) MapPos = newPos;
-        else
-        {
-            do
-            {
-                direction = (Direction)Random.Shared.Next(4);
-                newPos = MapPos.Move(direction);
-            }while (!map.IsPositionValid(newPos) || map.Entities.OfType<EnemyGroup>().Any(e => e.MapPos == newPos && e != this)); //Clean
-            MapPos = newPos;
-        }
+        if (!blocked) MapPos = newPos;
     }
-
-    public void Move(Direction direction) => MapPos = MapPos.Move(direction);
 }

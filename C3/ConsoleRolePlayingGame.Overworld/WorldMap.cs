@@ -25,21 +25,6 @@ public class WorldMap(MapGenerator map)
         return mapWindow;
     }
 
-    public bool IsPositionValid(Pos pos)
-    {
-        // Check if the position is within the bounds of the map
-        if (pos.X < 0 || pos.Y < 0)
-        {
-            return false;
-        }
-
-        // Check if the terrain at the position is walkable
-        TerrainType terrain = map.CalculateTerrain(pos);
-        return terrain != TerrainType.Mountain
-               && terrain != TerrainType.Water 
-               && terrain != TerrainType.DeepWater;
-    }
-
     public void AddEntity(IMapEntity entity)
     {
         _entities.Add(entity);
