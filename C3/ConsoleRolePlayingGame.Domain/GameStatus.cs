@@ -1,4 +1,4 @@
-namespace ConsoleRolePlayingGame.GameManagement;
+namespace ConsoleRolePlayingGame.Domain;
 
 public enum GameStatus
 {

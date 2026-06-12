@@ -1,4 +1,4 @@
-namespace ConsoleRolePlayingGame.Screens;
+namespace ConsoleRolePlayingGame.ConsoleApp.Screens;
 
 public class ScreenManager(GameManager game,
                            IAnsiConsole console,

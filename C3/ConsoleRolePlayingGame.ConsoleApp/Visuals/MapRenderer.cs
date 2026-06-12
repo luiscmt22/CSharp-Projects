@@ -1,7 +1,7 @@
 using ConsoleRolePlayingGame.Overworld.Entities;
 using ConsoleRolePlayingGame.Overworld.Structure;
 
-namespace ConsoleRolePlayingGame.Visuals;
+namespace ConsoleRolePlayingGame.ConsoleApp.Visuals;
 
 public class MapRenderer(GameManager game, int width, int height)
 {

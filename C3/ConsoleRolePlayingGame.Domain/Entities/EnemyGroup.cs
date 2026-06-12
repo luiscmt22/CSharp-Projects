@@ -1,13 +1,16 @@
+using ConsoleRolePlayingGame.CombatSystem;
 using ConsoleRolePlayingGame.Overworld;
 using ConsoleRolePlayingGame.Overworld.Structure;
 using ConsoleRolePlayingGame.Overworld.Entities;
 
-namespace ConsoleRolePlayingGame.GameManagement;
+namespace ConsoleRolePlayingGame.Domain.Entities;
 
-public class EnemyGroup(Pos initialPos) : IMapEntity
+public class EnemyGroup : IMapEntity, ICombatGroup
 {
     public EntityType EntityType => EntityType.Enemy;
-    public Pos MapPos { get; set; } = initialPos;
+    public Pos MapPos { get; set; } = new(0,0);
+    public string Name { get; init; }
+    public List<Combatant> Members { get; init; }
 
     public void MoveTowards(Pos target, WorldMap map)
     {

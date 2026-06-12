@@ -1,7 +1,7 @@
 using Spectre.Console;
 using Spectre.Console.Rendering;
 
-namespace ConsoleRolePlayingGame.Visuals;
+namespace ConsoleRolePlayingGame.ConsoleApp.Visuals;
 
 public class HelpRenderer
 {

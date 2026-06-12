@@ -1,6 +1,6 @@
 using ConsoleRolePlayingGame.Overworld.Structure;
 
-namespace ConsoleRolePlayingGame.Screens;
+namespace ConsoleRolePlayingGame.ConsoleApp.Screens;
 
 public class OverworldScreen(GameManager game, IAnsiConsole console)
 {

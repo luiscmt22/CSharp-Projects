@@ -1,7 +1,7 @@
 using ConsoleRolePlayingGame.Overworld.Structure;
 using ConsoleRolePlayingGame.Overworld.Entities;
 
-namespace ConsoleRolePlayingGame.GameManagement;
+namespace ConsoleRolePlayingGame.Domain.Entities;
 
 public class PlayerParty : IMapEntity
 {

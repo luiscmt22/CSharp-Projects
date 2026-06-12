@@ -1,5 +1,6 @@
-using ConsoleRolePlayingGame.Screens;
-using ConsoleRolePlayingGame.GameManagement;
+using ConsoleRolePlayingGame.ConsoleApp.Screens;
+using ConsoleRolePlayingGame.Domain;
+using ConsoleRolePlayingGame.Domain.Entities;
 using ConsoleRolePlayingGame.Overworld.Generators;
 using Spectre.Console.Rendering;
 using Spectre.Console.Testing;

@@ -2,8 +2,9 @@
 using ConsoleRolePlayingGame.Overworld.Entities;
 using ConsoleRolePlayingGame.Overworld.Generators;
 using ConsoleRolePlayingGame.Overworld.Structure;
+using ConsoleRolePlayingGame.Domain.Entities;
 
-namespace ConsoleRolePlayingGame.GameManagement;
+namespace ConsoleRolePlayingGame.Domain;
 
 public class GameManager
 {

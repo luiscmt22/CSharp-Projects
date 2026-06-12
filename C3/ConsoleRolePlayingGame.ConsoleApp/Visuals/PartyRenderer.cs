@@ -2,7 +2,7 @@ using ConsoleRolePlayingGame.GameManagement;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 
-namespace ConsoleRolePlayingGame.Visuals;
+namespace ConsoleRolePlayingGame.ConsoleApp.Visuals;
 
 public class PartyRenderer(PlayerParty party)
 {
