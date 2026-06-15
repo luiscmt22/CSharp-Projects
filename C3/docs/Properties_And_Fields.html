@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Properties &amp; Fields &mdash; Console RPG</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {
+  --bg: #0b1220;
+  --surface: #111a2e;
+  --surface-2: #16223c;
+  --border: #243352;
+  --text: #e6ecf5;
+  --text-dim: #9aa7c0;
+  --accent: #6aa6ff;
+  --accent-2: #b06aff;
+  --code-bg: #0a1120;
+  --ok: #4ade80;
+  --warn: #fbbf24;
+  --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg); color: var(--text);
+  font: 16px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif;
+}
+.wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px; margin-bottom: 28px;
+}
+header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
+header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
+header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
+header.doc-head .meta a { color: var(--accent); text-decoration: none; }
+header.doc-head .meta a:hover { text-decoration: underline; }
+h1, h2, h3, h4 { color: var(--text); margin-top: 1.6em; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+a { color: var(--accent); }
+code, pre, code.il { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; border: 1px solid var(--border); }
+pre {
+  background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55;
+}
+pre code { background: transparent; border: 0; padding: 0; }
+blockquote {
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+  padding: 10px 16px; margin: 12px 0;
+  color: var(--text-dim);
+  border-radius: 0 6px 6px 0;
+}
+.diagram-box {
+  background: #1e293b; border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px; overflow-x: auto;
+}
+.diagram-box pre { background: transparent; border: 0; padding: 0; color: #e6ecf5; }
+.tbl-wrap { overflow-x: auto; margin: 14px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+th { background: var(--surface-2); }
+tr:nth-child(even) td { background: var(--surface); }
+.callout {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-2);
+  padding: 12px 16px;
+  margin: 14px 0;
+  border-radius: 0 6px 6px 0;
+}
+.callout.warn { border-left-color: var(--warn); }
+.callout.ok   { border-left-color: var(--ok); }
+.callout.bad  { border-left-color: var(--bad); }
+.kw   { color: #c792ea; }
+.type { color: #82aaff; }
+.str  { color: #c3e88d; }
+.num  { color: #f78c6c; }
+.cmt  { color: #6c7a96; font-style: italic; }
+.pill { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">C3 &rsaquo; docs</div>
+  <h1>Fields &amp; Properties &mdash; the accessor forms</h1>
+  <div class="meta">A refresher built entirely from <code class="il">Combatant.cs</code> &mdash; which happens to contain nearly every property shape C# has.</div>
+</header>
+
+<p>Your <code class="il">Combatant</code> record is a perfect teaching specimen: in one class it uses <code class="il">get; set;</code>, <code class="il">get; init;</code>, a get-only <code class="il">get;</code>, an <code class="il">internal set</code>, computed expression properties, <code class="il">required</code>, and inline initializers. We'll walk every one. But first &mdash; the thing underneath all of them.</p>
+
+<h2 id="part-1">Part 1 &mdash; Fields vs Properties (the foundation)</h2>
+
+<p>A <strong>field</strong> is raw storage. It <em>is</em> the variable &mdash; a slot in memory that holds a value.</p>
+
+<pre><code><span class="kw">private int</span> _health;   <span class="cmt">// a field &mdash; the data itself</span></code></pre>
+
+<p>A <strong>property</strong> is <em>not</em> storage. It's a pair of accessor methods (<code class="il">get</code> / <code class="il">set</code>) wearing field-like syntax. It's an <strong>API over</strong> some data:</p>
+
+<pre><code><span class="kw">public int</span> Health
+{
+    <span class="kw">get</span> =&gt; _health;            <span class="cmt">// runs when someone reads</span>
+    <span class="kw">set</span> =&gt; _health = value;    <span class="cmt">// runs when someone writes ('value' is the incoming value)</span>
+}</code></pre>
+
+<p>When you write the short form &mdash; an <strong>auto-property</strong> &mdash; the compiler silently generates that hidden backing field <em>for</em> you:</p>
+
+<pre><code><span class="kw">public int</span> Health { <span class="kw">get</span>; <span class="kw">set</span>; }   <span class="cmt">// compiler creates an invisible _health behind it</span></code></pre>
+
+<p>You can't name or touch that generated field. The day you need logic (validation, clamping, logging), you &ldquo;expand&rdquo; the auto-property into the full form above and introduce your own <code class="il">_camelCase</code> field:</p>
+
+<pre><code><span class="kw">private int</span> _health;
+<span class="kw">public int</span> Health
+{
+    <span class="kw">get</span> =&gt; _health;
+    <span class="kw">set</span> =&gt; _health = value &lt; <span class="num">0</span> ? <span class="num">0</span> : value;   <span class="cmt">// clamp: HP never goes negative</span>
+}</code></pre>
+
+<blockquote>A property is just accessors over a field. An auto-property is the same thing with the field hidden. That's the whole relationship.</blockquote>
+
+<h3 id="why-properties">Why public API is always a property, never a field</h3>
+
+<div class="tbl-wrap"><table>
+<thead><tr><th>Capability</th><th>Field</th><th>Property</th></tr></thead>
+<tbody>
+<tr><td>Add validation later without breaking callers</td><td>&#10060; switching a field to a property is a binary-breaking change</td><td>&#9989; just edit the accessor body</td></tr>
+<tr><td>Can be declared in an <code class="il">interface</code></td><td>&#10060; interfaces can't hold fields</td><td>&#9989; <code class="il">IBattleStrategy</code> could require one</td></tr>
+<tr><td>Works with serialization &amp; data binding</td><td>&#9888; inconsistent</td><td>&#9989; System.Text.Json binds your JSON to these</td></tr>
+<tr><td>Can be <code class="il">virtual</code> / overridden</td><td>&#10060;</td><td>&#9989;</td></tr>
+<tr><td>Asymmetric access (public read, private write)</td><td>&#10060; all-or-nothing</td><td>&#9989; <code class="il">{ get; private set; }</code></td></tr>
+</tbody>
+</table></div>
+
+<div class="callout ok">
+<strong>Rule of thumb:</strong> fields are private internal state (<code class="il">_camelCase</code>); anything <em>public</em> is a property. Your style guide already encodes this.
+</div>
+
+<h2 id="part-2">Part 2 &mdash; The accessor forms, read off your <code class="il">Combatant</code></h2>
+
+<p>The whole game is &ldquo;who can read this, and who can write it &mdash; and <em>when</em>?&rdquo; Here's every form in your class mapped to that question:</p>
+
+<div class="tbl-wrap"><table>
+<thead><tr><th>Your line</th><th>Read</th><th>Write &mdash; who &amp; when</th></tr></thead>
+<tbody>
+<tr><td><code class="il">int Health { get; set; }</code></td><td>anyone</td><td>anyone, <strong>anytime</strong> &mdash; fully mutable</td></tr>
+<tr><td><code class="il">string Name { get; init; }</code></td><td>anyone</td><td>anyone, but <strong>only during construction</strong></td></tr>
+<tr><td><code class="il">IBattleStrategy Strategy { get; }</code></td><td>anyone</td><td><strong>only this class's constructor body</strong></td></tr>
+<tr><td><code class="il">int TimeUntilTurn { get; internal set; }</code></td><td>anyone</td><td>anything <strong>in the same assembly</strong>, anytime</td></tr>
+<tr><td><code class="il">bool IsDead =&gt; Health &lt;= 0;</code></td><td>anyone</td><td><strong>nobody</strong> &mdash; no storage, computed each read</td></tr>
+</tbody>
+</table></div>
+
+<h3 id="getset"><code class="il">{ get; set; }</code> &mdash; fully mutable</h3>
+<pre><code><span class="kw">public int</span> Health { <span class="kw">get</span>; <span class="kw">set</span>; }</code></pre>
+<p>Read anywhere, write anywhere, at any time. <code class="il">Health</code> must drop as the combatant takes damage, so there's no restriction on it. Use this only when the value genuinely changes over the object's life.</p>
+
+<h3 id="getinit"><code class="il">{ get; init; }</code> &mdash; &ldquo;frozen after birth&rdquo;</h3>
+<pre><code><span class="kw">public required string</span> Name { <span class="kw">get</span>; <span class="kw">init</span>; }
+<span class="kw">public int</span> MaxMana { <span class="kw">get</span>; <span class="kw">init</span>; }</code></pre>
+<p>You can set these while <em>building</em> the object &mdash; in the constructor body <strong>or</strong> in an object initializer &mdash; but never afterward.</p>
+<pre><code><span class="kw">var</span> c = <span class="kw">new</span> <span class="type">Combatant</span> { Name = <span class="str">"Goblin"</span> };   <span class="cmt">// OK &mdash; still constructing</span>
+c.Name = <span class="str">"Orc"</span>;                              <span class="cmt">// compile error &mdash; init is sealed after creation</span></code></pre>
+<p>This is the immutability sweet spot: callers configure once, then it's locked. It's also exactly what System.Text.Json uses when it deserializes your <code class="il">Enemies.json</code> into <code class="il">CombatantData</code>.</p>
+
+<h3 id="getonly"><code class="il">{ get; }</code> &mdash; get-only auto-property</h3>
+<pre><code><span class="kw">public</span> <span class="type">IBattleStrategy</span> Strategy { <span class="kw">get</span>; }</code></pre>
+<p>Read-only from the outside, and <strong>assignable only inside the declaring class's constructor body</strong> (or an inline <code class="il">= ...</code> initializer). That's why your constructor ends with:</p>
+<pre><code>Strategy = strategy;   <span class="cmt">// the only place this can ever be set</span></code></pre>
+<p>There is no other way in. See Part 3 for why the author chose this over <code class="il">init</code>.</p>
+
+<h3 id="asymmetric"><code class="il">{ get; internal set; }</code> / <code class="il">{ get; private set; }</code> &mdash; asymmetric accessibility</h3>
+<pre><code><span class="kw">public int</span> TimeUntilTurn { <span class="kw">get</span>; <span class="kw">internal set</span>; }</code></pre>
+<p>Public to <em>read</em>, restricted to <em>write</em>. The combat code (same assembly) ticks <code class="il">TimeUntilTurn</code> down each round, but code outside the assembly can only look at it. Narrow it further with <code class="il">private set</code> (only <em>this</em> class writes). Note the contrast with <code class="il">init</code>: these allow writes <strong>anytime</strong>, not just during construction.</p>
+
+<h3 id="computed"><code class="il">=&gt; expression</code> &mdash; computed (expression-bodied) property</h3>
+<pre><code><span class="kw">public bool</span> IsDead  =&gt; Health &lt;= <span class="num">0</span>;
+<span class="kw">public bool</span> IsReady =&gt; TimeUntilTurn &lt;= <span class="num">0</span> &amp;&amp; !IsDead;</code></pre>
+<p>These have <strong>no backing field and store nothing</strong>. Every read re-evaluates the expression from other state. It's a method dressed as a property &mdash; naturally read-only, because there's nothing to write to. Perfect for values <em>derived</em> from other properties.</p>
+
+<h3 id="modifiers">Two modifiers riding along</h3>
+<ul>
+  <li><span class="pill">required</span> <code class="il">public required string Name</code> &mdash; the compiler <em>forces</em> the caller to set it at construction. Pairs naturally with <code class="il">init</code>.</li>
+  <li><span class="pill">initializer</span> <code class="il">public int Level { get; init; } = 1;</code> &mdash; a default value used when nothing else sets it. Same with <code class="il">Abilities { get; set; } = [];</code> (starts as an empty array, never null).</li>
+</ul>
+
+<h2 id="part-3">Part 3 &mdash; The distinction you asked about: <code class="il">{ get; }</code> vs <code class="il">{ get; init; }</code></h2>
+
+<p>Both are immutable to outsiders after construction. The difference is <strong>how the value gets in</strong>:</p>
+
+<pre><code><span class="cmt">// init &rarr; settable via object initializer</span>
+<span class="kw">var</span> c = <span class="kw">new</span> <span class="type">Combatant</span> { Name = <span class="str">"Goblin"</span> };       <span class="cmt">// Name is init &rarr; OK</span>
+
+<span class="cmt">// get-only &rarr; NOT settable via object initializer; must come through the constructor</span>
+<span class="kw">var</span> c = <span class="kw">new</span> <span class="type">Combatant</span> { Strategy = enemyAi };      <span class="cmt">// won't compile &mdash; Strategy is get-only</span></code></pre>
+
+<p>So why did the author make <code class="il">Strategy</code> get-only instead of <code class="il">init</code>? <strong>Design intent.</strong> <code class="il">Strategy</code> is a constructor-injected <em>dependency</em> (it arrives via DI &mdash; see the <code class="il">[FromKeyedServices]</code> wiring), not a <em>data field</em> you'd set in an initializer or load from JSON. Making it <code class="il">{ get; }</code> says exactly that: &ldquo;supplied once, through the constructor, and you cannot tweak it.&rdquo; Using <code class="il">init</code> would have invited object-initializer syntax that doesn't fit a dependency.</p>
+
+<blockquote>Get-only is the signal for &ldquo;this came from the constructor and stays put.&rdquo; <code class="il">init</code> is the signal for &ldquo;configure me at creation, from an initializer or a deserializer.&rdquo;</blockquote>
+
+<h2 id="part-4">Part 4 &mdash; Quick decision guide</h2>
+
+<div class="tbl-wrap"><table>
+<thead><tr><th>The value&hellip;</th><th>Use</th></tr></thead>
+<tbody>
+<tr><td>changes throughout the object's life (HP, position)</td><td><code class="il">{ get; set; }</code></td></tr>
+<tr><td>is set once at creation, then immutable; configurable from outside / JSON</td><td><code class="il">{ get; init; }</code></td></tr>
+<tr><td>is supplied only via the constructor (a dependency), never an initializer</td><td><code class="il">{ get; }</code></td></tr>
+<tr><td>is public to read, but only <em>you</em> mutate it</td><td><code class="il">{ get; private set; }</code> &middot; same-assembly: <code class="il">internal set</code></td></tr>
+<tr><td>is derived from other state and stores nothing</td><td><code class="il">=&gt; expression</code></td></tr>
+<tr><td>is private internal plumbing</td><td>a <code class="il">_camelCase</code> field</td></tr>
+</tbody>
+</table></div>
+
+<h2 id="part-5">Part 5 &mdash; A note on records</h2>
+
+<p><code class="il">Combatant</code>, <code class="il">CombatantData</code>, and <code class="il">Ability</code> are all <code class="il">record</code> types. Records lean on <code class="il">init</code> properties to give you two things for free:</p>
+<ul>
+  <li><strong>Value-based equality</strong> &mdash; two <code class="il">Ability</code> values with the same property values are <code class="il">==</code>, unlike normal classes which compare by reference.</li>
+  <li><strong><code class="il">with</code> expressions</strong> &mdash; copy-and-tweak an immutable instance: <code class="il">var stronger = ability with { Name = "Power Attack" };</code>. This only works because the properties are <code class="il">init</code> &mdash; <code class="il">with</code> sets them during the copy's construction.</li>
+</ul>
+
+<h2 id="exercise">Your turn &mdash; three checks before you move on</h2>
+<ol>
+  <li>Cover the right column of the Part&nbsp;2 table. For each <code class="il">Combatant</code> line, say aloud <em>who can write it and when</em>. Then uncover and check.</li>
+  <li>Why can't you write <code class="il">new Combatant { Strategy = ... }</code>, but you <em>can</em> write <code class="il">new Combatant { Name = ... }</code>? (Part 3 is the answer &mdash; phrase it in your own words.)</li>
+  <li>Expand <code class="il">Health</code> into a full property with a backing field that clamps to <code class="il">[0, MaxHealth]</code>. Which accessor does the clamp live in, and why not the getter?</li>
+</ol>
+
+</div>
+</body>
+</html>

@@ -30,9 +30,7 @@
     "..GGGGGGGGGGGG..",
     "...DGGGGGGGGD..."
     ],
-    "AbilityIds": {
-        "1": "Attack",
-        "5": "Stab",
-        "10": "Slash"
-    }
+    "AbilityIds": [
+        "Attack"
+    ]
 }
