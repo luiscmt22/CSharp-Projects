@@ -1,6 +1,4 @@
-using ConsoleRolePlayingGame.GameManagement;    
-using Spectre.Console;
-using Spectre.Console.Rendering;
+using ConsoleRolePlayingGame.Domain.Entities;
 
 namespace ConsoleRolePlayingGame.ConsoleApp.Visuals;
 

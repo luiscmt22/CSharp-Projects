@@ -22,4 +22,8 @@
     <InternalsVisibleTo Include="ConsoleRolePlayingGame.Overworld.Tests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Input\" />
+  </ItemGroup>
+
 </Project>

@@ -1,4 +1,5 @@
-﻿using ConsoleRolePlayingGame.Overworld;
+﻿using ConsoleRolePlayingGame.CombatSystem;
+using ConsoleRolePlayingGame.Overworld;
 using ConsoleRolePlayingGame.Overworld.Entities;
 using ConsoleRolePlayingGame.Overworld.Generators;
 using ConsoleRolePlayingGame.Overworld.Structure;
@@ -57,9 +58,8 @@ public class GameManager
                 }
                 break;
             
-            case GameStatus.Battle:
-                if (StartBattle( is not null &&
-                Battle.Enemies.Members.All(e => e.IsDead)))
+            case GameStatus.Combat:
+                if (Battle is not null && Battle.Enemies.Members.All(e => e.IsDead))
                 {
                     EndBattle();
                 }

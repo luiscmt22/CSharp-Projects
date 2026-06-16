@@ -6,7 +6,7 @@ public record Combatant
     public required string[] AsciiArt { get; init; }
     public int Health { get; set; }
     public int MaxHealth { get; set; }
-    public int Mana { get; init; }
+    public int Mana { get; set; }
     public int MaxMana { get; init; }
     public int Dexterity { get; init; }
     public int Speed { get; init; }

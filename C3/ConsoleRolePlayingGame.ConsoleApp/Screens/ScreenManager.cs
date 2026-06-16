@@ -2,7 +2,8 @@ namespace ConsoleRolePlayingGame.ConsoleApp.Screens;
 
 public class ScreenManager(GameManager game,
                            IAnsiConsole console,
-                           OverworldScreen overworldScreen)
+                           OverworldScreen overworldScreen,
+                           BattleScreen battleScreen)
 {
     //Author note: "Because there aren't many screens in this game, just the map screen and a game over screen,
     //we can accomplish most of this logic with a simple switch statement" - Matt Eland
@@ -11,7 +12,7 @@ public class ScreenManager(GameManager game,
     //like a pause menu with inventary, party, and other subscreens. In order to do that, we should create an IScreen
     //interface that all screens implement, then ScreenManager can hold a reference to the current IScreen and delegate ShowScreen calls to it,
     //instead of using a switch statement. - Luís
-    public void Run()
+    public async Task Run()
     {
         console.Clear();
         switch (game.Status)
@@ -19,6 +20,10 @@ public class ScreenManager(GameManager game,
             case GameStatus.Overworld:
                 console.Write(overworldScreen.GenerateVisual());
                 overworldScreen.HandlePlayerInput();
+                break;
+            case GameStatus.Combat:
+                console.Write(battleScreen.GenerateVisual());
+                await battleScreen.HandlePlayerInputAsync();
                 break;
             case GameStatus.GameOver:
                 console.MarkupLine("[red]Game Over[/]");

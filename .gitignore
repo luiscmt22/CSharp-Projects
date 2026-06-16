@@ -390,7 +390,8 @@ FodyWeavers.xsd
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-*.code-workspace
+# Workspace files are tracked intentionally in this learning repo
+# *.code-workspace
 
 # Local History for Visual Studio Code
 .history/
