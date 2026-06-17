@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Collection Expressions &amp; Spread &mdash; Blank-Page Drills</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {
+  --bg: #0b1220;
+  --surface: #111a2e;
+  --surface-2: #16223c;
+  --border: #243352;
+  --text: #e6ecf5;
+  --text-dim: #9aa7c0;
+  --accent: #6aa6ff;
+  --accent-2: #b06aff;
+  --code-bg: #0a1120;
+  --ok: #4ade80;
+  --warn: #fbbf24;
+  --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 28px; }
+header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
+header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
+header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
+h1, h2, h3, h4 { color: var(--text); margin-top: 1.6em; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+a { color: var(--accent); }
+code, pre, code.il { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; border: 1px solid var(--border); }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55; }
+pre code { background: transparent; border: 0; padding: 0; }
+blockquote { border-left: 3px solid var(--accent); background: var(--surface);
+  padding: 10px 16px; margin: 12px 0; color: var(--text-dim); border-radius: 0 6px 6px 0; }
+.callout { background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-2); padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; }
+.callout.warn { border-left-color: var(--warn); }
+.kw   { color: #c792ea; }
+.type { color: #82aaff; }
+.str  { color: #c3e88d; }
+.num  { color: #f78c6c; }
+.cmt  { color: #6c7a96; font-style: italic; }
+.drill { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 20px; margin: 20px 0; }
+.drill h3 { margin-top: 0; font-size: 17px; }
+.drill .meta-row { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-dim); margin-bottom: 8px; }
+.drill .meta-row span.tag { background: var(--surface-2); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; }
+.drill .meta-row span.tag.time { color: var(--accent); }
+.drill .meta-row span.tag.topic { color: var(--accent-2); }
+.section-label { text-transform: uppercase; font-size: 10px; letter-spacing: 0.08em;
+  color: var(--text-dim); margin: 14px 0 4px; font-weight: 600; }
+.checklist { list-style: none; padding-left: 0; margin: 4px 0; }
+.checklist li { padding: 3px 0 3px 26px; position: relative; font-size: 14px; }
+.checklist li::before { content: ""; position: absolute; left: 0; top: 8px; width: 13px; height: 13px;
+  border: 1.5px solid var(--text-dim); border-radius: 3px; background: var(--code-bg); }
+details { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 8px 12px; margin: 10px 0; }
+details > summary { cursor: pointer; color: var(--accent); font-weight: 500; user-select: none; font-size: 13px; }
+details[open] > summary { margin-bottom: 8px; }
+.toc { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 18px; margin: 18px 0 28px; font-size: 14px; }
+.toc ol { margin: 6px 0; padding-left: 22px; }
+.toc li { margin: 2px 0; }
+.toc a { text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+.section-anchor { padding-top: 12px; }
+.stretch { background: rgba(106, 166, 255, 0.06); border-left: 3px solid var(--accent);
+  padding: 8px 12px; margin: 10px 0; border-radius: 0 4px 4px 0; font-size: 13px; }
+.stretch strong { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">GeneralExercises &rsaquo; Collection Expressions</div>
+  <h1>Collection expressions &amp; the spread element &mdash; blank-page drills</h1>
+  <div class="meta">17 drills on the <code class="il">[ ]</code> literal, the <code class="il">..</code> spread, target-typing, and the &ldquo;spread a sequence vs. add one element&rdquo; distinction. Same rules as <code class="il">LINQ_Drills.html</code>: no AI, only learn.microsoft.com, 10-min timer, capture every question that stops you.</div>
+</header>
+
+<h2 id="why">Why this now</h2>
+
+<p>Collection expressions (C#&nbsp;12, .NET&nbsp;8+) are the <code class="il">[ ]</code> syntax you keep seeing &mdash; <code class="il">List&lt;int&gt; x = [1, 2, 3];</code>, <code class="il">return [.. items];</code>, <code class="il">Members = [.. data.Select(...)]</code>. They&rsquo;re everywhere in modern code, and the <strong>spread element</strong> <code class="il">..</code> is the part that trips people up: it splays the <em>elements</em> of a sequence into the new collection, which is a different operation from adding a single item.</p>
+
+<blockquote>Rule for these drills: <strong>write the pre-C#-12 version first</strong> (<code class="il">new List&lt;int&gt; { ... }</code>, <code class="il">.ToList()</code>, <code class="il">.Concat(...)</code>), then rewrite with a collection expression. The contrast is the whole lesson &mdash; you want to <em>feel</em> what the new syntax replaces.</blockquote>
+
+<p class="callout"><strong>The one idea to hold onto:</strong> inside <code class="il">[ ]</code>, a plain value contributes <em>one</em> element; a value prefixed with <code class="il">..</code> contributes <em>all of its</em> elements. Mixing the two freely is the point.</p>
+
+<h2 id="setup">Setup reminder</h2>
+
+<p>Each drill: new file, one static class, one method. Keep a couple of shared sample inputs at the top of <code class="il">Program.cs</code> (an <code class="il">int[]</code>, a <code class="il">List&lt;string&gt;</code>) so you&rsquo;re not re-typing them. Where a drill says &ldquo;predict first&rdquo;, write the prediction down before you compile &mdash; a wrong prediction is the most valuable thing in the doc.</p>
+
+<div class="toc">
+  <strong>Drill index</strong>
+  <ol>
+    <li><a href="#sec-literals">Literals &amp; target typing (drills 1&ndash;5)</a></li>
+    <li><a href="#sec-spread">The spread element <code class="il">..</code> (drills 6&ndash;11)</a></li>
+    <li><a href="#sec-distinction">Spread vs. single element (drills 12&ndash;14)</a></li>
+    <li><a href="#sec-real">From your own codebase (drills 15&ndash;17)</a></li>
+  </ol>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== LITERALS =================== -->
+<!-- ============================================ -->
+<h2 id="sec-literals" class="section-anchor">1 &mdash; Literals &amp; target typing</h2>
+
+<div class="drill">
+<h3>Drill 1 &mdash; EmptyList</h3>
+<div class="meta-row"><span class="tag time">2 min</span><span class="tag topic">empty literal</span></div>
+<div class="section-label">Goal</div>
+<p>Return an empty <code class="il">List&lt;int&gt;</code> using a collection expression &mdash; not <code class="il">new List&lt;int&gt;()</code>, not <code class="il">new()</code>.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">List</span>&lt;<span class="type">int</span>&gt; Empty()</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The body is literally <code class="il">[]</code>.</li>
+  <li>I know <code class="il">[]</code> is also how you default a property: <code class="il">public List&lt;int&gt; Items { get; init; } = [];</code> &mdash; I&rsquo;ve seen that on <code class="il">Combatant.Abilities</code>.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 2 &mdash; ThreeNumbers</h3>
+<div class="meta-row"><span class="tag time">2 min</span><span class="tag topic">element literal</span></div>
+<div class="section-label">Goal</div>
+<p>Return a <code class="il">List&lt;int&gt;</code> containing 1, 2, 3 via a collection expression.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Body is <code class="il">[1, 2, 3]</code> &mdash; no <code class="il">new</code>, no curly braces.</li>
+  <li>I wrote the old form first (<code class="il">new List&lt;int&gt; { 1, 2, 3 }</code>) so I can feel what got shorter.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 3 &mdash; SameLiteralAsArray</h3>
+<div class="meta-row"><span class="tag time">4 min</span><span class="tag topic">target typing</span></div>
+<div class="section-label">Goal</div>
+<p>Write two methods that both use the literal <code class="il">[1, 2, 3]</code> &mdash; one returning <code class="il">int[]</code>, one returning <code class="il">List&lt;int&gt;</code>.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">int</span>[] AsArray()
+<span class="kw">public static</span> <span class="type">List</span>&lt;<span class="type">int</span>&gt; AsList()</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The exact same <code class="il">[1, 2, 3]</code> produced two different collection types. What decided which one got built?</li>
+  <li>I can state the rule: a collection expression has no type of its own &mdash; the <strong>target type</strong> (return type, variable type, parameter type) decides what&rsquo;s constructed.</li>
+</ul>
+<details><summary>Hint</summary>
+<p>This is &ldquo;target-typed.&rdquo; The compiler looks at where the literal is going (the return type here) and builds that. The same idea you&rsquo;ve met with <code class="il">new()</code> target-typed construction.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 4 &mdash; WhyVarFails (predict, then compile)</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">target typing trap</span></div>
+<div class="section-label">Goal</div>
+<p>Predict whether each line compiles. Then try them.</p>
+<pre><code><span class="kw">var</span> a = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>];               <span class="cmt">// ?</span>
+<span class="type">List</span>&lt;<span class="type">int</span>&gt; b = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>];        <span class="cmt">// ?</span>
+<span class="type">int</span>[] c = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>];             <span class="cmt">// ?</span></code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I predicted before compiling.</li>
+  <li>I can explain <em>why</em> the <code class="il">var</code> line is the odd one out, in terms of Drill 3&rsquo;s rule.</li>
+</ul>
+<details><summary>Hint &mdash; after predicting</summary>
+<p><code class="il">var a = [1, 2, 3];</code> does <strong>not</strong> compile. A collection expression has no type by itself, and <code class="il">var</code> gives it no target type to adopt &mdash; so the compiler has nothing to build. <code class="il">b</code> and <code class="il">c</code> compile because the declared type <em>is</em> the target. Lesson: collection expressions always need a target type in view.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 5 &mdash; SpanOfPrimes</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">Span target</span></div>
+<div class="section-label">Goal</div>
+<p>Assign <code class="il">[2, 3, 5, 7]</code> to a <code class="il">ReadOnlySpan&lt;int&gt;</code> local, then sum it in a <code class="il">foreach</code>.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>It compiled &mdash; a collection expression targets <code class="il">Span</code>/<code class="il">ReadOnlySpan</code> too, not just <code class="il">List</code>/array.</li>
+  <li>I noticed I didn&rsquo;t write <code class="il">new int[] { ... }</code> first and then wrap it. The literal went straight to the span.</li>
+</ul>
+<div class="stretch"><strong>Stretch:</strong> for a small constant <code class="il">ReadOnlySpan&lt;int&gt;</code>, the compiler can avoid a heap array entirely. Look up &ldquo;collection expressions stack allocation&rdquo; on learn.microsoft.com &mdash; one sentence on <em>why</em> that&rsquo;s a performance win.</div>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== SPREAD ===================== -->
+<!-- ============================================ -->
+<h2 id="sec-spread" class="section-anchor">2 &mdash; The spread element <code class="il">..</code></h2>
+
+<div class="drill">
+<h3>Drill 6 &mdash; Concat</h3>
+<div class="meta-row"><span class="tag time">4 min</span><span class="tag topic">spread two sequences</span></div>
+<div class="section-label">Goal</div>
+<p>Given two <code class="il">int[]</code>, return a single <code class="il">int[]</code> with all of <code class="il">a</code>&rsquo;s elements followed by all of <code class="il">b</code>&rsquo;s. Use a collection expression with spreads.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">int</span>[] Concat(<span class="type">int</span>[] a, <span class="type">int</span>[] b)</code></pre>
+<div class="section-label">Examples</div>
+<pre><code>Concat([<span class="num">1</span>, <span class="num">2</span>], [<span class="num">3</span>, <span class="num">4</span>])   <span class="cmt">// [1, 2, 3, 4]</span></code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Body is <code class="il">[.. a, .. b]</code>. Two spreads, one literal.</li>
+  <li>I wrote the old form first: <code class="il">a.Concat(b).ToArray()</code>. I can see they do the same thing.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 7 &mdash; Fenced</h3>
+<div class="meta-row"><span class="tag time">4 min</span><span class="tag topic">mix spread + elements</span></div>
+<div class="section-label">Goal</div>
+<p>Given a <code class="il">List&lt;int&gt;</code> <code class="il">middle</code>, return a new list that is <code class="il">0</code>, then all of <code class="il">middle</code>, then <code class="il">99</code>.</p>
+<div class="section-label">Examples</div>
+<pre><code>Fenced([<span class="num">4</span>, <span class="num">5</span>])   <span class="cmt">// [0, 4, 5, 99]</span></code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Body is <code class="il">[0, .. middle, 99]</code>. Single elements and a spread, side by side.</li>
+  <li>I can say out loud which parts contribute one element and which contributes many.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 8 &mdash; SpreadAString</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">spread any IEnumerable</span></div>
+<div class="section-label">Goal</div>
+<p>Return a <code class="il">char[]</code> of the letters of <code class="il">"hi"</code> followed by <code class="il">'!'</code>.</p>
+<div class="section-label">Examples</div>
+<pre><code>HiBang()   <span class="cmt">// ['h', 'i', '!']</span></code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Body is <code class="il">[.. "hi", '!']</code>. I can spread a <code class="il">string</code> because it&rsquo;s <code class="il">IEnumerable&lt;char&gt;</code>.</li>
+  <li>I understand the spread works on <em>any</em> sequence, not just arrays/lists.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 9 &mdash; SpreadAQuery</h3>
+<div class="meta-row"><span class="tag time">6 min</span><span class="tag topic">spread a Select</span></div>
+<div class="section-label">Goal</div>
+<p>Given a <code class="il">List&lt;string&gt;</code>, return a <code class="il">List&lt;int&gt;</code> of their lengths &mdash; but build the result with a collection expression that spreads a LINQ query (no <code class="il">.ToList()</code> at the end).</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">List</span>&lt;<span class="type">int</span>&gt; Lengths(<span class="type">List</span>&lt;<span class="type">string</span>&gt; words)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Body is <code class="il">[.. words.Select(w =&gt; w.Length)]</code>.</li>
+  <li>I can explain why <code class="il">[.. seq]</code> and <code class="il">seq.ToList()</code> produce the same <code class="il">List&lt;int&gt;</code> here. (The target type is <code class="il">List&lt;int&gt;</code>, so the spread materialises into one.)</li>
+</ul>
+<details><summary>Hint</summary>
+<p><code class="il">Select</code> returns a lazy <code class="il">IEnumerable&lt;int&gt;</code>; spreading it into a <code class="il">List&lt;int&gt;</code>-typed literal walks it once and copies the elements into a new list &mdash; exactly what <code class="il">.ToList()</code> does. Same result, different spelling.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 10 &mdash; ThreeWayMerge</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">multiple spreads + element</span></div>
+<div class="section-label">Goal</div>
+<p>Given three <code class="il">List&lt;string&gt;</code> (<code class="il">head</code>, <code class="il">body</code>, <code class="il">tail</code>) and a single <code class="il">string</code> <code class="il">separator</code>, return one list: all of <code class="il">head</code>, the <code class="il">separator</code>, all of <code class="il">body</code>, the <code class="il">separator</code> again, all of <code class="il">tail</code>.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Body interleaves spreads and single elements: <code class="il">[.. head, separator, .. body, separator, .. tail]</code>.</li>
+  <li>The same variable <code class="il">separator</code> appears as a plain element twice &mdash; once per copy.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 11 &mdash; ArrayFromList</h3>
+<div class="meta-row"><span class="tag time">3 min</span><span class="tag topic">spread to convert type</span></div>
+<div class="section-label">Goal</div>
+<p>Given a <code class="il">List&lt;int&gt;</code>, return an <code class="il">int[]</code> with the same elements, using a collection expression.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Body is <code class="il">[.. source]</code>; the return type <code class="il">int[]</code> decides it builds an array.</li>
+  <li>I see that <code class="il">[.. x]</code> is a tidy way to convert between collection types &mdash; the spread reads the elements, the target type chooses the container.</li>
+</ul>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== DISTINCTION ================ -->
+<!-- ============================================ -->
+<h2 id="sec-distinction" class="section-anchor">3 &mdash; Spread vs. single element</h2>
+
+<p class="callout warn"><strong>This is the section that actually bit you.</strong> The whole confusion is: when do I need <code class="il">..</code> and when do I not? These three drills nail it down.</p>
+
+<div class="drill">
+<h3>Drill 12 &mdash; WhichCompiles (predict first)</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">the core distinction</span></div>
+<div class="section-label">Goal</div>
+<p>With <code class="il">int[] middle = [2, 3];</code>, predict for each line: compiles? and if so, what list?</p>
+<pre><code><span class="type">List</span>&lt;<span class="type">int</span>&gt; a = [<span class="num">1</span>, .. middle, <span class="num">4</span>];   <span class="cmt">// ?</span>
+<span class="type">List</span>&lt;<span class="type">int</span>&gt; b = [<span class="num">1</span>,    middle, <span class="num">4</span>];   <span class="cmt">// ?</span>
+<span class="type">List</span>&lt;<span class="type">int</span>&gt; c = [<span class="num">1</span>,    <span class="num">99</span>,   <span class="num">4</span>];   <span class="cmt">// ?</span></code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I predicted all three before compiling.</li>
+  <li>I can explain the compile error on <code class="il">b</code> in one sentence.</li>
+</ul>
+<details><summary>Hint &mdash; after predicting</summary>
+<p><code class="il">a</code> &rarr; <code class="il">[1, 2, 3, 4]</code> &mdash; <code class="il">..</code> splays <code class="il">middle</code>&rsquo;s elements in. <code class="il">b</code> &rarr; <strong>does not compile</strong>: without <code class="il">..</code>, <code class="il">middle</code> is treated as one element, but it&rsquo;s an <code class="il">int[]</code>, not an <code class="il">int</code> &mdash; type mismatch. <code class="il">c</code> &rarr; <code class="il">[1, 99, 4]</code> &mdash; <code class="il">99</code> is a single <code class="il">int</code> element, no spread needed. So: <strong>spread when it&rsquo;s a sequence, plain when it&rsquo;s one item.</strong></p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 13 &mdash; CanYouSpreadThis</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">what is spreadable</span></div>
+<div class="section-label">Goal</div>
+<p>Predict whether each compiles, with <code class="il">int n = 5;</code> and <code class="il">int[] xs = [1, 2];</code>.</p>
+<pre><code><span class="type">List</span>&lt;<span class="type">int</span>&gt; p = [.. xs];   <span class="cmt">// ?</span>
+<span class="type">List</span>&lt;<span class="type">int</span>&gt; q = [.. n];    <span class="cmt">// ?</span>
+<span class="type">List</span>&lt;<span class="type">int</span>&gt; r = [n];       <span class="cmt">// ?</span></code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I can state the rule for what may follow <code class="il">..</code>.</li>
+</ul>
+<details><summary>Hint &mdash; after predicting</summary>
+<p><code class="il">p</code> compiles (<code class="il">xs</code> is a sequence). <code class="il">q</code> does <strong>not</strong> &mdash; you can only spread something enumerable, and an <code class="il">int</code> isn&rsquo;t. <code class="il">r</code> compiles &mdash; a single <code class="il">int</code> as one element. Rule: <code class="il">..</code> requires an <code class="il">IEnumerable</code>; a bare element requires a value of the element type.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 14 &mdash; OneRenderableOrMany</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">why the .. appeared/vanished</span></div>
+<div class="section-label">Goal</div>
+<p>No compiler &mdash; explain. Here are two versions of a list-builder (modelled on your <code class="il">CombatGroupRenderer</code>). Say why the first needs <code class="il">..</code> and the second doesn&rsquo;t.</p>
+<pre><code><span class="cmt">// Version A &mdash; art was a SEQUENCE of lines</span>
+<span class="type">List</span>&lt;<span class="type">IRenderable</span>&gt; v =
+[
+    .. art.Select(line =&gt; <span class="kw">new</span> <span class="type">Markup</span>(line)),   <span class="cmt">// many Markups</span>
+    <span class="kw">new</span> <span class="type">Markup</span>(name)                              <span class="cmt">// one Markup</span>
+];
+
+<span class="cmt">// Version B &mdash; the art renderer now returns ONE renderable</span>
+<span class="type">List</span>&lt;<span class="type">IRenderable</span>&gt; v =
+[
+    renderer.Render(c),    <span class="cmt">// one IRenderable</span>
+    <span class="kw">new</span> <span class="type">Markup</span>(name)        <span class="cmt">// one Markup</span>
+];</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I wrote 2&ndash;3 sentences: in A, <code class="il">Select(...)</code> is an <code class="il">IEnumerable&lt;Markup&gt;</code> (many), so it needs <code class="il">..</code> to splay its elements in; in B, <code class="il">Render(c)</code> is a single <code class="il">IRenderable</code>, so it&rsquo;s a plain element.</li>
+  <li>I connected it: the &ldquo;many lines&rdquo; didn&rsquo;t disappear &mdash; it moved <em>inside</em> <code class="il">Render</code>, which wraps them in one <code class="il">Rows</code>. That&rsquo;s why the <code class="il">..</code> dropped out at the call site.</li>
+</ul>
+</div>
+
+<!-- ============================================ -->
+<!-- =============== REAL CODE ================== -->
+<!-- ============================================ -->
+<h2 id="sec-real" class="section-anchor">4 &mdash; From your own codebase</h2>
+
+<p>These three reproduce lines you&rsquo;ve already written in the RPG. Rebuild them from a blank file &mdash; if you can&rsquo;t, that&rsquo;s the gap.</p>
+
+<div class="drill">
+<h3>Drill 15 &mdash; GetAbilities (the dictionary version)</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">spread + Select + map</span></div>
+<div class="section-label">Goal</div>
+<p>Given a <code class="il">List&lt;Ability&gt;</code> (<code class="il">record Ability(string Id, string Name)</code>) and an <code class="il">IEnumerable&lt;string&gt;</code> of ids, return a <code class="il">List&lt;Ability&gt;</code> of the abilities matching those ids, in the order of the ids. Build the result with a collection expression.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">List</span>&lt;<span class="type">Ability</span>&gt; GetAbilities(<span class="type">List</span>&lt;<span class="type">Ability</span>&gt; all, <span class="type">IEnumerable</span>&lt;<span class="type">string</span>&gt; ids)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I built a <code class="il">Dictionary&lt;string, Ability&gt;</code> first, then returned <code class="il">[.. ids.Select(id =&gt; dict[id])]</code>.</li>
+  <li>This is exactly your real <code class="il">AbilityRepository.GetAbilities</code>. I can now write it without looking.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 16 &mdash; ExpressionBodiedEvens</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">=&gt; + spread together</span></div>
+<div class="section-label">Goal</div>
+<p>Write a one-line, expression-bodied method returning the even numbers of an <code class="il">int[]</code> as a <code class="il">List&lt;int&gt;</code>, built with a spread.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">List</span>&lt;<span class="type">int</span>&gt; Evens(<span class="type">int</span>[] source)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Whole method is <code class="il">=&gt; [.. source.Where(n =&gt; n % 2 == 0)];</code> &mdash; expression-bodied member + collection expression + spread + lambda, all in one line.</li>
+  <li>I can name each of those four pieces. (Same stack as your <code class="il">AsciiArtRenderer.Render</code>.)</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 17 &mdash; When NOT to reach for a collection expression (explain)</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">judgement</span></div>
+<div class="section-label">Goal</div>
+<p>No code. In 3&ndash;5 sentences: when is <code class="il">[.. seq]</code> a genuine improvement over <code class="il">seq.ToList()</code>, and when is it just fashion? And when does <code class="il">[a, b, c]</code> beat <code class="il">new List&lt;T&gt; { a, b, c }</code>?</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I argued at least one case where the old syntax is <em>clearer</em>, not just longer.</li>
+  <li>I mentioned readability when mixing spreads and single elements &mdash; the case the old syntax handles awkwardly (you&rsquo;d need <code class="il">.Prepend</code>/<code class="il">.Append</code> or <code class="il">.Concat</code> chains).</li>
+</ul>
+<details><summary>Hint &mdash; my framing</summary>
+<p><code class="il">[.. seq]</code> shines when you&rsquo;re <em>combining</em> (<code class="il">[first, .. middle, last]</code>, <code class="il">[.. a, .. b]</code>) &mdash; the old equivalents (<code class="il">Prepend</code>/<code class="il">Append</code>/<code class="il">Concat</code> + <code class="il">ToList</code>) are noisier. For a plain &ldquo;materialise this query,&rdquo; <code class="il">[.. q]</code> and <code class="il">q.ToList()</code> are equivalent &mdash; pick the one your team reads more easily. And target-typing is a real win: the same literal adapts to <code class="il">List</code>/array/<code class="il">Span</code> by return type. The old <code class="il">{ }</code> initializer can be clearer when the reader benefits from seeing the explicit type spelled out.</p>
+</details>
+</div>
+
+<h2 id="after">When you&rsquo;ve done them all</h2>
+
+<p>You&rsquo;ll have used the <code class="il">[ ]</code> literal (empty, elements, nested), the <code class="il">..</code> spread (sequences, strings, queries), target-typing across <code class="il">List</code>/array/<code class="il">Span</code>, and &mdash; most importantly &mdash; you&rsquo;ll know in your fingers when a thing needs <code class="il">..</code> and when it doesn&rsquo;t.</p>
+
+<p>Closely related docs to drill alongside this one:</p>
+<ul>
+  <li><code class="il">LINQ_Drills.html</code> &mdash; <code class="il">Select</code>/<code class="il">Where</code> are what you usually spread.</li>
+  <li><code class="il">Delegates_Lambdas_Drills.html</code> &mdash; the lambdas inside those <code class="il">Select</code>s, and expression-bodied members.</li>
+  <li><code class="il">C3/docs/Properties_And_Fields.html</code> &mdash; where <code class="il">= []</code> as a property default shows up.</li>
+</ul>
+
+<p>Bring me your captured-question scratch file &mdash; the lines where you hesitated are the cracks in the model.</p>
+
+</div>
+</body>
+</html>

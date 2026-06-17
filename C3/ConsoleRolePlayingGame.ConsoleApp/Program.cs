@@ -11,15 +11,27 @@ try
     services.AddSingleton(console); // This is an AddSingleton override that registers an existing instance instead of creating a new one.
                                     // I didn't need to specify the type <IAnsiConsole> because it can be inferred from the instance.
     services.AddSingleton<PerlinNoiseProvider>();
+    services.AddSingleton<EnemyRepository>();
+    services.AddSingleton<IEncounterProvider, EncounterRepository>();
+    services.AddSingleton<PartyRepository>();
+    services.AddSingleton<AbilityRepository>();
     services.AddSingleton<MapGenerator>();
     services.AddSingleton<WorldMap>();
     services.AddSingleton<OpenPosSelector>();
-    services.AddSingleton<PlayerParty>();
     
     // Transients will be created each time they are requested
     services.AddTransient<ScreenManager>();
     services.AddTransient<OverworldScreen>();
+    services.AddTransient<BattleScreen>();
+    services.AddTransient<PlayerParty>(sp =>
+        {
+            PartyRepository repo = sp.GetRequiredService<PartyRepository>();
+            return repo.Load();
+        });
 
+    services.AddKeyedTransient<IBattleStrategy, EnemyTurnStrategy>(serviceKey: "Enemy");
+    services.AddKeyedTransient<IBattleStrategy, PlayerTurnStrategy>(serviceKey: "Player");
+    
     console.Write(new Markup("[grey]Generating world...[/]"));
 
     ServiceProvider serviceProvider = services.BuildServiceProvider();
@@ -34,7 +46,7 @@ try
     while (game.Status != GameStatus.Terminated)
     {
         console.WriteLine("loop top");
-        screens.Run();
+        await screens.RunAsync();
         game.Update();
     }
     

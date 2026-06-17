@@ -2,12 +2,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-        "name": "C3: ConsoleRolePlayingGame (Debug)",
+        "name": "C3: ConsoleRolePlayingGame.ConsoleApp (Debug)",
         "type": "coreclr",
         "request": "launch",
         "preLaunchTask": "build C3 Debug",
-        "program": "${workspaceFolder}/c3/ConsoleRolePlayingGame/bin/Debug/net10.0/ConsoleRolePlayingGame.dll",
-        "cwd": "${workspaceFolder}/c3/ConsoleRolePlayingGame",
+        "program": "${workspaceFolder}/c3/ConsoleRolePlayingGame.ConsoleApp/bin/Debug/net10.0/ConsoleRolePlayingGame.ConsoleApp.dll",
+        "cwd": "${workspaceFolder}/c3/ConsoleRolePlayingGame.ConsoleApp",
         "console": "integratedTerminal",
         "stopAtEntry": false,
         "justMyCode": false

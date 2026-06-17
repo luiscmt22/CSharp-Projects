@@ -1,3 +1,5 @@
+using ConsoleRolePlayingGame.Domain.Entities;
+using ConsoleRolePlayingGame.Overworld.Entities;
 using ConsoleRolePlayingGame.Overworld.Structure;
 
 namespace ConsoleRolePlayingGame.ConsoleApp.Screens;
@@ -36,28 +38,41 @@ public class OverworldScreen(GameManager game, IAnsiConsole console)
 
         if (keyInfo.HasValue)
         {
+            IMapEntity party = game.Party;
             switch (keyInfo.Value.Key)
             {
                 case ConsoleKey.A:
                 case ConsoleKey.LeftArrow:
-                    game.MoveParty(Direction.West);
+                    party.Move(Direction.West);
+                    MoveEnemies();
                     break;
                 case ConsoleKey.W:
                 case ConsoleKey.UpArrow:
-                    game.MoveParty(Direction.North);
+                    party.Move(Direction.North);
+                    MoveEnemies();
                     break;
                 case ConsoleKey.S:
                 case ConsoleKey.DownArrow:
-                    game.MoveParty(Direction.South);
+                    party.Move(Direction.South);
+                    MoveEnemies();
                     break;
                 case ConsoleKey.D:
                 case ConsoleKey.RightArrow:
-                    game.MoveParty(Direction.East);
+                    party.Move(Direction.East);
+                    MoveEnemies();
                     break;
                 case ConsoleKey.Escape:
                     game.Quit(); //Eventually change to open MenuScreen instead of terminating.
                     break;
             }
         } 
+    }
+
+    private void MoveEnemies()
+    {
+        foreach (var group in game.Map.Entities.OfType<EnemyGroup>())
+        {
+            group.MoveTowards(game.Party.MapPos, game.Map);
+        }
     }
 }

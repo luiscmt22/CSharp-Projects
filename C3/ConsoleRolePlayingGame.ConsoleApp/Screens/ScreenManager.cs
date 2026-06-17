@@ -12,7 +12,7 @@ public class ScreenManager(GameManager game,
     //like a pause menu with inventary, party, and other subscreens. In order to do that, we should create an IScreen
     //interface that all screens implement, then ScreenManager can hold a reference to the current IScreen and delegate ShowScreen calls to it,
     //instead of using a switch statement. - Luís
-    public async Task Run()
+    public async Task RunAsync()
     {
         console.Clear();
         switch (game.Status)

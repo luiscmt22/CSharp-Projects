@@ -1,36 +1,47 @@
-{
-    "Name": "Goblin",
-    "BaseHealth": 5,
-    "BaseMana": 0,
-    "BaseDexterity": 10,
-    "BaseSpeed": 10,
-    "BaseStrength": 5,
-    "BaseIntelligence": 5,
-    "BaseDefense": 5,
-    "BaseMagicDefense": 5,
-    "BaseExperienceReward": 10,
-    "BaseGoldReward": 5,
-    "BaseItemDropChance": 0.1,
-    "BaseItemDropQuantity": 1,
-    "BaseItemDropQuality": 1,
-    "AsciiArt": [
-        "D..............D",
-    "DG............GD",
-    "DGG..........GGD",
-    "DGGG........GGGD",
-    ".GGGGGGGGGGGGGG.",
-    ".GGGGGGGGGGGGGG.",
-    ".GDDGGGGGGGGDDG.",
-    ".GDEEGGGGGGEEDG.",
-    ".GGGGGGGGGGGGGG.",
-    ".GGGGGGNNGGGGGG.",
-    ".GGRRRRRRRRRRGG.",
-    ".GWRWRWRWRWRWGG.",
-    ".GGWRWRWRWRWGGG.",
-    "..GGGGGGGGGGGG..",
-    "...DGGGGGGGGD..."
-    ],
-    "AbilityIds": [
-        "Attack"
-    ]
-}
+[
+    {
+        "Name": "Goblin",
+        "BaseHealth": 5,
+        "BaseMana": 0,
+        "BaseDexterity": 10,
+        "BaseSpeed": 10,
+        "BaseStrength": 5,
+        "BaseIntelligence": 5,
+        "BaseDefense": 5,
+        "BaseMagicDefense": 5,
+        "BaseExperienceReward": 10,
+        "BaseGoldReward": 5,
+        "BaseItemDropChance": 0.1,
+        "BaseItemDropQuantity": 1,
+        "BaseItemDropQuality": 1,
+        "AsciiArt": [
+            "..D..........D..",
+            "..DG........GD..",
+            "..DGGGGGGGGGGD..",
+            "..DGGGGGGGGGGD..",
+            "..DDGGGGGGGGDD..",
+            "..DEEKGGGGKEED..",
+            "..DEEKGGGGKEED..",
+            "..DGGGGNNGGGGD..",
+            "..DGKKKKKKKKGD..",
+            "..DGWKWKWKWKGD..",
+            "..DGKRRRRRRKGD..",
+            "..DGKWKWKWKWGD..",
+            "..DGGGGGGGGGGD..",
+            "....DGGGGGGD....",
+            "..DDGGGGGGGGDD..",
+            "..DG.DGGGGD.GD..",
+            "..DG.DGNNGD.GD..",
+            "..DG.DGGGGD.GD..",
+            "..DG.DRRRRD.GD..",
+            "..WG.DRRRRD.GW..",
+            ".....DRRRRD.....",
+            "....DGD..DGD....",
+            "....DGD..DGD....",
+            "...DWGD..DGWD..."
+        ],
+        "AbilityIds": [
+            "Attack"
+        ]
+    }
+]

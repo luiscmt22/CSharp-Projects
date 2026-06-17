@@ -1,4 +1,5 @@
-﻿using ConsoleRolePlayingGame.CombatSystem;
+﻿using ConsoleRolePlayingGame.Domain.Repositories;
+using ConsoleRolePlayingGame.CombatSystem;
 using ConsoleRolePlayingGame.Overworld;
 using ConsoleRolePlayingGame.Overworld.Entities;
 using ConsoleRolePlayingGame.Overworld.Generators;
@@ -9,28 +10,33 @@ namespace ConsoleRolePlayingGame.Domain;
 
 public class GameManager
 {
+    private readonly IEncounterProvider _encounters;
     public GameStatus Status { get; private set; } = GameStatus.Overworld;
     public WorldMap Map { get; }
     public PlayerParty Party { get; }
-    public const int MaxEnemies = 5;
+    public Battle? Battle { get; private set; }
 
-    public GameManager(PlayerParty party, WorldMap map)
+    public GameManager(PlayerParty party, 
+                       IEncounterProvider encounters, 
+                       WorldMap map)
     {
+        _encounters = encounters;
         Party = party;
         Map = map;
-        
         map.AddEntity(party);
-        for (int i = 0; i < MaxEnemies; i++)
+
+        // Spawn a few initial encounters
+        for (int i = 0; i < 5; i++)
         {
             SpawnNearbyEncounter();
         }
     }
 
-    public void Quit() => Status = GameStatus.Terminated;
-
-    public void MoveParty(Direction direction)
+    private void SpawnNearbyEncounter()
     {
-        Party.Move(direction);
+        OpenPosSelector selector = new(Map);
+        Pos point = selector.GetOpenPositionNear(Party.MapPos, 5, 10);
+        Map.AddEntity(_encounters.CreateRandomEncounter(point));
     }
 
     public void Update()
@@ -69,9 +75,9 @@ public class GameManager
 
     public Battle StartBattle(ICombatGroup combatant)
     {
-        Battle battle = new(Party, combatant);
+        Battle = new Battle(Party, combatant);
         Status = GameStatus.Combat;
-        return battle;
+        return Battle;
     }
 
     public void EndBattle()
@@ -81,12 +87,7 @@ public class GameManager
         SpawnNearbyEncounter();
     }
 
-    private void SpawnNearbyEncounter()
-    {
-        OpenPosSelector selector = new(Map);
-        Pos point = selector.GetOpenPositionNear(Party.MapPos, 5, 10);
-        Map.AddEntity(new EnemyGroup(point));
-    }
-
+    public void Quit() => Status = GameStatus.Terminated;
+    
     private void TriggerGameOver() => Status = GameStatus.GameOver;
 }

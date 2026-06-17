@@ -4,7 +4,8 @@
       "Read(//c/Users/User/.claude/projects/C--Users-User-source-repos-luiscmt22-CSharpProjects/**)",
       "Read(//c/Users/User/Desktop/AGILE/Learning/CSharp-Projects-main/Chapter2//**)",
       "Bash(awk NR>=3930 && NR<=3960 *)",
-      "Bash(awk NR>=4760 && NR<=4790 *)"
+      "Bash(awk NR>=4760 && NR<=4790 *)",
+      "Bash(dotnet test *)"
     ]
   }
 }

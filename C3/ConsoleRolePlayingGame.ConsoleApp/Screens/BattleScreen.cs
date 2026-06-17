@@ -16,10 +16,10 @@ public class BattleScreen(GameManager game, IAnsiConsole console)
     {
         Battle? battle = game.Battle;
 
-        CombatGroupRenderer enemeies = new(battle.Enemies, battle.ActiveMember);
+        CombatGroupRenderer enemeies = new(battle.Enemies, battle.ActiveMember, new HalfBlockSpriteRenderer());
         _layout["Enemies"].Update(enemeies.GenerateVisual());
 
-        CombatGroupRenderer party = new(battle.Party, battle.ActiveMember, includeStats: true);
+        CombatGroupRenderer party = new(battle.Party, battle.ActiveMember, new AsciiArtRenderer(), includeStats: true);
         _layout["Party"].Update(party.GenerateVisual());
 
         return _layout;

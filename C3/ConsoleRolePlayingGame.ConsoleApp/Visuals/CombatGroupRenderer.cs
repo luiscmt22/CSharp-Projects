@@ -1,11 +1,6 @@
-using ConsoleRolePlayingGame.CombatSystem;
+namespace ConsoleRolePlayingGame.ConsoleApp.Visuals;
 
-namespace ConsoleRolePlayingGame.ConsoleApp;
-
-public class CombatGroupRenderer(ICombatGroup group,
-                                 Combatant? active,
-                                 bool includeStats = false)
-                                 
+public class CombatGroupRenderer(ICombatGroup group, Combatant? active, ICombatArtRenderer renderer, bool includeStats = false)                            
 {
     public IRenderable GenerateVisual()
     {
@@ -19,14 +14,14 @@ public class CombatGroupRenderer(ICombatGroup group,
     private IRenderable GenerateCharacterVisual(Combatant c)
     {
         List<IRenderable> visuals = 
-            [..c.AsciiArt.Select(l => 
-                new Markup(c.IsDead 
-                    ? "" 
-                    : l).Justify(Justify.Center)),
-                new Markup(active == c 
-                    ? $"[bold yellow]{c.Name}[/]" 
-                    : c.Name).Justify(Justify.Center)
-            ];
+        [
+            c.IsDead
+                ? new Markup(" ")
+                : renderer.Render(c),
+            new Markup(active == c
+                ? $"[bold yellow]{c.Name}[/]"
+                : c.Name).Justify(Justify.Center)
+        ];
         
         if (includeStats)
         {
@@ -41,9 +36,8 @@ public class CombatGroupRenderer(ICombatGroup group,
 
     private IRenderable BuildStatsBlock(Combatant c)
     {
-        string text =
-            $"[red]HP: {c.Health}/{c.MaxHealth}" +
-            $"[blue]MP: {c.Mana}/{c.MaxMana}";
+        string text = $"[red]HP: {c.Health}/{c.MaxHealth}[/]" +
+                      $"[blue]MP: {c.Mana}/{c.MaxMana}[/]";
 
         return new Markup(text).Justify(Justify.Center);
     }
