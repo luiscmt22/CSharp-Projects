@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Chapter 4 &mdash; What the Book Skipped</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {
+  --bg: #0b1220; --surface: #111a2e; --surface-2: #16223c; --border: #243352;
+  --text: #e6ecf5; --text-dim: #9aa7c0; --accent: #6aa6ff; --accent-2: #b06aff;
+  --code-bg: #0a1120; --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif; }
+.wrap { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 28px; }
+header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
+header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
+header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
+h1, h2, h3, h4 { color: var(--text); margin-top: 1.6em; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+a { color: var(--accent); }
+code, pre, code.il { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; border: 1px solid var(--border); }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55; }
+pre code { background: transparent; border: 0; padding: 0; }
+blockquote { border-left: 3px solid var(--accent); background: var(--surface);
+  padding: 10px 16px; margin: 12px 0; color: var(--text-dim); border-radius: 0 6px 6px 0; }
+.tbl-wrap { overflow-x: auto; margin: 14px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+th { background: var(--surface-2); }
+tr:nth-child(even) td { background: var(--surface); }
+.callout { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent-2);
+  padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; }
+.callout.warn { border-left-color: var(--warn); }
+.callout.ok   { border-left-color: var(--ok); }
+.callout.bad  { border-left-color: var(--bad); }
+.gap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 18px; margin: 18px 0; }
+.gap h3 { margin-top: 0; font-size: 17px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.gap .id { color: var(--accent); font-family: "JetBrains Mono", monospace; font-size: 14px; }
+.sev { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 4px; vertical-align: middle; }
+.sev.blocker { background: #3a1e1e; color: #f87171; border: 1px solid #5a2d2d; }
+.sev.build   { background: #3a2e1e; color: #fbbf24; border: 1px solid #5a402d; }
+.sev.runtime { background: #2e1e3a; color: #c792ea; border: 1px solid #402d5a; }
+.sev.silent  { background: #1e2a3a; color: #6aa6ff; border: 1px solid #2d405a; }
+.label { text-transform: uppercase; font-size: 10px; letter-spacing: 0.08em; color: var(--text-dim);
+  margin: 12px 0 3px; font-weight: 600; }
+.bookref { color: var(--text-dim); font-size: 12px; font-weight: 400; }
+.kw { color: #c792ea; } .type { color: #82aaff; } .str { color: #c3e88d; }
+.num { color: #f78c6c; } .cmt { color: #6c7a96; font-style: italic; }
+.toc { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; margin: 18px 0 28px; font-size: 14px; }
+.toc ol { margin: 6px 0; padding-left: 22px; } .toc li { margin: 2px 0; }
+.toc a { text-decoration: none; } .toc a:hover { text-decoration: underline; }
+.hit { color: var(--bad); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">C3 &rsaquo; docs</div>
+  <h1>Chapter 4 &mdash; what the book skipped</h1>
+  <div class="meta">A complete gap analysis of <em>Practical C#</em>, Chapter 4 (book pp.&nbsp;107&ndash;137 / PDF 138&ndash;168), produced by cross-referencing the chapter text line-by-line against the <code class="il">Chapter4</code> answer-key project and the bugs we actually hit getting C3 to run.</div>
+</header>
+
+<p>The book is a good read, but it teaches Chapter 4 the way a recipe show plates the dish &mdash; it shows you the <em>interesting</em> code and quietly omits the plumbing that makes it run. It even admits this twice: the &ldquo;<em>Code snippets and error handling</em>&rdquo; note (p.&nbsp;116) and &ldquo;<em>the rest follow a very similar structure&hellip; I'd encourage you to dig through this project's code</em>&rdquo; (p.&nbsp;120). So the answer-key repo is not optional &mdash; the chapter is <strong>not buildable from the text alone</strong>.</p>
+
+<p>Below is every gap I found, grouped by kind. The <span class="hit">red marks</span> are ones that actually bit us this session.</p>
+
+<div class="callout">
+<strong>Severity legend</strong><br>
+<span class="sev blocker">blocker</span> won't compile / won't run at all &nbsp;
+<span class="sev build">build</span> compile error or warning &nbsp;
+<span class="sev runtime">runtime</span> throws when you play &nbsp;
+<span class="sev silent">silent</span> compiles &amp; runs, wrong behaviour
+</div>
+
+<div class="toc">
+  <strong>Sections</strong>
+  <ol>
+    <li><a href="#proj">Project &amp; build setup (the invisible gaps)</a></li>
+    <li><a href="#missing">Classes &amp; interfaces referenced but never shown</a></li>
+    <li><a href="#simplified">Code shown, but simplified or incomplete</a></li>
+    <li><a href="#data">Data files</a></li>
+    <li><a href="#di">The dependency-injection registration gap</a></li>
+    <li><a href="#gotchas">Behavioural gotchas the book never flags</a></li>
+    <li><a href="#yours">For the record: bugs that were ours, not the book's</a></li>
+    <li><a href="#checklist">Build-from-the-book checklist</a></li>
+  </ol>
+</div>
+
+<!-- ===================================================== -->
+<h2 id="proj">1 &mdash; Project &amp; build setup (the invisible gaps)</h2>
+<p>None of this appears in the chapter text, and it's the worst category because the omissions are <em>invisible</em> &mdash; there's no code snippet to copy, so you don't even know something's missing until the compiler or runtime complains.</p>
+
+<div class="gap">
+<h3><span class="id">G1</span> The <code class="il">CombatSystem</code> project itself <span class="sev blocker">blocker</span></h3>
+<div class="label">Book says <span class="bookref">(p.&nbsp;113)</span></div>
+<p>&ldquo;Most of this chapter's new code occurs in the <code class="il">ConsoleRolePlayingGame.CombatSystem</code> project that houses our combat logic.&rdquo; &mdash; then never shows creating it.</p>
+<div class="label">What's missing</div>
+<p>A brand-new class-library project. You must create it, add it to the solution, and it ends up holding: <code class="il">Ability</code>, <code class="il">Battle</code>, <code class="il">Combatant</code>, <code class="il">CombatantData</code>, <code class="il">EncounterInfo</code>, <code class="il">EncounterEnemyInfo</code>, <code class="il">EnemyTurnStrategy</code>, <code class="il">IBattleStrategy</code>, <code class="il">ICombatGroup</code>, <code class="il">Trait</code>.</p>
+<div class="label">Fix</div>
+<pre><code>dotnet new classlib -n ConsoleRolePlayingGame.CombatSystem -f net10.0
+dotnet sln add ConsoleRolePlayingGame.CombatSystem</code></pre>
+<p>Its <code class="il">.csproj</code> is plain (net10.0, <code class="il">ImplicitUsings</code>, <code class="il">Nullable</code>) with <strong>no</strong> references or packages &mdash; the combat system is self-contained.</p>
+</div>
+
+<div class="gap">
+<h3><span class="id">G2</span> <code class="il">Domain.csproj</code> &mdash; three additions, none shown <span class="sev blocker">blocker</span> <span class="hit">&#9679; hit</span></h3>
+<div class="label">Book says <span class="bookref">(p.&nbsp;113)</span></div>
+<p>&ldquo;&hellip;the <code class="il">ConsoleRolePlayingGame.Domain</code> project, which has references to both the overworld and combat system projects.&rdquo; &mdash; one sentence, no XML, and it skips the other two additions entirely.</p>
+<div class="label">What's missing (all three)</div>
+<pre><code><span class="cmt">&lt;!-- a) project reference to the new CombatSystem (+ existing Overworld) --&gt;</span>
+<span class="kw">&lt;ItemGroup&gt;</span>
+  <span class="kw">&lt;ProjectReference</span> Include=<span class="str">"..\ConsoleRolePlayingGame.CombatSystem\...csproj"</span> <span class="kw">/&gt;</span>
+  <span class="kw">&lt;ProjectReference</span> Include=<span class="str">"..\ConsoleRolePlayingGame.Overworld\...csproj"</span> <span class="kw">/&gt;</span>
+<span class="kw">&lt;/ItemGroup&gt;</span>
+
+<span class="cmt">&lt;!-- b) the DI package needed for [FromKeyedServices] in the repositories --&gt;</span>
+<span class="kw">&lt;ItemGroup&gt;</span>
+  <span class="kw">&lt;PackageReference</span> Include=<span class="str">"Microsoft.Extensions.DependencyInjection.Abstractions"</span> Version=<span class="str">"10.0.0"</span> <span class="kw">/&gt;</span>
+<span class="kw">&lt;/ItemGroup&gt;</span>
+
+<span class="cmt">&lt;!-- c) copy the JSON data files next to the built app (see G10/G11) --&gt;</span>
+<span class="kw">&lt;ItemGroup&gt;</span>
+  <span class="kw">&lt;None</span> Update=<span class="str">"Data\*.json"</span> CopyToOutputDirectory=<span class="str">"PreserveNewest"</span> <span class="kw">/&gt;</span>
+<span class="kw">&lt;/ItemGroup&gt;</span></code></pre>
+<div class="label">If skipped</div>
+<p>(b) &rarr; <code class="il">EnemyRepository</code>/<code class="il">PartyRepository</code> don't compile (<code class="il">[FromKeyedServices]</code> unknown). (c) &rarr; <span class="hit">the exact <code class="il">FileNotFoundException</code> we hit</span> &mdash; the JSON never reaches <code class="il">bin/</code>.</p>
+</div>
+
+<div class="gap">
+<h3><span class="id">G3</span> <code class="il">ConsoleApp.csproj</code> packages &amp; references <span class="sev blocker">blocker</span></h3>
+<div class="label">What's missing</div>
+<p>Never shown in Ch.&nbsp;4 (mostly inherited from Ch.&nbsp;3, but worth verifying): <code class="il">Microsoft.Extensions.DependencyInjection</code> (the full package, for <code class="il">ServiceCollection</code>/<code class="il">BuildServiceProvider</code>), <code class="il">Spectre.Console</code> 0.50.0, and project references to <strong>Domain</strong> and <strong>Overworld</strong>.</p>
+</div>
+
+<div class="gap">
+<h3><span class="id">G4</span> <code class="il">GlobalUsings.cs</code> in ConsoleApp <span class="sev build">build</span></h3>
+<div class="label">What's missing</div>
+<p>Every screen/renderer snippet in the book uses <code class="il">Markup</code>, <code class="il">Layout</code>, <code class="il">IRenderable</code>, <code class="il">Combatant</code>, etc. with <strong>no <code class="il">using</code> directives</strong> &mdash; they only compile because of a global-usings file the book never prints:</p>
+<pre><code><span class="kw">global using</span> Spectre.Console;
+<span class="kw">global using</span> Spectre.Console.Rendering;
+<span class="kw">global using</span> ConsoleRolePlayingGame.CombatSystem;
+<span class="kw">global using</span> ConsoleRolePlayingGame.Domain;
+<span class="kw">global using</span> ConsoleRolePlayingGame.Domain.Repositories;
+<span class="kw">global using</span> ConsoleRolePlayingGame.Overworld;
+<span class="kw">global using</span> Microsoft.Extensions.DependencyInjection;
+<span class="kw">global using</span> ConsoleRolePlayingGame.ConsoleApp.Input;
+<span class="kw">global using</span> ConsoleRolePlayingGame.ConsoleApp.Screens;
+<span class="kw">global using</span> ConsoleRolePlayingGame.ConsoleApp.Visuals;</code></pre>
+<p>Without it you get dozens of &ldquo;type or namespace not found&rdquo; errors. (You can also add normal per-file <code class="il">using</code>s instead &mdash; the book's snippets just assume these are globally in scope.)</p>
+</div>
+
+<!-- ===================================================== -->
+<h2 id="missing">2 &mdash; Classes &amp; interfaces referenced but never shown</h2>
+
+<div class="gap">
+<h3><span class="id">G5</span> <code class="il">IEncounterProvider</code> <span class="sev blocker">blocker</span> <span class="hit">&#9679; hit</span></h3>
+<div class="label">Book says <span class="bookref">(p.&nbsp;114)</span></div>
+<p>Shows <code class="il">EncounterRepository(&hellip;) : FileRepositoryBase, IEncounterProvider</code> and <code class="il">GameManager</code> depends on it &mdash; but never defines the interface.</p>
+<div class="label">The whole thing (Domain/Repositories)</div>
+<pre><code><span class="kw">public interface</span> <span class="type">IEncounterProvider</span>
+{
+    <span class="type">EnemyGroup</span> <span class="type">CreateRandomEncounter</span>(<span class="type">Pos</span> position);
+}</code></pre>
+<p>Without it, <code class="il">GameManager</code> (which takes an <code class="il">IEncounterProvider</code>) won't compile.</p>
+</div>
+
+<div class="gap">
+<h3><span class="id">G6</span> <code class="il">AbilityRepository</code> <span class="sev blocker">blocker</span></h3>
+<div class="label">Book says <span class="bookref">(p.&nbsp;120)</span></div>
+<p>Uses <code class="il">abilities.GetAbilities(e.AbilityIds)</code> then explicitly punts: &ldquo;<em>we haven't covered all of the specific repositories&hellip; the rest follow a very similar structure.</em>&rdquo; You must write the whole class.</p>
+<div class="label">Answer-key shape</div>
+<pre><code><span class="kw">public class</span> <span class="type">AbilityRepository</span> : <span class="type">FileRepositoryBase</span>
+{
+    <span class="kw">public</span> <span class="type">IEnumerable</span>&lt;<span class="type">Ability</span>&gt; GetAbilities()
+        =&gt; LoadManyFromJsonFile&lt;<span class="type">Ability</span>&gt;(<span class="str">"Abilities.json"</span>);
+
+    <span class="kw">public</span> <span class="type">IEnumerable</span>&lt;<span class="type">Ability</span>&gt; GetAbilities(<span class="type">IEnumerable</span>&lt;<span class="kw">string</span>&gt; ids)
+    {
+        <span class="type">IEnumerable</span>&lt;<span class="type">Ability</span>&gt; abilities = GetAbilities();
+        <span class="kw">return</span> ids.Select(id =&gt; abilities.First(a =&gt; id == a.Id));
+    }
+}</code></pre>
+<p>(See your <code class="il">GeneralExercises</code> note &mdash; your dictionary version is a fine improvement over <code class="il">First</code>.)</p>
+</div>
+
+<div class="gap">
+<h3><span class="id">G7</span> <code class="il">GameStatus</code> needs a <code class="il">Combat</code> member <span class="sev build">build</span> <span class="hit">&#9679; hit</span></h3>
+<div class="label">Book says</div>
+<p>Uses <code class="il">GameStatus.Combat</code> throughout (pp.&nbsp;110, 126) but never shows the enum, which Ch.&nbsp;3 may have spelled differently. <span class="hit">Ours had <code class="il">GameStatus.Battle</code></span>, plus a broken <code class="il">StartBattle(</code> line, which is why the <code class="il">switch</code> didn't compile.</p>
+<div class="label">Ch.&nbsp;4 shape (Domain)</div>
+<pre><code><span class="kw">public enum</span> <span class="type">GameStatus</span> { Overworld, Combat, Terminated, GameOver }</code></pre>
+</div>
+
+<div class="gap">
+<h3><span class="id">G8</span> <code class="il">PlayerParty</code> must now implement <code class="il">ICombatGroup</code> <span class="sev build">build</span> <span class="hit">&#9679; hit</span></h3>
+<div class="label">Book says <span class="bookref">(p.&nbsp;113)</span></div>
+<p>Shows <code class="il">EnemyGroup : IMapEntity, ICombatGroup</code> in detail, but the <code class="il">Battle</code> constructor takes <code class="il">ICombatGroup party</code> and <code class="il">GameManager.Party</code> is a <code class="il">PlayerParty</code> &mdash; so <code class="il">PlayerParty</code> must <em>also</em> implement <code class="il">ICombatGroup</code>. That change is never shown.</p>
+<div class="label">What to add</div>
+<pre><code><span class="kw">public class</span> <span class="type">PlayerParty</span> : <span class="type">IMapEntity</span>, <span class="type">ICombatGroup</span>   <span class="cmt">// + ICombatGroup</span>
+{
+    <span class="cmt">// ...existing members...</span>
+    <span class="kw">public</span> <span class="type">List</span>&lt;<span class="type">Combatant</span>&gt; Members { <span class="kw">get</span>; <span class="kw">init</span>; } = [];   <span class="cmt">// new</span>
+}</code></pre>
+<p>We hit this as the &ldquo;<code class="il">PlayerParty</code> does not contain a definition for <code class="il">Members</code>&rdquo; family of errors.</p>
+</div>
+
+<div class="gap">
+<h3><span class="id">G9</span> <code class="il">GameManager</code>'s supporting members <span class="sev build">build</span> <span class="hit">&#9679; hit</span></h3>
+<div class="label">Book says <span class="bookref">(pp.&nbsp;109&ndash;111)</span></div>
+<p>Shows <code class="il">Update</code>, <code class="il">StartBattle</code>, <code class="il">EndBattle</code> &mdash; but not the members they depend on: the settable <code class="il">Battle? Battle { get; private set; }</code> property, the <code class="il">IEncounterProvider</code> field/constructor parameter, and <code class="il">Party</code> typed as <code class="il">PlayerParty</code>.</p>
+<div class="label">Watch the property assignment</div>
+<p><code class="il">StartBattle</code> does <code class="il">Battle = new Battle(&hellip;)</code> &mdash; assigning the <em>property</em>. <span class="hit">Ours wrote <code class="il">Battle battle = new(&hellip;)</code></span> (a throwaway local), so <code class="il">game.Battle</code> stayed null and the battle screen NRE'd. The property must exist <em>and</em> be assigned.</p>
+</div>
+
+<!-- ===================================================== -->
+<h2 id="simplified">3 &mdash; Code shown, but simplified or incomplete</h2>
+
+<div class="gap">
+<h3><span class="id">G10</span> <code class="il">FileRepositoryBase</code> is the &ldquo;print version&rdquo; <span class="sev runtime">runtime</span> <span class="hit">&#9679; hit</span></h3>
+<div class="label">Book shows <span class="bookref">(p.&nbsp;115&ndash;116)</span></div>
+<pre><code><span class="kw">string</span> dir = <span class="type">Environment</span>.CurrentDirectory;
+<span class="kw">string</span> filePath = <span class="type">Path</span>.Combine(dir, <span class="str">"Data"</span>, fileName);
+<span class="kw">using</span> <span class="type">FileStream</span> stream = <span class="type">File</span>.OpenRead(filePath);
+<span class="kw">return</span> <span class="type">JsonSerializer</span>.Deserialize&lt;<span class="type">List</span>&lt;<span class="type">T</span>&gt;&gt;(stream);   <span class="cmt">// returns List&lt;T&gt;? &rarr; nullable warning, can be null</span></code></pre>
+<div class="label">Two real problems it admits to skipping</div>
+<ul>
+  <li><strong>No null / not-found handling</strong> &mdash; <code class="il">Deserialize</code> returns <code class="il">List&lt;T&gt;?</code>; on a bad/empty file you get a nullability warning and a downstream NRE. (The &ldquo;error handling omitted&rdquo; note on p.&nbsp;116 covers this.)</li>
+  <li><strong><code class="il">Environment.CurrentDirectory</code> is the folder you <em>launched from</em>, not where the app lives.</strong> <span class="hit">Running <code class="il">dotnet run</code> from the chapter folder made it look in <code class="il">c3\Data\</code> and throw.</span> The robust fix is <code class="il">AppContext.BaseDirectory</code> (always the binaries' folder, where G2c copies the data).</li>
+</ul>
+</div>
+
+<div class="gap">
+<h3><span class="id">G11</span> Two data files aren't fully given <span class="sev runtime">runtime</span> <span class="hit">&#9679; hit</span></h3>
+<ul>
+  <li><strong><code class="il">Party.json</code> &mdash; never shown at all.</strong> You must create it (or take the answer-key's four heroes). Its keys must match <em>your</em> <code class="il">CombatantData</code>. <span class="hit">Ours used the book's <code class="il">MaxHealth</code>/<code class="il">Speed</code> keys while our <code class="il">CombatantData</code> expected <code class="il">Base*</code> &mdash; System.Text.Json silently dropped them, every stat became 0, and the party never got a turn.</span> (See G13.)</li>
+  <li><strong><code class="il">Abilities.json</code> &mdash; only 2 of ~7 shown</strong> (p.&nbsp;120: &ldquo;the full list is too long to share&rdquo;). You need every id referenced by <code class="il">Party.json</code>/<code class="il">Enemies.json</code>: <code class="il">Attack, Heal, Healing Wind, Smite, Fireball, Knife Swarm, Goat Swarm</code>. A missing one makes <code class="il">GetAbilities</code> throw.</li>
+</ul>
+<p><code class="il">Enemies.json</code> (one goblin) and <code class="il">Encounters.json</code> <em>are</em> shown in full.</p>
+</div>
+
+<!-- ===================================================== -->
+<h2 id="di">4 &mdash; The dependency-injection registration gap</h2>
+
+<div class="gap">
+<h3><span class="id">G12</span> The repositories are missing from the shown DI block <span class="sev runtime">runtime</span> <span class="hit">&#9679; hit</span></h3>
+<div class="label">Book says <span class="bookref">(p.&nbsp;132&ndash;133)</span></div>
+<p>&ldquo;&hellip;it has grown slightly in this chapter, <em>not just to register our new repositories</em>, but also to register our strategy patterns shown here&rdquo; &mdash; and then the printed snippet <strong>only</strong> shows:</p>
+<pre><code>services.AddTransient&lt;<span class="type">ScreenManager</span>&gt;();
+services.AddTransient&lt;<span class="type">OverworldScreen</span>&gt;();
+services.AddTransient&lt;<span class="type">BattleScreen</span>&gt;();
+services.AddTransient&lt;<span class="type">PlayerParty</span>&gt;(m =&gt; { ... });
+services.AddKeyedTransient&lt;<span class="type">IBattleStrategy</span>, <span class="type">EnemyTurnStrategy</span>&gt;(serviceKey: <span class="str">"Enemy"</span>);
+services.AddKeyedTransient&lt;<span class="type">IBattleStrategy</span>, <span class="type">PlayerTurnStrategy</span>&gt;(serviceKey: <span class="str">"Player"</span>);</code></pre>
+<div class="label">What's missing (the four it claims to register)</div>
+<pre><code>services.AddSingleton&lt;<span class="type">EnemyRepository</span>&gt;();
+services.AddSingleton&lt;<span class="type">IEncounterProvider</span>, <span class="type">EncounterRepository</span>&gt;();   <span class="cmt">// interface &rarr; impl!</span>
+services.AddSingleton&lt;<span class="type">PartyRepository</span>&gt;();
+services.AddSingleton&lt;<span class="type">AbilityRepository</span>&gt;();</code></pre>
+<p><span class="hit">This is the exact &ldquo;Unable to resolve service for type <code class="il">IEncounterProvider</code>&rdquo; crash we debugged</span> &mdash; and fixing it revealed the cascade (each repo needs <em>its</em> dependencies registered too).</p>
+</div>
+
+<!-- ===================================================== -->
+<h2 id="gotchas">5 &mdash; Behavioural gotchas the book never flags</h2>
+<div class="tbl-wrap"><table>
+<thead><tr><th>#</th><th>Gotcha</th><th>Why it matters</th></tr></thead>
+<tbody>
+<tr><td>G13</td><td><strong>System.Text.Json silently ignores unmatched keys.</strong></td><td>No error, no warning &mdash; the property just stays at its default. Root cause of the <code class="il">Party.json</code> &ldquo;never get a turn&rdquo; bug. When stats &ldquo;don't take,&rdquo; suspect a key-name mismatch first.</td></tr>
+<tr><td>G14</td><td><strong><code class="il">[FromKeyedServices("Player")]</code> keys are magic strings</strong> and need the DI <em>Abstractions</em> package (G2b).</td><td>A typo (<code class="il">"Players"</code>) compiles fine and throws only at resolution. The string at the injection site must exactly match the <code class="il">serviceKey</code> at registration.</td></tr>
+<tr><td>G15</td><td><strong>Records + <code class="il">with</code> carry the get-only <code class="il">Strategy</code>.</strong></td><td><code class="il">EncounterRepository</code> spawns clones via <code class="il">enemy with { Name = &hellip; }</code>; this works only because <code class="il">Combatant</code> is a <code class="il">record</code> (the copy constructor carries every member, including <code class="il">{ get; }</code>-only ones).</td></tr>
+<tr><td>G16</td><td><strong><code class="il">IMapEntity.Move</code> is a default interface method.</strong></td><td>Only callable through an <code class="il">IMapEntity</code>-typed reference, not a concrete <code class="il">PlayerParty</code>. The book moves the party via an interface-typed local in <code class="il">OverworldScreen</code>; calling it on the concrete type (as we tried) is a compile error.</td></tr>
+</tbody>
+</table></div>
+
+<!-- ===================================================== -->
+<h2 id="yours">6 &mdash; For the record: bugs that were ours, not the book's</h2>
+<p>To be fair to the book, several things we fought were <em>our own</em> divergences from it. Worth knowing which is which, so you don't &ldquo;fix&rdquo; the book when the gap was self-inflicted:</p>
+<div class="tbl-wrap"><table>
+<thead><tr><th>Ours</th><th>The book's version</th></tr></thead>
+<tbody>
+<tr><td><code class="il">Base*</code> stat names + level-scaling in <code class="il">CombatantData</code></td><td>Book uses absolute <code class="il">MaxHealth</code>/<code class="il">Speed</code>/&hellip; everywhere &mdash; internally consistent. Our <code class="il">Base*</code> rename is a fine idea, but then <em>all</em> data files (incl. <code class="il">Party.json</code>) must use <code class="il">Base*</code> too.</td></tr>
+<tr><td><code class="il">required</code> on <code class="il">Combatant.Name</code>/<code class="il">AsciiArt</code> &rarr; needed <code class="il">[SetsRequiredMembers]</code></td><td>Book's <code class="il">Combatant</code> does <em>not</em> mark those <code class="il">required</code>, so its constructor needs no attribute.</td></tr>
+<tr><td><code class="il">MoveParty</code> on <code class="il">GameManager</code> &rarr; ran into the G16 DIM issue</td><td>Book has no <code class="il">MoveParty</code>; the party moves in <code class="il">OverworldScreen</code> through an <code class="il">IMapEntity</code> reference.</td></tr>
+<tr><td>Damage typo <code class="il">Health -= Math.Max(0, Health - amount)</code></td><td>Book is correct: <code class="il">Health = Math.Max(0, Health - amount)</code>.</td></tr>
+<tr><td><code class="il">AdvanceTime</code> decrementing dead members</td><td>Book filters <code class="il">.Where(m =&gt; !m.IsDead)</code> (harmless, but tidier).</td></tr>
+</tbody>
+</table></div>
+
+<!-- ===================================================== -->
+<h2 id="checklist">7 &mdash; Build-from-the-book checklist</h2>
+<p>If you ever redo Chapter 4 from scratch, here's the order that avoids the gaps above:</p>
+<ol>
+  <li><strong>Create the <code class="il">CombatSystem</code> class library</strong> and add it to the solution (G1).</li>
+  <li><strong>Wire the csprojs:</strong> Domain &rarr; references CombatSystem + Overworld, add <code class="il">DependencyInjection.Abstractions</code>, add the <code class="il">Data\*.json</code> copy rule (G2). Confirm ConsoleApp references + packages (G3).</li>
+  <li><strong>Add <code class="il">GlobalUsings.cs</code></strong> to ConsoleApp (G4) &mdash; or be ready to add per-file usings.</li>
+  <li><strong>Combat types</strong> in CombatSystem: <code class="il">ICombatGroup</code>, <code class="il">IBattleStrategy</code>, <code class="il">Trait</code>, <code class="il">Ability</code> (+ <code class="il">CalculateAmount</code>), <code class="il">CombatantData</code>, <code class="il">Combatant</code> (+ constructor), <code class="il">EncounterInfo</code>, <code class="il">EncounterEnemyInfo</code>, <code class="il">Battle</code>, <code class="il">EnemyTurnStrategy</code>.</li>
+  <li><strong>Domain types:</strong> <code class="il">GameStatus</code> with <code class="il">Combat</code> (G7); <code class="il">EnemyGroup</code>; make <code class="il">PlayerParty</code> implement <code class="il">ICombatGroup</code> (G8); update <code class="il">GameManager</code> (Battle property + encounters field, G9).</li>
+  <li><strong>Repositories</strong> (Domain/Repositories): <code class="il">FileRepositoryBase</code> (prefer <code class="il">AppContext.BaseDirectory</code> + null handling, G10), <code class="il">IEncounterProvider</code> (G5), <code class="il">EncounterRepository</code>, <code class="il">EnemyRepository</code>, <code class="il">AbilityRepository</code> (G6), <code class="il">PartyRepository</code>.</li>
+  <li><strong>Data files</strong> in Domain/Data: <code class="il">Enemies.json</code>, <code class="il">Encounters.json</code>, the <em>full</em> <code class="il">Abilities.json</code>, and <code class="il">Party.json</code> &mdash; all with keys matching your <code class="il">CombatantData</code> (G11, G13).</li>
+  <li><strong>ConsoleApp:</strong> <code class="il">BattleScreen</code>, <code class="il">CombatGroupRenderer</code>, <code class="il">PlayerTurnStrategy</code> (in <code class="il">Input/</code>), hook into <code class="il">ScreenManager</code>.</li>
+  <li><strong><code class="il">Program.cs</code> DI:</strong> register the four repositories <em>and</em> the keyed strategies (G12). Make the loop <code class="il">await</code> the async <code class="il">RunAsync</code>.</li>
+  <li><strong>Run</strong> with the working directory at the build output (or use <code class="il">AppContext.BaseDirectory</code> so it doesn't matter).</li>
+</ol>
+
+<blockquote>The throughline: the book is a <em>narrative</em>, not a build script. It shows the code worth discussing and leans on the GitHub repo for the wiring. For a build-it-yourself learner, the answer-key project is the missing other half &mdash; treat the two as one source.</blockquote>
+
+</div>
+</body>
+</html>
