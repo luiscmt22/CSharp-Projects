@@ -69,7 +69,7 @@ public class Battle
             return $"{target.Name} heals for {amount}!";
         }
 
-        target.Health -= Math.Max(0, target.Health - amount);
+        target.Health = Math.Max(0, target.Health - amount);
         return target.IsDead
             ? $"{target.Name} takes {amount} damage and dies!"
             : $"{target.Name} takes {amount} damage";
