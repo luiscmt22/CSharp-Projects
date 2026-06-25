@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Object Mapping &mdash; AutoMapper vs Mapperly vs Manual</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {
+  --bg: #0b1220; --surface: #111a2e; --surface-2: #16223c; --border: #243352;
+  --text: #e6ecf5; --text-dim: #9aa7c0; --accent: #6aa6ff; --accent-2: #b06aff;
+  --code-bg: #0a1120; --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif; }
+.wrap { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 28px; }
+header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
+header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
+header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
+h1, h2, h3, h4 { color: var(--text); margin-top: 1.6em; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+a { color: var(--accent); }
+code, pre, code.il { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; border: 1px solid var(--border); }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55; }
+pre code { background: transparent; border: 0; padding: 0; }
+blockquote { border-left: 3px solid var(--accent); background: var(--surface);
+  padding: 10px 16px; margin: 12px 0; color: var(--text-dim); border-radius: 0 6px 6px 0; }
+.tbl-wrap { overflow-x: auto; margin: 14px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+th { background: var(--surface-2); }
+tr:nth-child(even) td { background: var(--surface); }
+.callout { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent-2);
+  padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; }
+.callout.warn { border-left-color: var(--warn); }
+.callout.ok   { border-left-color: var(--ok); }
+.callout.bad  { border-left-color: var(--bad); }
+.kw { color: #c792ea; } .type { color: #82aaff; } .str { color: #c3e88d; }
+.num { color: #f78c6c; } .cmt { color: #6c7a96; font-style: italic; }
+.toc { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; margin: 18px 0 28px; font-size: 14px; }
+.toc ol { margin: 6px 0; padding-left: 22px; } .toc li { margin: 2px 0; }
+.toc a { text-decoration: none; } .toc a:hover { text-decoration: underline; }
+.yes { color: var(--ok); font-weight: 600; } .no { color: var(--bad); font-weight: 600; } .meh { color: var(--warn); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">C5 &rsaquo; docs</div>
+  <h1>Object mapping: AutoMapper vs Mapperly vs Manual</h1>
+  <div class="meta">Entity &harr; DTO mapping for the CardTracker API &mdash; the three approaches, and the compile-safe manual pattern in depth.</div>
+</header>
+
+<p>Every approach does the same job: turn an EF <strong>entity</strong> (e.g. <code class="il">User</code>) into a <strong>response DTO</strong> (<code class="il">UserResponse</code>) and a <strong>request DTO</strong> back into an entity. They differ in <em>when the mapping is written and resolved</em>: AutoMapper at <strong>runtime</strong> (reflection), Mapperly at <strong>compile time</strong> (source generator), Manual is <strong>you</strong>. That one difference drives every trade-off.</p>
+
+<div class="toc">
+  <strong>Contents</strong>
+  <ol>
+    <li><a href="#compare">The three approaches compared</a></li>
+    <li><a href="#why">Why manual (for this project)</a></li>
+    <li><a href="#pattern">The compile-safe manual pattern</a></li>
+    <li><a href="#ef">EF read endpoints (the one caveat)</a></li>
+    <li><a href="#poly">Polymorphic mapping (the card hierarchy)</a></li>
+    <li><a href="#limits">Guarantees &amp; their limits</a></li>
+    <li><a href="#graduate">When to graduate to Mapperly</a></li>
+  </ol>
+</div>
+
+<h2 id="compare">1 &mdash; The three approaches compared</h2>
+<div class="tbl-wrap"><table>
+<thead><tr><th>Dimension</th><th>AutoMapper</th><th>Mapperly</th><th>Manual</th></tr></thead>
+<tbody>
+<tr><td>Mechanism</td><td>reflection / expression trees at runtime</td><td>Roslyn source generator &rarr; plain C# at build</td><td>you write the assignments</td></tr>
+<tr><td>Performance</td><td class="no">slowest (startup + allocations)</td><td class="yes">~hand-written</td><td class="yes">fastest</td></tr>
+<tr><td>Compile-time safety</td><td class="no">runtime only (needs validation tests)</td><td class="yes">build diagnostics for unmapped members</td><td class="yes">yes, with <code class="il">required</code> DTOs</td></tr>
+<tr><td>Boilerplate</td><td class="yes">lowest</td><td class="meh">low</td><td class="no">highest</td></tr>
+<tr><td>Discoverability / refactor</td><td class="no">&ldquo;magic&rdquo; &mdash; find-usages misses it</td><td class="yes">generated, navigable C#</td><td class="yes">it's your code</td></tr>
+<tr><td>Debugging</td><td class="no">hard</td><td class="yes">step into generated code</td><td class="yes">trivial</td></tr>
+<tr><td>Dependency / license</td><td class="no">NuGet; newer versions <strong>commercial</strong>; 14.0.0 <strong>vuln</strong></td><td class="yes">free (Apache-2.0)</td><td class="yes">none</td></tr>
+<tr><td>AOT / trimming</td><td class="no">reflection-unfriendly</td><td class="yes">friendly</td><td class="yes">friendly</td></tr>
+<tr><td>EF SQL projection</td><td class="yes"><code class="il">ProjectTo</code></td><td class="yes">IQueryable projection</td><td class="yes">inline <code class="il">.Select(e =&gt; new Dto{...})</code></td></tr>
+<tr><td>Learning value</td><td class="no">low (hidden)</td><td class="meh">medium</td><td class="yes">high</td></tr>
+</tbody>
+</table></div>
+
+<h2 id="why">2 &mdash; Why manual (for this project)</h2>
+<ul>
+  <li><strong>AutoMapper is out</strong> three times over: it's vulnerable at 14.0.0, newer versions are commercially licensed, and it's on the &ldquo;never use&rdquo; list in my own conventions.</li>
+  <li><strong>The project is small</strong> (a handful of DTOs) &mdash; the boilerplate cost of manual is low and the clarity payoff is high.</li>
+  <li><strong>It's the best practice for the reps</strong> &mdash; you see exactly how entities relate to request/response DTOs.</li>
+  <li><strong>Mapperly is the scale-up path</strong> &mdash; reach for it when boilerplate starts to hurt; same performance &amp; safety, far less typing.</li>
+</ul>
+
+<h2 id="pattern">3 &mdash; The compile-safe manual pattern</h2>
+
+<h3>Step 1: <code class="il">required</code> on every response property</h3>
+<pre><code><span class="kw">public class</span> <span class="type">UserResponse</span>
+{
+    <span class="kw">public required int</span> Id { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public required string</span> Username { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public required bool</span> IsAdmin { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="cmt">// deliberately NO PasswordHash / Salt</span>
+}</code></pre>
+<p>Because every property is <code class="il">required</code>, any object initializer that builds a <code class="il">UserResponse</code> <strong>must</strong> set all of them. Add a <code class="il">required string Email</code> later and every mapping site stops compiling until you set <code class="il">Email</code>. That converts &ldquo;did I forget to map it?&rdquo; into a <strong>compile error</strong>.</p>
+
+<div class="callout ok"><strong>Security win.</strong> You explicitly choose what leaves the API. <code class="il">PasswordHash</code>/<code class="il">Salt</code> simply aren't on the response. AutoMapper's name-convention mapping can leak a field if a matching property exists; manual makes data exposure a reviewable decision.</div>
+
+<h3>Step 2: map with an extension method</h3>
+<pre><code><span class="kw">public static class</span> <span class="type">UserMappings</span>
+{
+    <span class="kw">public static</span> <span class="type">UserResponse</span> ToResponse(<span class="kw">this</span> <span class="type">User</span> user) =&gt; <span class="kw">new</span>()
+    {
+        Id = user.Id,
+        Username = user.Username,
+        IsAdmin = user.IsAdmin,
+    };
+}</code></pre>
+<pre><code><span class="cmt">// in an endpoint &mdash; collections just Select</span>
+<span class="type">List</span>&lt;<span class="type">User</span>&gt; users = <span class="kw">await</span> db.Users.ToListAsync();
+<span class="kw">return</span> users.Select(u =&gt; u.ToResponse());</code></pre>
+<p>Put these in a <code class="il">Mapping/</code> folder. Request &rarr; entity goes the other way (<code class="il">CreateUserRequest.ToEntity()</code>), but be careful there: never trust client-supplied <code class="il">Id</code> or computed fields.</p>
+
+<h2 id="ef">4 &mdash; EF read endpoints (the one caveat)</h2>
+<p>You <strong>cannot</strong> call <code class="il">.ToResponse()</code> inside an EF <code class="il">.Select</code> &mdash; EF can't translate a custom method to SQL (it throws, or worse, silently client-evaluates). For read endpoints where you want SQL to fetch only the columns you need, <strong>inline the initializer</strong> (still <code class="il">required</code>-checked):</p>
+<pre><code><span class="kw">var</span> users = <span class="kw">await</span> db.Users
+    .Select(u =&gt; <span class="kw">new</span> <span class="type">UserResponse</span> { Id = u.Id, Username = u.Username, IsAdmin = u.IsAdmin })
+    .ToListAsync();</code></pre>
+<p>Rule of thumb: <strong>extension method</strong> for already-materialised entities; <strong>inline <code class="il">new {...}</code></strong> for <code class="il">IQueryable</code>/SQL projection. (Advanced: share one <code class="il">static readonly Expression&lt;Func&lt;User, UserResponse&gt;&gt;</code> and pass it to <code class="il">.Select(...)</code> &mdash; EF translates expressions, just not arbitrary method calls.)</p>
+
+<h2 id="poly">5 &mdash; Polymorphic mapping (the card hierarchy)</h2>
+<p>This is where manual mapping is actually <em>clearer</em> than AutoMapper's polymorphic config &mdash; a <code class="il">switch</code> on the runtime type:</p>
+<pre><code><span class="kw">public abstract class</span> <span class="type">CardResponse</span> {
+    <span class="kw">public required int</span> Id { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public required string</span> Name { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public string</span>? Description { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public string</span>? ImagePath { <span class="kw">get</span>; <span class="kw">init</span>; }
+}
+<span class="kw">public class</span> <span class="type">ActionCardResponse</span>   : <span class="type">CardResponse</span> { <span class="kw">public required string</span> Effect { <span class="kw">get</span>; <span class="kw">init</span>; } }
+<span class="kw">public class</span> <span class="type">CreatureCardResponse</span> : <span class="type">CardResponse</span> {
+    <span class="kw">public required int</span> SummonCost { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public required int</span> Power { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public required bool</span> CanFly { <span class="kw">get</span>; <span class="kw">init</span>; }
+}
+
+<span class="kw">public static class</span> <span class="type">CardMappings</span>
+{
+    <span class="kw">public static</span> <span class="type">CardResponse</span> ToResponse(<span class="kw">this</span> <span class="type">Card</span> card) =&gt; card <span class="kw">switch</span>
+    {
+        <span class="type">ActionCard</span> a   =&gt; <span class="kw">new</span> <span class="type">ActionCardResponse</span>   { Id=a.Id, Name=a.Name, Description=a.Description, ImagePath=a.ImagePath, Effect=a.Effect },
+        <span class="type">CreatureCard</span> c =&gt; <span class="kw">new</span> <span class="type">CreatureCardResponse</span> { Id=c.Id, Name=c.Name, Description=c.Description, ImagePath=c.ImagePath, SummonCost=c.SummonCost, Power=c.Power, CanFly=c.CanFly },
+        _ =&gt; <span class="kw">throw new</span> <span class="type">ArgumentOutOfRangeException</span>(<span class="kw">nameof</span>(card), <span class="str">$"Unmapped card type {card.GetType().Name}"</span>)
+    };
+}</code></pre>
+<p>(Match the subtype properties to your real <code class="il">ActionCard</code>/<code class="il">CreatureCard</code>.)</p>
+
+<h2 id="limits">6 &mdash; Guarantees &amp; their limits (be honest)</h2>
+<div class="tbl-wrap"><table>
+<thead><tr><th>Mistake</th><th>Caught?</th><th>How</th></tr></thead>
+<tbody>
+<tr><td>Forgot to map a <strong>property</strong></td><td class="yes">compile error</td><td><code class="il">required</code> forces the initializer to set it</td></tr>
+<tr><td>Added a property to the entity but not the DTO</td><td class="meh">by design</td><td>DTOs are deliberate &mdash; not everything should be exposed</td></tr>
+<tr><td>Forgot to handle a new <strong>subtype</strong></td><td class="no">runtime only</td><td>C# doesn't enforce exhaustive <code class="il">switch</code> over a class hierarchy &mdash; the <code class="il">_ =&gt; throw</code> arm catches it at runtime</td></tr>
+</tbody>
+</table></div>
+<p>The <code class="il">required</code> trick closes the &ldquo;forgot a property&rdquo; gap that plagues both manual-without-required <em>and</em> AutoMapper-without-validation. The subtype gap is the one thing it doesn't cover &mdash; if a closed hierarchy grows often, a discriminator <code class="il">enum</code> + switch expression gives you compile-time exhaustiveness warnings instead.</p>
+
+<h2 id="graduate">7 &mdash; When to graduate to Mapperly</h2>
+<p>Stay manual while the DTO set is small and the mappings are mostly 1:1 &mdash; the clarity and zero-dependency story win. Switch to <strong>Mapperly</strong> when:</p>
+<ul>
+  <li>the per-property boilerplate starts to dominate (many DTOs, many fields), or</li>
+  <li>you have deep nested graphs where hand-mapping gets error-prone.</li>
+</ul>
+<p>Mapperly keeps the manual approach's performance and compile-time safety (it even emits a diagnostic for unmapped members automatically) while writing the bodies for you &mdash; and it's free and AOT-friendly, unlike AutoMapper. You'd declare a <code class="il">[Mapper] public partial class</code> with partial method signatures and let the generator fill them in.</p>
+
+<blockquote>Bottom line: <strong>manual + <code class="il">required</code> DTOs now</strong> (small project, best reps, compile-safe), <strong>Mapperly as the scale-up</strong>, <strong>AutoMapper not at all</strong>.</blockquote>
+
+</div>
+</body>
+</html>

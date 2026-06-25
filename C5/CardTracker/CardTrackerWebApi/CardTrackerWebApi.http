@@ -1,0 +1,7 @@
+@BaseUrl = http://localhost:5180
+
+### 418 I'm a Teapot demo
+GET {{BaseUrl}}/tea
+
+### Home
+GET {{BaseUrl}}/

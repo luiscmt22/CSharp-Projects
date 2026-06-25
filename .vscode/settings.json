@@ -1,3 +1,9 @@
 {
-    "files.autoSave": "onFocusChange"
+    "files.autoSave": "onFocusChange",
+    "rest-client.environmentVariables": {
+			"$shared": { "BaseUrl": "http://localhost:5180" },
+			"local":   { "BaseUrl": "http://localhost:5180" },
+			"qa":      { "BaseUrl": "https://qa.cardtracker.example.com" },
+			"prod":    { "BaseUrl": "https://api.cardtracker.example.com" }
+    	}
 }

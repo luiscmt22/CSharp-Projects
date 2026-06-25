@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mapperly &mdash; Source-Generated Mapping (Guided Setup)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {
+  --bg: #0b1220; --surface: #111a2e; --surface-2: #16223c; --border: #243352;
+  --text: #e6ecf5; --text-dim: #9aa7c0; --accent: #6aa6ff; --accent-2: #b06aff;
+  --code-bg: #0a1120; --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif; }
+.wrap { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 28px; }
+header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
+header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
+header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
+h1, h2, h3, h4 { color: var(--text); margin-top: 1.6em; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+a { color: var(--accent); }
+code, pre, code.il { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; border: 1px solid var(--border); }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55; }
+pre code { background: transparent; border: 0; padding: 0; }
+blockquote { border-left: 3px solid var(--accent); background: var(--surface);
+  padding: 10px 16px; margin: 12px 0; color: var(--text-dim); border-radius: 0 6px 6px 0; }
+.callout { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent-2);
+  padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; }
+.callout.warn { border-left-color: var(--warn); }
+.callout.ok   { border-left-color: var(--ok); }
+.observe { background: rgba(74,222,128,0.06); border: 1px solid var(--border); border-left: 3px solid var(--ok);
+  padding: 10px 14px; margin: 12px 0; border-radius: 0 6px 6px 0; font-size: 14px; }
+.observe strong { color: var(--ok); }
+.step { color: var(--accent); font-family: "JetBrains Mono", monospace; }
+.kw { color: #c792ea; } .type { color: #82aaff; } .str { color: #c3e88d; }
+.num { color: #f78c6c; } .cmt { color: #6c7a96; font-style: italic; }
+.toc { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; margin: 18px 0 28px; font-size: 14px; }
+.toc ol { margin: 6px 0; padding-left: 22px; } .toc li { margin: 2px 0; }
+.toc a { text-decoration: none; } .toc a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">C5 &rsaquo; docs</div>
+  <h1>Mapperly &mdash; source-generated mapping</h1>
+  <div class="meta">A guided, do-it-yourself setup for the CardTracker API. Companion to <a href="Object_Mapping_Approaches.html">Object Mapping Approaches</a> (the why &amp; the AutoMapper/Mapperly/manual comparison).</div>
+</header>
+
+<h2 id="model">0 &mdash; The mental model</h2>
+<p>Mapperly is a <strong>Roslyn source generator</strong>. You write a <code class="il">partial</code> method <em>signature with no body</em>; at <strong>build time</strong> it generates the body (plain C#) into a hidden <code class="il">.g.cs</code> file. So:</p>
+<blockquote><strong>You write the signature; the build writes the body.</strong></blockquote>
+<p>That's the whole difference from AutoMapper: the mapping exists at <em>compile time</em> (fast, checkable, debuggable), not via runtime reflection. Learning Mapperly is also your first hands-on with how source generators integrate &mdash; a skill that transfers to <code class="il">System.Text.Json</code> source-gen, <code class="il">[GeneratedRegex]</code>, <code class="il">[LoggerMessage]</code>, and AOT.</p>
+
+<div class="toc">
+  <strong>Steps</strong>
+  <ol>
+    <li><a href="#install">Add the package</a></li>
+    <li><a href="#declare">Declare a mapper (signature only)</a></li>
+    <li><a href="#diagnostics">Make it complain on purpose (the safety net)</a></li>
+    <li><a href="#inspect">See the generated code</a></li>
+    <li><a href="#use">Use it (DI or static)</a></li>
+    <li><a href="#projection">EF projection (IQueryable &rarr; SQL)</a></li>
+    <li><a href="#poly">Polymorphism (the Card hierarchy)</a></li>
+    <li><a href="#custom">Custom mappings &amp; strictness</a></li>
+  </ol>
+</div>
+
+<h2 id="install"><span class="step">1</span> &mdash; Add the package</h2>
+<p>From <code class="il">CardTrackerWebApi/</code>:</p>
+<pre><code>dotnet add package Riok.Mapperly</code></pre>
+<p>One package: it carries both the generator and the attributes (<code class="il">Riok.Mapperly.Abstractions</code>). No runtime reflection engine ships with your app.</p>
+
+<h2 id="declare"><span class="step">2</span> &mdash; Declare a mapper (signature only)</h2>
+<p>Create <code class="il">Mappings/UserMapper.cs</code>:</p>
+<pre><code><span class="kw">using</span> Riok.Mapperly.Abstractions;
+
+<span class="kw">namespace</span> CardTrackerWebApi.Mappings;
+
+[<span class="type">Mapper</span>]
+<span class="kw">public partial class</span> <span class="type">UserMapper</span>
+{
+    <span class="kw">public partial</span> <span class="type">UserResponse</span> ToResponse(<span class="type">User</span> user);
+}</code></pre>
+<ul>
+  <li><code class="il">[Mapper]</code> tells the generator to implement the partial methods in this class.</li>
+  <li><code class="il">partial class</code> + <code class="il">partial</code> method, <strong>no body</strong> &mdash; you leave a blank; the generator fills it.</li>
+</ul>
+<div class="observe"><strong>Observe:</strong> build it &mdash; it compiles despite no body. Then <strong>F12 / Go-to-Definition on <code class="il">ToResponse</code></strong> to jump into the generated file. Read it: it's a plain <code class="il">new UserResponse { Id = user.Id, ... }</code>. Seeing that is the point &mdash; you trust the tool because it's just the code you'd have typed.</div>
+
+<h2 id="diagnostics"><span class="step">3</span> &mdash; Make it complain on purpose (the safety net)</h2>
+<p>Your <code class="il">UserResponse</code> deliberately omits <code class="il">PasswordHash</code>/<code class="il">Salt</code>, so <code class="il">User</code> has source members with no target.</p>
+<div class="observe"><strong>Observe:</strong> the build emits a diagnostic (the <code class="il">RMGxxx</code> family, e.g. <code class="il">RMG020</code>) warning that <code class="il">PasswordHash</code>/<code class="il">Salt</code>/<code class="il">Decks</code> aren't mapped. That's it flagging "you might be silently dropping data" &mdash; the exact thing AutoMapper does <em>silently</em>.</div>
+<p>Tell it the omission is intentional:</p>
+<pre><code>[<span class="type">MapperIgnoreSource</span>(<span class="kw">nameof</span>(<span class="type">User</span>.PasswordHash))]
+[<span class="type">MapperIgnoreSource</span>(<span class="kw">nameof</span>(<span class="type">User</span>.Salt))]
+<span class="kw">public partial</span> <span class="type">UserResponse</span> ToResponse(<span class="type">User</span> user);</code></pre>
+<div class="callout ok"><strong>The lesson:</strong> Mapperly makes "don't expose secrets" a deliberate, reviewable line of code &mdash; not an accident. (Use <code class="il">[MapperIgnoreTarget(...)]</code> for the reverse: a target member you intend to leave unset.)</div>
+<div class="observe"><strong>Observe the other direction:</strong> temporarily add <code class="il">public required string Email { get; init; }</code> to <code class="il">UserResponse</code> and rebuild. Mapperly errors &mdash; the target has no source, and it's <code class="il">required</code>. That's your compile-time "did I forget a property?" guarantee firing. Then remove it.</div>
+
+<h2 id="inspect"><span class="step">4</span> &mdash; See the generated code on disk</h2>
+<p>Add to the csproj (temporarily):</p>
+<pre><code>&lt;<span class="type">PropertyGroup</span>&gt;
+  &lt;<span class="type">EmitCompilerGeneratedFiles</span>&gt;<span class="kw">true</span>&lt;/<span class="type">EmitCompilerGeneratedFiles</span>&gt;
+&lt;/<span class="type">PropertyGroup</span>&gt;</code></pre>
+<p>Rebuild, then read <code class="il">obj/Debug/net10.0/generated/Riok.Mapperly/&hellip;/UserMapper.g.cs</code>. Once you've seen "it's just C#," remove the property again. This is the moment source generators click.</p>
+
+<h2 id="use"><span class="step">5</span> &mdash; Use it</h2>
+<p>A Mapperly mapper is a normal, stateless class. Register it for DI:</p>
+<pre><code><span class="cmt">// Program.cs</span>
+builder.Services.AddSingleton&lt;<span class="type">UserMapper</span>&gt;();</code></pre>
+<p>Then inject it and call <code class="il">mapper.ToResponse(user)</code>. <code class="il">Singleton</code> is right &mdash; it holds no state. Prefer no DI? Make it static instead:</p>
+<pre><code>[<span class="type">Mapper</span>]
+<span class="kw">public static partial class</span> <span class="type">UserMapper</span>
+{
+    <span class="kw">public static partial</span> <span class="type">UserResponse</span> ToResponse(<span class="type">User</span> user);
+}
+<span class="cmt">// call: UserMapper.ToResponse(user)</span></code></pre>
+
+<h2 id="projection"><span class="step">6</span> &mdash; EF projection (IQueryable &rarr; SQL)</h2>
+<p>For read endpoints you want the mapping to run <em>in SQL</em> (select only needed columns), not after loading whole entities. Mapperly generates a queryable projection if you declare a method over <code class="il">IQueryable</code>:</p>
+<pre><code>[<span class="type">Mapper</span>]
+<span class="kw">public partial class</span> <span class="type">UserMapper</span>
+{
+    <span class="kw">public partial</span> <span class="type">UserResponse</span> ToResponse(<span class="type">User</span> user);                       <span class="cmt">// in-memory</span>
+    <span class="kw">public partial</span> <span class="type">IQueryable</span>&lt;<span class="type">UserResponse</span>&gt; ProjectToResponses(<span class="type">IQueryable</span>&lt;<span class="type">User</span>&gt; users); <span class="cmt">// SQL-side</span>
+}</code></pre>
+<pre><code><span class="kw">var</span> users = <span class="kw">await</span> mapper.ProjectToResponses(db.Users.Where(u =&gt; u.IsAdmin)).ToListAsync();</code></pre>
+<p>Mapperly generates a <code class="il">.Select(u =&gt; new UserResponse { ... })</code> expression that EF Core translates to SQL. (Contrast: the plain <code class="il">ToResponse</code> method can't be used inside an EF <code class="il">.Select</code> &mdash; that's why the projection overload exists.)</p>
+
+<h2 id="poly"><span class="step">7</span> &mdash; Polymorphism (the Card hierarchy)</h2>
+<p>For <code class="il">Card</code> &rarr; <code class="il">CardResponse</code> with <code class="il">ActionCard</code>/<code class="il">CreatureCard</code> subtypes, tell Mapperly the derived pairs:</p>
+<pre><code>[<span class="type">Mapper</span>]
+<span class="kw">public partial class</span> <span class="type">CardMapper</span>
+{
+    [<span class="type">MapDerivedType</span>&lt;<span class="type">ActionCard</span>, <span class="type">ActionCardResponse</span>&gt;]
+    [<span class="type">MapDerivedType</span>&lt;<span class="type">CreatureCard</span>, <span class="type">CreatureCardResponse</span>&gt;]
+    <span class="kw">public partial</span> <span class="type">CardResponse</span> ToResponse(<span class="type">Card</span> card);
+}</code></pre>
+<p>Mapperly generates the runtime type switch (and the per-subtype property mapping). <strong>Limit (same as a hand-written switch):</strong> add a new <code class="il">Card</code> subtype and forget to list it &rarr; it throws at runtime, not a compile error. C# can't enforce exhaustiveness over a class hierarchy.</p>
+
+<h2 id="custom"><span class="step">8</span> &mdash; Custom mappings &amp; strictness</h2>
+<ul>
+  <li><strong>Rename / different names:</strong> <code class="il">[MapProperty(nameof(Src.OldName), nameof(Tgt.NewName))]</code> on the method.</li>
+  <li><strong>Flattening:</strong> Mapperly auto-flattens by convention (e.g. <code class="il">Source.User.Name</code> &rarr; <code class="il">Target.UserName</code>); use <code class="il">[MapProperty]</code> with a path when it can't guess.</li>
+  <li><strong>Custom logic:</strong> add a normal private method in the mapper with the right signature; Mapperly calls it for that type pair.</li>
+  <li><strong>Make unmapped a hard error:</strong> bump the diagnostic severity in <code class="il">.editorconfig</code>, e.g. <code class="il">dotnet_diagnostic.RMG020.severity = error</code> &mdash; turns "you forgot a member" from warning into build failure project-wide.</li>
+</ul>
+
+<div class="callout warn"><strong>Source-generator gotcha:</strong> if IntelliSense shows errors on a freshly-changed mapper, do a build &mdash; generated code refreshes on build, and the IDE sometimes lags. If a mapping won't generate, check the build <em>output</em> for the <code class="il">RMGxxx</code> diagnostic; it usually tells you exactly which member it couldn't map.</div>
+
+<blockquote>Recap: write the <code class="il">partial</code> signature &rarr; build writes the body &rarr; read the generated C# &rarr; let the diagnostics keep you honest. You get hand-written performance and compile-time safety with almost no boilerplate &mdash; and you've learned how source generators work along the way.</blockquote>
+
+</div>
+</body>
+</html>
