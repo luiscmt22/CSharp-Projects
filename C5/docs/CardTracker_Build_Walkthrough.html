@@ -434,6 +434,45 @@ Content-Type: application/json
 ### get all
 GET {{BaseUrl}}/cards</code></pre>
 
+<h3>Authenticating protected requests (once auth lands)</h3>
+<p>Create/delete sit behind <code class="il">.RequireAuthorization("AdminOnly")</code>, so once the auth phase exists you'll need a <strong>JWT bearer token</strong> on those calls. The book logs in once and reuses the token &mdash; but <em>how</em> you capture it differs by editor.</p>
+
+<p class="file">The book (Rider / Visual Studio) &mdash; a response-handler script</p>
+<pre><code>### Login
+POST {{BaseUrl}}/login
+Content-Type: application/json
+
+{ "username": "admin", "password": "PacktBooks" }
+
+&gt; {% client.global.set("auth_token", response.body.token); %}
+
+### later: reuse it
+POST {{BaseUrl}}/cards
+Authorization: Bearer {{auth_token}}
+...</code></pre>
+<div class="diverge"><strong>Divergence (VS Code):</strong> the <code class="il">&gt; {% &hellip; %}</code> response handler and <code class="il">client.global.set</code> are Rider/VS-only &mdash; the VS Code <strong>REST Client</strong> extension ignores them, so <code class="il">{{auth_token}}</code> never gets set. Use a <strong>named request</strong> instead.</div>
+
+<p class="file">Our way (VS Code REST Client) &mdash; name the request, read its response</p>
+<pre><code># @name login
+POST {{BaseUrl}}/login
+Content-Type: application/json
+
+{ "username": "admin", "password": "PacktBooks" }
+
+### protected request reuses the token from the named "login"
+POST {{BaseUrl}}/cards
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.token}}
+
+{
+  "type": "Action",
+  "name": "Just win the game already",
+  "effect": "Automatically wins the game",
+  "cost": 1
+}</code></pre>
+<p><code class="il">{{login.response.body.$.token}}</code> pulls the <code class="il">token</code> field (JSONPath <code class="il">$.token</code>) out of the named <code class="il">login</code> request's last response. Same caveat the book notes: <strong>send <code class="il">login</code> first</strong>, then every request referencing it is authenticated. (Note <code class="il">"type"</code> is first in the body &mdash; the <code class="il">[JsonPolymorphic]</code> constraint.)</p>
+<div class="callout warn"><strong>Secrets &amp; the public repo:</strong> the throwaway test-admin creds above are fine to commit. But <code class="il">.vscode/settings.json</code> <em>is</em> tracked in this repo &mdash; never put a real token/key in <code class="il">rest-client.environmentVariables</code> there. Real secrets belong in VS Code <strong>User</strong> settings (outside any repo).</div>
+
 <!-- ============ PHASE 9 ============ -->
 <h2 id="p9">10 &mdash; Still to come: authentication</h2>
 <p class="wip">Not built yet &mdash; this is the next stretch (book ~p.171+). When we get there it adds:</p>

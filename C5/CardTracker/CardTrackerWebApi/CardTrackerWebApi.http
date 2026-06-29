@@ -1,4 +1,4 @@
-@BaseUrl = http://localhost:5180
+//@BaseUrl = http://localhost:5180
 @auth_token = ""
 
 ### 418 I'm a Teapot demo
