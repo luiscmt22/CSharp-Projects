@@ -1,7 +1,21 @@
 @BaseUrl = http://localhost:5180
+@auth_token = ""
 
 ### 418 I'm a Teapot demo
 GET {{BaseUrl}}/tea
 
 ### Home
 GET {{BaseUrl}}/
+
+### Create an action card
+POST {{BaseUrl}}/cards
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+{
+"type": "Action",
+"name": "Just win the game already",
+"description": "For when you really need to win",
+"imagePath": "Winning.png",
+"effect": "Automatically wins the game",
+"cost": 1
+}

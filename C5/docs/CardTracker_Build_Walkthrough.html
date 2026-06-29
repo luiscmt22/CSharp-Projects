@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CardTracker &mdash; Build Walkthrough (Our Variant)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {
+  --bg: #0b1220; --surface: #111a2e; --surface-2: #16223c; --border: #243352;
+  --text: #e6ecf5; --text-dim: #9aa7c0; --accent: #6aa6ff; --accent-2: #b06aff;
+  --code-bg: #0a1120; --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif; }
+.wrap { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 28px; }
+header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
+header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
+header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
+h1, h2, h3, h4 { color: var(--text); margin-top: 1.6em; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+a { color: var(--accent); }
+code, pre, code.il { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; border: 1px solid var(--border); }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.5; }
+pre code { background: transparent; border: 0; padding: 0; }
+blockquote { border-left: 3px solid var(--accent); background: var(--surface);
+  padding: 10px 16px; margin: 12px 0; color: var(--text-dim); border-radius: 0 6px 6px 0; }
+.tbl-wrap { overflow-x: auto; margin: 14px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+th { background: var(--surface-2); }
+.callout { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent-2);
+  padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; }
+.callout.warn { border-left-color: var(--warn); }
+.callout.ok   { border-left-color: var(--ok); }
+.diverge { background: rgba(176,106,255,0.07); border: 1px solid var(--border); border-left: 3px solid var(--accent-2);
+  padding: 8px 14px; margin: 12px 0; border-radius: 0 6px 6px 0; font-size: 14px; }
+.diverge strong { color: var(--accent-2); }
+.file { color: var(--accent); font-family: "JetBrains Mono", monospace; font-size: 13px; margin: 16px 0 4px; font-weight: 600; }
+.kw { color: #c792ea; } .type { color: #82aaff; } .str { color: #c3e88d; }
+.num { color: #f78c6c; } .cmt { color: #6c7a96; font-style: italic; }
+.toc { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; margin: 18px 0 28px; font-size: 14px; }
+.toc ol { margin: 6px 0; padding-left: 22px; } .toc li { margin: 2px 0; }
+.toc a { text-decoration: none; } .toc a:hover { text-decoration: underline; }
+.wip { background: rgba(251,191,36,0.08); border-left: 3px solid var(--warn); padding: 8px 12px; margin: 10px 0; border-radius: 0 4px 4px 0; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">C5 &rsaquo; docs</div>
+  <h1>CardTracker &mdash; build walkthrough (our variant)</h1>
+  <div class="meta">A complete, do-it-from-scratch recipe for the Chapter&nbsp;5 Web API <strong>the way we built it</strong> &mdash; which diverges from the book enough that neither the book nor the answer key will guide you here. Follow top to bottom and you'll have a building, runnable API.</div>
+</header>
+
+<div class="callout wip"><strong>Living document.</strong> Covers everything through the card CRUD endpoints (book ~p.160). The JWT auth section (Services / Settings / Login-User-Deck endpoints) is sketched at the end and will be filled in as we build it.</div>
+
+<h2 id="diverge">How our build differs from the book</h2>
+<div class="tbl-wrap"><table>
+<thead><tr><th>Concern</th><th>Book</th><th>Ours</th></tr></thead>
+<tbody>
+<tr><td>Object mapping</td><td>AutoMapper (reflection; vuln; commercial)</td><td><strong>Mapperly</strong> (source generator; free; compile-safe)</td></tr>
+<tr><td>Primary key</td><td><code class="il">[Key] int Id</code> repeated per entity</td><td><strong><code class="il">BaseEntity</code></strong> base class</td></tr>
+<tr><td>EF relationship config</td><td>inline in <code class="il">OnModelCreating</code></td><td><strong><code class="il">IEntityTypeConfiguration&lt;T&gt;</code></strong> classes + <code class="il">ApplyConfigurationsFromAssembly</code></td></tr>
+<tr><td>Polymorphic request JSON</td><td>custom <code class="il">JsonConverter</code></td><td><strong><code class="il">[JsonPolymorphic]</code></strong> (built-in System.Text.Json)</td></tr>
+<tr><td>Card inheritance in DB</td><td>tries TPH / TPT / TPC</td><td><strong>TPT</strong> (<code class="il">UseTptMappingStrategy()</code>)</td></tr>
+</tbody>
+</table></div>
+
+<div class="toc">
+  <strong>Phases</strong>
+  <ol>
+    <li><a href="#p0">Bootstrap the project</a></li>
+    <li><a href="#p1">The data model</a></li>
+    <li><a href="#p2">EF configuration &amp; DbContext</a></li>
+    <li><a href="#p3">Migrations</a></li>
+    <li><a href="#p4">DTOs (Responses &amp; Requests)</a></li>
+    <li><a href="#p5">Mapping with Mapperly</a></li>
+    <li><a href="#p6">Endpoints (REPR)</a></li>
+    <li><a href="#p7">Program.cs wiring</a></li>
+    <li><a href="#p8">Testing with .http</a></li>
+    <li><a href="#p9">Still to come: auth</a></li>
+  </ol>
+</div>
+
+<!-- ============ PHASE 0 ============ -->
+<h2 id="p0">1 &mdash; Bootstrap the project</h2>
+<p>From your chapter folder (<code class="il">C5/</code>):</p>
+<pre><code><span class="cmt"># solution + project inside a CardTracker wrapper folder</span>
+<span class="cmt"># (the wrapper matters: Ch.6 adds Contracts + Client projects beside the API)</span>
+mkdir CardTracker &amp;&amp; cd CardTracker
+dotnet new sln -n CardTracker          <span class="cmt"># use .slnx to match your other chapters</span>
+dotnet new web -n CardTrackerWebApi
+dotnet sln add CardTrackerWebApi
+cd CardTrackerWebApi</code></pre>
+<p>Add packages (note: <strong>Mapperly, not AutoMapper</strong>):</p>
+<pre><code>dotnet add package Microsoft.EntityFrameworkCore.Sqlite          -v 10.0.0
+dotnet add package Microsoft.EntityFrameworkCore.Design          -v 10.0.0
+dotnet add package Microsoft.EntityFrameworkCore.Tools           -v 10.0.0
+dotnet add package Microsoft.AspNetCore.OpenApi                  -v 10.0.0
+dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer -v 10.0.0   <span class="cmt"># for the auth phase</span>
+dotnet add package Riok.Mapperly                                              <span class="cmt"># NOT AutoMapper</span>
+dotnet tool install --global dotnet-ef                                        <span class="cmt"># once per machine</span></code></pre>
+<div class="diverge"><strong>Divergence:</strong> the book installs AutoMapper here. We don't &mdash; Mapperly replaces it. If AutoMapper crept into your csproj, remove it (<code class="il">dotnet remove package AutoMapper</code>); it also clears the NU1903 vulnerability.</div>
+
+<p class="file">appsettings.json &mdash; add the connection string</p>
+<pre><code><span class="str">"ConnectionStrings"</span>: {
+  <span class="str">"DefaultConnection"</span>: <span class="str">"Data Source=cardtracker.db"</span>
+}</code></pre>
+
+<p class="file">GlobalUsings.cs &mdash; <em>real</em> global usings (this file must contain directives, not a class)</p>
+<pre><code><span class="kw">global using</span> Microsoft.EntityFrameworkCore;
+<span class="kw">global using</span> System.ComponentModel.DataAnnotations;
+<span class="kw">global using</span> System.ComponentModel.DataAnnotations.Schema;
+<span class="kw">global using</span> CardTrackerWebApi.Models;
+<span class="kw">global using</span> CardTrackerWebApi.Models.Configuration;
+<span class="kw">global using</span> CardTrackerWebApi.Requests;
+<span class="kw">global using</span> CardTrackerWebApi.Responses;
+<span class="kw">global using</span> CardTrackerWebApi.Mappings;
+<span class="kw">global using</span> CardTrackerWebApi.Endpoints;</code></pre>
+<div class="callout warn"><strong>The recurring trap:</strong> a file <em>named</em> <code class="il">GlobalUsings.cs</code> is not special &mdash; it must hold <code class="il">global using</code> lines, not <code class="il">public class GlobalUsings { }</code>. With the block above, the per-file <code class="il">using</code>s shown later become optional.</div>
+
+<!-- ============ PHASE 1 ============ -->
+<h2 id="p1">2 &mdash; The data model</h2>
+
+<p class="file">Models/BaseEntity.cs</p>
+<pre><code><span class="kw">public abstract class</span> <span class="type">BaseEntity</span>
+{
+    [<span class="type">Key</span>, <span class="type">DatabaseGenerated</span>(<span class="type">DatabaseGeneratedOption</span>.Identity)]
+    <span class="kw">public int</span> Id { <span class="kw">get</span>; <span class="kw">set</span>; }
+}</code></pre>
+<div class="diverge"><strong>Divergence:</strong> one <code class="il">Id</code> for every entity instead of repeating <code class="il">[Key] int Id</code> in each class.</div>
+
+<p class="file">Models/User.cs</p>
+<pre><code>[<span class="type">Index</span>(<span class="kw">nameof</span>(Username), IsUnique = <span class="kw">true</span>)]
+<span class="kw">public class</span> <span class="type">User</span> : <span class="type">BaseEntity</span>
+{
+    <span class="kw">public required string</span> Username { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public required byte</span>[] PasswordHash { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public required byte</span>[] Salt { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public bool</span> IsAdmin { <span class="kw">get</span>; <span class="kw">set</span>; }
+}</code></pre>
+
+<p class="file">Models/Card.cs, ActionCard.cs, CreatureCard.cs</p>
+<pre><code><span class="kw">public abstract class</span> <span class="type">Card</span> : <span class="type">BaseEntity</span>
+{
+    <span class="kw">public required string</span> Name { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public string</span>? Description { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public string</span>? ImagePath { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public</span> <span class="type">List</span>&lt;<span class="type">Deck</span>&gt; Decks { <span class="kw">get</span>; <span class="kw">set</span>; } = [];   <span class="cmt">// inverse nav (EF only)</span>
+}
+
+<span class="kw">public class</span> <span class="type">ActionCard</span> : <span class="type">Card</span>
+{
+    <span class="kw">public required string</span> Effect { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public required int</span> Cost { <span class="kw">get</span>; <span class="kw">set</span>; }
+}
+
+<span class="kw">public class</span> <span class="type">CreatureCard</span> : <span class="type">Card</span>
+{
+    <span class="kw">public string</span>? SummonEffect { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public string</span>? PerTurnEffect { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public required int</span> SummonCost { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public required int</span> Power { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public bool</span> CanFly { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public bool</span> CanSwin { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public bool</span> CanClimb { <span class="kw">get</span>; <span class="kw">set</span>; }
+}</code></pre>
+
+<p class="file">Models/Deck.cs &amp; Models/CardDeck.cs</p>
+<pre><code><span class="kw">public class</span> <span class="type">Deck</span> : <span class="type">BaseEntity</span>
+{
+    <span class="kw">public required string</span> Name { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public required int</span> UserId { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public</span> <span class="type">List</span>&lt;<span class="type">CardDeck</span>&gt; CardDecks { <span class="kw">get</span>; <span class="kw">set</span>; } = [];
+}
+
+[<span class="type">PrimaryKey</span>(<span class="kw">nameof</span>(CardId), <span class="kw">nameof</span>(DeckId))]   <span class="cmt">// composite key</span>
+<span class="kw">public class</span> <span class="type">CardDeck</span>
+{
+    <span class="kw">public required int</span> CardId { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public required int</span> DeckId { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public int</span> Count { <span class="kw">get</span>; <span class="kw">set</span>; } = <span class="num">1</span>;   <span class="cmt">// join payload: copies per deck</span>
+}</code></pre>
+
+<!-- ============ PHASE 2 ============ -->
+<h2 id="p2">3 &mdash; EF configuration &amp; DbContext</h2>
+<div class="diverge"><strong>Divergence:</strong> the book puts all this inline in <code class="il">OnModelCreating</code>. We split it into <code class="il">IEntityTypeConfiguration&lt;T&gt;</code> classes (under <code class="il">Models/Configuration/</code>) and apply them in one line. Remember: a config class only runs if you apply it.</p></div>
+
+<p class="file">Models/Configuration/CardConfiguration.cs &mdash; the inheritance strategy</p>
+<pre><code><span class="kw">public class</span> <span class="type">CardConfiguration</span> : <span class="type">IEntityTypeConfiguration</span>&lt;<span class="type">Card</span>&gt;
+{
+    <span class="kw">public void</span> Configure(<span class="type">EntityTypeBuilder</span>&lt;<span class="type">Card</span>&gt; builder)
+    {
+        builder.UseTptMappingStrategy();   <span class="cmt">// Table-Per-Type</span>
+    }
+}</code></pre>
+<p><strong>TPT</strong> = one table per type: a <code class="il">Cards</code> table (base columns) plus <code class="il">ActionCards</code> and <code class="il">CreatureCards</code> tables (subtype columns + an FK to <code class="il">Cards</code>). Queries join them. (Alternatives: <strong>TPH</strong> one table + discriminator column, fastest; <strong>TPC</strong> one table per concrete type, no base table. The book tries all three; we settled on TPT.)</p>
+
+<p class="file">Models/Configuration/DeckConfiguration.cs &mdash; the relationships</p>
+<pre><code><span class="kw">public class</span> <span class="type">DeckConfiguration</span> : <span class="type">IEntityTypeConfiguration</span>&lt;<span class="type">Deck</span>&gt;
+{
+    <span class="kw">public void</span> Configure(<span class="type">EntityTypeBuilder</span>&lt;<span class="type">Deck</span>&gt; builder)
+    {
+        builder.HasOne&lt;<span class="type">User</span>&gt;()                <span class="cmt">// each Deck has one owner User</span>
+            .WithMany()
+            .HasForeignKey(d =&gt; d.UserId);
+
+        builder.HasMany&lt;<span class="type">Card</span>&gt;()                <span class="cmt">// Deck &harr; Card many-to-many...</span>
+            .WithMany(c =&gt; c.Decks)
+            .UsingEntity&lt;<span class="type">CardDeck</span>&gt;();         <span class="cmt">// ...through the CardDeck join (carries Count)</span>
+    }
+}</code></pre>
+<div class="callout warn"><strong>Watch the cardinality:</strong> the second block must be <code class="il">HasMany</code> (many-to-many) &mdash; <code class="il">UsingEntity</code> only exists on the many-to-many builder. <code class="il">HasOne</code> there won't compile.</div>
+
+<p class="file">Models/CardsDbContext.cs</p>
+<pre><code><span class="kw">public class</span> <span class="type">CardsDbContext</span>(<span class="type">DbContextOptions</span>&lt;<span class="type">CardsDbContext</span>&gt; options)
+    : <span class="type">DbContext</span>(options)
+{
+    <span class="kw">public</span> <span class="type">DbSet</span>&lt;<span class="type">User</span>&gt; Users { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public</span> <span class="type">DbSet</span>&lt;<span class="type">Deck</span>&gt; Decks { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public</span> <span class="type">DbSet</span>&lt;<span class="type">Card</span>&gt; Cards { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public</span> <span class="type">DbSet</span>&lt;<span class="type">ActionCard</span>&gt; ActionCards { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public</span> <span class="type">DbSet</span>&lt;<span class="type">CreatureCard</span>&gt; CreatureCards { <span class="kw">get</span>; <span class="kw">set</span>; }
+
+    <span class="kw">protected override void</span> OnModelCreating(<span class="type">ModelBuilder</span> modelBuilder)
+        =&gt; modelBuilder.ApplyConfigurationsFromAssembly(<span class="kw">typeof</span>(<span class="type">CardsDbContext</span>).Assembly);
+}</code></pre>
+
+<!-- ============ PHASE 3 ============ -->
+<h2 id="p3">4 &mdash; Migrations</h2>
+<p>The book punts on migrations. You run them yourself, from <code class="il">CardTrackerWebApi/</code>:</p>
+<pre><code>dotnet ef migrations add Initial
+dotnet ef database update          <span class="cmt"># creates cardtracker.db</span></code></pre>
+<p>With TPT you'll see separate <code class="il">Cards</code>, <code class="il">ActionCards</code>, <code class="il">CreatureCards</code> tables, a <code class="il">CardDeck</code> table with a composite PK, and the unique index on <code class="il">User.Username</code>. Re-run both commands after every model change.</p>
+
+<!-- ============ PHASE 4 ============ -->
+<h2 id="p4">5 &mdash; DTOs (Responses &amp; Requests)</h2>
+
+<p class="file">Responses/ &mdash; <code class="il">required</code> + a read-only <code class="il">Type</code> discriminator, no secrets</p>
+<pre><code><span class="kw">public abstract class</span> <span class="type">CardResponse</span>
+{
+    <span class="kw">public int</span> Id { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public required string</span> Name { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public string</span>? Description { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public string</span>? ImagePath { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public abstract string</span> Type { <span class="kw">get</span>; }      <span class="cmt">// emitted so clients can tell subtypes apart</span>
+}
+<span class="kw">public class</span> <span class="type">ActionCardResponse</span> : <span class="type">CardResponse</span>
+{
+    <span class="kw">public override string</span> Type =&gt; <span class="str">"Action"</span>;
+    <span class="kw">public required string</span> Effect { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public required int</span> Cost { <span class="kw">get</span>; <span class="kw">init</span>; }
+}
+<span class="kw">public class</span> <span class="type">CreatureCardResponse</span> : <span class="type">CardResponse</span>
+{
+    <span class="kw">public override string</span> Type =&gt; <span class="str">"Creature"</span>;
+    <span class="kw">public string</span>? SummonEffect { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public string</span>? PerTurnEffect { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public required int</span> SummonCost { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public required int</span> Power { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public bool</span> CanFly { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public bool</span> CanSwin { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public bool</span> CanClimb { <span class="kw">get</span>; <span class="kw">init</span>; }
+}
+
+<span class="kw">public class</span> <span class="type">UserResponse</span>
+{
+    <span class="kw">public int</span> Id { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public required string</span> Username { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public bool</span> IsAdmin { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="cmt">// deliberately NO PasswordHash / Salt</span>
+}</code></pre>
+
+<p class="file">Requests/CreateCardRequest.cs &mdash; polymorphic input via built-in System.Text.Json</p>
+<pre><code><span class="kw">using</span> System.Text.Json.Serialization;
+<span class="kw">namespace</span> CardTrackerWebApi.Requests;
+
+[<span class="type">JsonPolymorphic</span>(TypeDiscriminatorPropertyName = <span class="str">"type"</span>)]
+[<span class="type">JsonDerivedType</span>(<span class="kw">typeof</span>(<span class="type">CreateActionCardRequest</span>),   <span class="str">"Action"</span>)]
+[<span class="type">JsonDerivedType</span>(<span class="kw">typeof</span>(<span class="type">CreateCreatureCardRequest</span>), <span class="str">"Creature"</span>)]
+<span class="kw">public abstract class</span> <span class="type">CreateCardRequest</span>
+{
+    <span class="kw">public required string</span> Name { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public string</span>? Description { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public string</span>? ImagePath { <span class="kw">get</span>; <span class="kw">init</span>; }
+}
+<span class="kw">public class</span> <span class="type">CreateActionCardRequest</span> : <span class="type">CreateCardRequest</span>
+{
+    <span class="kw">public required string</span> Effect { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public required int</span> Cost { <span class="kw">get</span>; <span class="kw">init</span>; }
+}
+<span class="kw">public class</span> <span class="type">CreateCreatureCardRequest</span> : <span class="type">CreateCardRequest</span>
+{
+    <span class="kw">public string</span>? SummonEffect { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public string</span>? PerTurnEffect { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public required int</span> SummonCost { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public required int</span> Power { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public bool</span> CanFly { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public bool</span> CanSwin { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public bool</span> CanClimb { <span class="kw">get</span>; <span class="kw">init</span>; }
+}</code></pre>
+<div class="diverge"><strong>Divergence:</strong> the book writes a custom <code class="il">JsonConverter</code> (<code class="il">CreateCardRequestConverter</code>) to pick the subtype. We use the built-in <code class="il">[JsonPolymorphic]</code>/<code class="il">[JsonDerivedType]</code> attributes instead &mdash; zero custom code. The trade-off: STJ requires <code class="il">"type"</code> to be the <strong>first property</strong> in the body. If you need order-independence, that's when the custom converter earns its keep.</div>
+
+<!-- ============ PHASE 5 ============ -->
+<h2 id="p5">6 &mdash; Mapping with Mapperly</h2>
+
+<p class="file">Mappings/CardMapper.cs</p>
+<pre><code><span class="kw">using</span> Riok.Mapperly.Abstractions;
+<span class="kw">namespace</span> CardTrackerWebApi.Mappings;
+
+[<span class="type">Mapper</span>]
+<span class="kw">public partial class</span> <span class="type">CardMapper</span>
+{
+    <span class="cmt">// entity -> response (polymorphic out)</span>
+    [<span class="type">MapperIgnoreSource</span>(<span class="kw">nameof</span>(<span class="type">Card</span>.Decks))]
+    [<span class="type">MapDerivedType</span>&lt;<span class="type">ActionCard</span>,   <span class="type">ActionCardResponse</span>&gt;]
+    [<span class="type">MapDerivedType</span>&lt;<span class="type">CreatureCard</span>, <span class="type">CreatureCardResponse</span>&gt;]
+    <span class="kw">public partial</span> <span class="type">CardResponse</span> ToResponse(<span class="type">Card</span> card);
+
+    <span class="cmt">// collection: NO attributes - reuses ToResponse(Card) per element</span>
+    <span class="kw">public partial</span> <span class="type">List</span>&lt;<span class="type">CardResponse</span>&gt; ToResponse(<span class="type">IEnumerable</span>&lt;<span class="type">Card</span>&gt; cards);
+
+    <span class="cmt">// request -> entity (polymorphic in)</span>
+    [<span class="type">MapperIgnoreTarget</span>(<span class="kw">nameof</span>(<span class="type">Card</span>.Id))]      <span class="cmt">// DB-generated, never from client</span>
+    [<span class="type">MapperIgnoreTarget</span>(<span class="kw">nameof</span>(<span class="type">Card</span>.Decks))]
+    [<span class="type">MapDerivedType</span>&lt;<span class="type">CreateActionCardRequest</span>,   <span class="type">ActionCard</span>&gt;]
+    [<span class="type">MapDerivedType</span>&lt;<span class="type">CreateCreatureCardRequest</span>, <span class="type">CreatureCard</span>&gt;]
+    <span class="kw">public partial</span> <span class="type">Card</span> ToEntity(<span class="type">CreateCardRequest</span> request);
+}</code></pre>
+
+<p class="file">Mappings/UserMapper.cs</p>
+<pre><code>[<span class="type">Mapper</span>]
+<span class="kw">public partial class</span> <span class="type">UserMapper</span>
+{
+    [<span class="type">MapperIgnoreSource</span>(<span class="kw">nameof</span>(<span class="type">User</span>.PasswordHash))]
+    [<span class="type">MapperIgnoreSource</span>(<span class="kw">nameof</span>(<span class="type">User</span>.Salt))]
+    <span class="kw">public partial</span> <span class="type">UserResponse</span> ToResponse(<span class="type">User</span> user);
+}</code></pre>
+<p>Key rules learned the hard way: <code class="il">[MapDerivedType]</code> is for the <em>single-item</em> polymorphic method only (lists reuse it per element); <code class="il">MapperIgnoreSource</code> documents intentionally-dropped entity data; <code class="il">MapperIgnoreTarget</code> handles DB-managed fields like <code class="il">Id</code>.</p>
+
+<!-- ============ PHASE 6 ============ -->
+<h2 id="p6">7 &mdash; Endpoints (REPR)</h2>
+<p>One static class per resource; each handler is a small static method. The polymorphic create is the showpiece &mdash; the discriminator drives the whole chain.</p>
+<p class="file">Endpoints/CardEndpoints.cs</p>
+<pre><code><span class="kw">namespace</span> CardTrackerWebApi.Endpoints;
+
+<span class="kw">public static class</span> <span class="type">CardEndpoints</span>
+{
+    <span class="kw">public static void</span> AddCardEndpoints(<span class="kw">this</span> <span class="type">WebApplication</span> app)
+    {
+        app.MapGet(<span class="str">"cards"</span>, HandleGetAllCards).AllowAnonymous();
+        app.MapGet(<span class="str">"cards/{id}"</span>, HandleGetCardById).AllowAnonymous();
+        app.MapPost(<span class="str">"cards"</span>, HandleCreateCard).RequireAuthorization(<span class="str">"AdminOnly"</span>);
+        app.MapDelete(<span class="str">"cards/{id}"</span>, HandleDeleteCard).RequireAuthorization(<span class="str">"AdminOnly"</span>);
+    }
+
+    <span class="kw">private static async</span> <span class="type">Task</span>&lt;<span class="type">IResult</span>&gt; HandleGetAllCards(<span class="type">CardsDbContext</span> db, <span class="type">CardMapper</span> mapper)
+    {
+        <span class="type">List</span>&lt;<span class="type">Card</span>&gt; cards = <span class="kw">await</span> db.Cards.AsNoTracking().ToListAsync();
+        <span class="kw">return</span> <span class="type">Results</span>.Ok(mapper.ToResponse(cards));
+    }
+
+    <span class="kw">private static async</span> <span class="type">Task</span>&lt;<span class="type">IResult</span>&gt; HandleGetCardById(<span class="kw">int</span> id, <span class="type">CardsDbContext</span> db, <span class="type">CardMapper</span> mapper)
+    {
+        <span class="type">Card</span>? card = <span class="kw">await</span> db.Cards.AsNoTracking().FirstOrDefaultAsync(c =&gt; c.Id == id);
+        <span class="kw">return</span> card <span class="kw">is null</span> ? <span class="type">Results</span>.NotFound() : <span class="type">Results</span>.Ok(mapper.ToResponse(card));
+    }
+
+    <span class="kw">private static async</span> <span class="type">Task</span>&lt;<span class="type">IResult</span>&gt; HandleCreateCard(
+        <span class="type">CreateCardRequest</span> request, <span class="type">CardsDbContext</span> db, <span class="type">CardMapper</span> mapper)
+    {
+        <span class="type">Card</span> card = mapper.ToEntity(request);   <span class="cmt">// request subtype -> entity subtype</span>
+        db.Cards.Add(card);
+        <span class="kw">await</span> db.SaveChangesAsync();            <span class="cmt">// DB fills card.Id</span>
+        <span class="kw">return</span> <span class="type">Results</span>.Created(<span class="str">$"/cards/{card.Id}"</span>, mapper.ToResponse(card));
+    }
+
+    <span class="kw">private static async</span> <span class="type">Task</span>&lt;<span class="type">IResult</span>&gt; HandleDeleteCard(<span class="kw">int</span> id, <span class="type">CardsDbContext</span> db)
+    {
+        <span class="type">Card</span>? card = <span class="kw">await</span> db.Cards.FindAsync(id);
+        <span class="kw">if</span> (card <span class="kw">is null</span>) <span class="kw">return</span> <span class="type">Results</span>.NotFound();
+        db.Cards.Remove(card);
+        <span class="kw">await</span> db.SaveChangesAsync();
+        <span class="kw">return</span> <span class="type">Results</span>.NoContent();
+    }
+}</code></pre>
+<blockquote>The create chain: JSON <code class="il">"type"</code> &rarr; STJ picks the request subclass &rarr; <code class="il">ToEntity</code> picks the entity subclass &rarr; EF saves &rarr; <code class="il">ToResponse</code> picks the response subclass. One discriminator, four polymorphic hops.</blockquote>
+
+<!-- ============ PHASE 7 ============ -->
+<h2 id="p7">8 &mdash; Program.cs wiring</h2>
+<pre><code><span class="kw">var</span> builder = <span class="type">WebApplication</span>.CreateBuilder(args);
+
+builder.Services.AddOpenApi();
+builder.Services.AddDbContext&lt;<span class="type">CardsDbContext</span>&gt;(o =&gt;
+    o.UseSqlite(builder.Configuration.GetConnectionString(<span class="str">"DefaultConnection"</span>)));
+
+builder.Services.AddSingleton&lt;<span class="type">CardMapper</span>&gt;();   <span class="cmt">// Mapperly mappers are stateless</span>
+builder.Services.AddSingleton&lt;<span class="type">UserMapper</span>&gt;();
+
+<span class="kw">var</span> app = builder.Build();
+
+<span class="kw">if</span> (app.Environment.IsDevelopment())
+    app.MapOpenApi();
+
+app.UseHttpsRedirection();
+
+app.AddCardEndpoints();
+app.MapGet(<span class="str">"/tea"</span>, () =&gt; <span class="type">Results</span>.StatusCode(<span class="type">StatusCodes</span>.Status418ImATeapot));
+
+app.Run();</code></pre>
+<div class="callout warn"><strong>Build order:</strong> only call endpoint groups that exist. <code class="il">RequireAuthorization("AdminOnly")</code> compiles but fails at runtime until the auth phase defines that policy &mdash; either finish auth or temporarily drop <code class="il">.RequireAuthorization(...)</code> to exercise the endpoints.</div>
+
+<!-- ============ PHASE 8 ============ -->
+<h2 id="p8">9 &mdash; Testing with .http</h2>
+<p>In VS Code (REST Client extension), a file variable is simplest. Your port comes from <code class="il">Properties/launchSettings.json</code>.</p>
+<pre><code>@BaseUrl = http://localhost:5180
+
+### create a creature ("type" MUST be first - JsonPolymorphic constraint)
+POST {{BaseUrl}}/cards
+Content-Type: application/json
+
+{
+  "type": "Creature",
+  "name": "Sally the Squirrel",
+  "summonCost": 1,
+  "power": 1,
+  "canFly": true
+}
+
+### get all
+GET {{BaseUrl}}/cards</code></pre>
+
+<!-- ============ PHASE 9 ============ -->
+<h2 id="p9">10 &mdash; Still to come: authentication</h2>
+<p class="wip">Not built yet &mdash; this is the next stretch (book ~p.171+). When we get there it adds:</p>
+<ul>
+  <li><strong>Settings/AuthSettings.cs</strong> + an <code class="il">appsettings</code> section (JWT key, issuer, audience).</li>
+  <li><strong>Services/</strong> &mdash; <code class="il">IHashingService</code>/<code class="il">HmacHashingService</code> (salt + hash passwords) and <code class="il">ITokenGenerationService</code>/<code class="il">JwtGenerationService</code> (issue JWTs).</li>
+  <li><strong>Endpoints/</strong> &mdash; <code class="il">LoginEndpoints</code> (issue a token), <code class="il">UserEndpoints</code>, <code class="il">DeckEndpoints</code>, with their Requests/Responses.</li>
+  <li><strong>Program.cs</strong> &mdash; <code class="il">AddAuthentication().AddJwtBearer(...)</code>, <code class="il">AddAuthorization()</code> with the <code class="il">"AdminOnly"</code> policy, and <code class="il">app.UseAuthentication()/UseAuthorization()</code>.</li>
+</ul>
+<p>Once those exist, the <code class="il">.RequireAuthorization("AdminOnly")</code> on create/delete starts working, and the <code class="il">.http</code> login-then-reuse-token trick (<code class="il">{{login.response.body.$.token}}</code>) lets you hit the protected endpoints.</p>
+
+<blockquote>That's the whole project, our way. Companion docs: <a href="Object_Mapping_Approaches.html">mapping approaches</a>, <a href="Mapperly_Guide.html">Mapperly guide</a>, <a href="Chapter5_Book_Gaps.html">book gaps</a>.</blockquote>
+
+</div>
+</body>
+</html>

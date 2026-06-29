@@ -1,5 +1,3 @@
-using CardTrackerWebApi.Models;
-using CardTrackerWebApi.Responses;
 using Riok.Mapperly.Abstractions;
 
 namespace CardTrackerWebApi.Mappings;

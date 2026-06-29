@@ -1,5 +1,3 @@
-using CardTrackerWebApi.Mappings;
-using CardTrackerWebApi.Models;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +5,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<CardsDbContext>(o =>
     o.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddSingleton<UserMapper>();
+builder.Services.AddSingleton<CardMapper>();
 
 var app = builder.Build();
 
