@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Chapter 5 &mdash; What the Book Skipped</title>
+<title>Chapters 5 &amp; 6 — What the Book Skipped</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
 :root {
@@ -12,216 +12,356 @@
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
-  font: 16px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif; }
-.wrap { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
-header.doc-head { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 28px; }
+  font: 16px/1.62 -apple-system, "Segoe UI", system-ui, sans-serif; }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 24px; }
 header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
 header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
 header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
-h1, h2, h3, h4 { color: var(--text); margin-top: 1.6em; }
+h1, h2, h3, h4 { color: var(--text); margin-top: 1.5em; }
 h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+.part { margin-top: 2.2em; padding: 4px 16px; background: linear-gradient(90deg, var(--surface-2), transparent); border-left: 4px solid var(--accent); border-radius: 0 6px 6px 0; }
+.part h2 { border: 0; margin: 6px 0; }
 a { color: var(--accent); }
 code, pre, code.il { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
-code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; border: 1px solid var(--border); }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.9em; border: 1px solid var(--border); }
 pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
-  padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55; }
+  padding: 12px 14px; overflow-x: auto; font-size: 12.5px; line-height: 1.5; }
 pre code { background: transparent; border: 0; padding: 0; }
 blockquote { border-left: 3px solid var(--accent); background: var(--surface);
   padding: 10px 16px; margin: 12px 0; color: var(--text-dim); border-radius: 0 6px 6px 0; }
-.tbl-wrap { overflow-x: auto; margin: 14px 0; }
-table { border-collapse: collapse; width: 100%; font-size: 14px; }
-th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
-th { background: var(--surface-2); }
-tr:nth-child(even) td { background: var(--surface); }
 .callout { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent-2);
   padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; }
-.callout.warn { border-left-color: var(--warn); }
-.callout.ok   { border-left-color: var(--ok); }
-.callout.bad  { border-left-color: var(--bad); }
-.gap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
-  padding: 14px 18px; margin: 18px 0; }
-.gap h3 { margin-top: 0; font-size: 17px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-.gap .id { color: var(--accent); font-family: "JetBrains Mono", monospace; font-size: 14px; }
-.sev { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
-  padding: 2px 8px; border-radius: 4px; vertical-align: middle; }
+.callout.warn { border-left-color: var(--warn); } .callout.ok { border-left-color: var(--ok); }
+.gap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; margin: 14px 0; }
+.gap h3 { margin: 0 0 6px; font-size: 16px; display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+.gap .id { color: var(--accent); font-family: "JetBrains Mono", monospace; font-size: 13px; }
+.gap p { margin: 5px 0; font-size: 14.5px; }
+.sev { display: inline-block; font-size: 9.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 4px; vertical-align: middle; }
 .sev.blocker { background: #3a1e1e; color: #f87171; border: 1px solid #5a2d2d; }
-.sev.build   { background: #3a2e1e; color: #fbbf24; border: 1px solid #5a402d; }
 .sev.runtime { background: #2e1e3a; color: #c792ea; border: 1px solid #402d5a; }
-.sev.silent  { background: #1e2a3a; color: #6aa6ff; border: 1px solid #2d405a; }
-.sev.info    { background: #1e3a2e; color: #4ade80; border: 1px solid #2d5a3f; }
-.label { text-transform: uppercase; font-size: 10px; letter-spacing: 0.08em; color: var(--text-dim);
-  margin: 12px 0 3px; font-weight: 600; }
-.bookref { color: var(--text-dim); font-size: 12px; font-weight: 400; }
-.kw { color: #c792ea; } .type { color: #82aaff; } .str { color: #c3e88d; }
-.num { color: #f78c6c; } .cmt { color: #6c7a96; font-style: italic; }
-.toc { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; margin: 18px 0 28px; font-size: 14px; }
-.toc ol { margin: 6px 0; padding-left: 22px; } .toc li { margin: 2px 0; }
+.sev.silent  { background: #3a2e1e; color: #fbbf24; border: 1px solid #5a402d; }
+.sev.info    { background: #1e2a3a; color: #6aa6ff; border: 1px solid #2d405a; }
+.lbl { text-transform: uppercase; font-size: 9.5px; letter-spacing: 0.07em; color: var(--text-dim); font-weight: 600; }
+.ours { background: rgba(176,106,255,0.08); border-left: 3px solid var(--accent-2); padding: 6px 12px; margin: 8px 0 2px; border-radius: 0 4px 4px 0; font-size: 13px; }
+.ours strong { color: var(--accent-2); }
+.kw { color: #c792ea; } .type { color: #82aaff; } .str { color: #c3e88d; } .num { color: #f78c6c; } .cmt { color: #6c7a96; font-style: italic; }
+.toc { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; margin: 16px 0 24px; font-size: 14px; columns: 2; }
 .toc a { text-decoration: none; } .toc a:hover { text-decoration: underline; }
-.hit { color: var(--bad); font-weight: 600; }
-.wip { background: rgba(251,191,36,0.08); border-left: 3px solid var(--warn); padding: 8px 12px; margin: 10px 0; border-radius: 0 4px 4px 0; font-size: 13px; }
+.toc div { margin: 2px 0; break-inside: avoid; }
 </style>
 </head>
 <body>
 <div class="wrap">
 <header class="doc-head">
   <div class="crumbs">C5 &rsaquo; docs</div>
-  <h1>Chapter 5 &mdash; what the book skipped</h1>
-  <div class="meta">Gap analysis of <em>Practical C#</em>, Chapter 5 (&ldquo;Tracking Collectible Card Games with ASP.NET Minimal APIs and Entity Framework&rdquo;), cross-referenced against the <code class="il">Chapter5</code> answer key and the issues we hit bootstrapping <code class="il">CardTrackerWebApi</code>.</div>
+  <h1>Chapters 5 &amp; 6 — what the book skipped</h1>
+  <div class="meta">Complete gap audit of <em>Practical C#</em> Ch.&nbsp;5 (Web API) &amp; Ch.&nbsp;6 (Blazor WASM front-end), produced by reading both chapters' full text against the entire <code class="il">Chapter5</code>/<code class="il">Chapter6</code> answer-key code. Ch.&nbsp;6 continues the same CardTracker project, so they're audited together.</div>
 </header>
 
-<div class="callout wip"><strong>Living document.</strong> This covers the bootstrap, data-model, and EF-setup sections (where we are now). It'll grow as we reach AutoMapper, the REPR endpoints, and JWT auth &mdash; same idea as <a href="../../C3/docs/Chapter4_Book_Gaps.html">the Chapter 4 gap doc</a>.</div>
-
-<p>Chapter 5 is a brand-new project (not the RPG) and the start of Part&nbsp;2. Like Ch.&nbsp;4, the book shows the *interesting* code and skips the plumbing &mdash; the section &ldquo;Defining our project structure&rdquo; (p.&nbsp;145&ndash;146) <em>lists</em> packages and folders but never shows creating the project or wiring it. <span class="hit">Red marks</span> = things we actually hit.</p>
-
 <div class="callout">
-<strong>Severity legend</strong> &nbsp;
-<span class="sev blocker">blocker</span> won't run at all &nbsp;
-<span class="sev build">build</span> compile error/warning &nbsp;
-<span class="sev runtime">runtime</span> throws when you run &nbsp;
-<span class="sev info">info</span> good-to-know / caveat
+<strong>Severity:</strong>
+<span class="sev blocker">blocker</span> won't compile/run &nbsp;
+<span class="sev runtime">runtime</span> throws when run &nbsp;
+<span class="sev silent">silent</span> compiles &amp; runs, subtly wrong &nbsp;
+<span class="sev info">info</span> good-to-know / left as exercise
+<br><br>
+<strong>Purple notes</strong> flag where <em>our</em> variant (Mapperly, <code class="il">[JsonPolymorphic]</code>, <code class="il">BaseEntity</code>, <code class="il">IEntityTypeConfiguration</code>, TPT) makes a gap moot or different. The book hides load-bearing wiring behind <code class="il">// omitted for brevity…</code> comments; everything inside those is below.
 </div>
 
 <div class="toc">
-  <strong>Sections</strong>
-  <ol>
-    <li><a href="#bootstrap">Project bootstrap (Phase 0 &mdash; not shown at all)</a></li>
-    <li><a href="#ef">Entity Framework &amp; the database</a></li>
-    <li><a href="#test">Testing &amp; running</a></li>
-    <li><a href="#deps">Dependencies &amp; caveats</a></li>
-  </ol>
+  <strong>Chapter 5</strong>
+  <div><a href="#c5a">A · Project setup</a></div>
+  <div><a href="#c5b">B · EF model &amp; DbContext</a></div>
+  <div><a href="#c5c">C · REPR endpoints</a></div>
+  <div><a href="#c5d">D · Mapping &amp; polymorphic JSON</a></div>
+  <div><a href="#c5e">E · Auth services &amp; wiring</a></div>
+  <div><a href="#c5f">F · Program.cs assembly</a></div>
+  <div><a href="#c5g">G · Admin seeding</a></div>
+  <strong>Chapter 6</strong>
+  <div><a href="#c6a">A · Solution &amp; 3 projects</a></div>
+  <div><a href="#c6b">B · Contracts sharing</a></div>
+  <div><a href="#c6c">C · Client bootstrap</a></div>
+  <div><a href="#c6d">D · HttpClient / base URL</a></div>
+  <div><a href="#c6e">E · CORS</a></div>
+  <div><a href="#c6f">F · Auth / token storage</a></div>
+  <div><a href="#c6g">G · Running both together</a></div>
 </div>
 
-<!-- ============================================ -->
-<h2 id="bootstrap">1 &mdash; Project bootstrap (Phase 0, never shown)</h2>
+<!-- ==================== CHAPTER 5 ==================== -->
+<div class="part"><h2>Chapter 5 — the Web API</h2></div>
+
+<h2 id="c5a">A · Project setup</h2>
 
 <div class="gap">
-<h3><span class="id">G1</span> Creating the project &amp; solution <span class="sev blocker">blocker</span></h3>
-<div class="label">Book says <span class="bookref">(p.&nbsp;145)</span></div>
-<p>&ldquo;This chapter's solution consists of a single <code class="il">CardTrackerWebApi</code> project, which is a .NET 10 ASP.NET Core web application&hellip;&rdquo; &mdash; then never shows creating it.</p>
-<div class="label">Fix</div>
-<pre><code><span class="cmt"># from C5/</span>
-dotnet new sln -n CardTracker
-dotnet new web -n CardTrackerWebApi      <span class="cmt"># empty minimal-API template</span>
-dotnet sln add CardTrackerWebApi</code></pre>
-<p>The <code class="il">web</code> template is the bare minimal-API starter (the answer key's <code class="il">Program.cs</code> is hand-built on top of it). It auto-creates <code class="il">appsettings.json</code>, <code class="il">appsettings.Development.json</code>, and <code class="il">Properties/launchSettings.json</code> for you (see G5).</p>
-</div>
-
-<div class="gap">
-<h3><span class="id">G2</span> The six NuGet packages <span class="sev blocker">blocker</span></h3>
-<div class="label">Book says <span class="bookref">(p.&nbsp;145)</span></div>
-<p>Lists the packages by name but gives no commands and no csproj.</p>
-<div class="label">Fix &mdash; from inside <code class="il">CardTrackerWebApi/</code></div>
-<pre><code>dotnet add package Microsoft.EntityFrameworkCore.Sqlite          -v 10.0.0
-dotnet add package Microsoft.EntityFrameworkCore.Design          -v 10.0.0
-dotnet add package Microsoft.EntityFrameworkCore.Tools           -v 10.0.0
-dotnet add package Microsoft.AspNetCore.OpenApi                  -v 10.0.0
-dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer -v 10.0.0
-dotnet add package AutoMapper                                    -v 14.0.0   <span class="cmt"># but see G10</span></code></pre>
-<p><code class="il">dotnet add package</code> auto-writes the <code class="il">&lt;PrivateAssets&gt;all&lt;/PrivateAssets&gt;</code> block for <strong>Design</strong> and <strong>Tools</strong> (design-time-only tooling, not shipped at runtime) &mdash; no hand-editing the csproj.</p>
+<h3><span class="id">C5-A1</span> The <code class="il">.csproj</code> is never shown <span class="sev blocker">blocker</span></h3>
+<p>Book gives a prose package list (p.145) and even <strong>misspells</strong> <code class="il">Microsoft.EntityFrameworkCore.SqlLite</code> (it's <code class="il">Sqlite</code>). Omits the SDK (<code class="il">Microsoft.NET.Sdk.Web</code>), the framework/nullable/implicit-usings properties, versions, and the <code class="il">PrivateAssets/IncludeAssets</code> blocks on the two EF design-time packages.</p>
+<p class="lbl">Trap</p><p>In AutoMapper v14 the <code class="il">AddAutoMapper(...)</code> DI hook ships in the main package — there is <strong>no</strong> separate <code class="il">AutoMapper.Extensions.Microsoft.DependencyInjection</code> to add (older tutorials say otherwise).</p>
+<div class="ours"><strong>Ours:</strong> we use <code class="il">Riok.Mapperly</code>, not AutoMapper — skip the AutoMapper package entirely (also kills the NU1903 vuln).</div>
 </div>
 
 <div class="gap">
-<h3><span class="id">G3</span> The connection string in <code class="il">appsettings.json</code> <span class="sev runtime">runtime</span></h3>
-<div class="label">Book says <span class="bookref">(p.&nbsp;147)</span></div>
-<p>&ldquo;<code class="il">DefaultConnection</code> is defined in our <code class="il">appsettings.json</code> file as simply <code class="il">Data Source=cardtracker.db</code>&rdquo; &mdash; states it exists, never shows you adding it.</p>
-<div class="label">Fix &mdash; add to <code class="il">appsettings.json</code></div>
-<pre><code><span class="str">"ConnectionStrings"</span>: {
-  <span class="str">"DefaultConnection"</span>: <span class="str">"Data Source=cardtracker.db"</span>
+<h3><span class="id">C5-A2</span> <code class="il">GlobalUsings.cs</code> content never shown <span class="sev blocker">blocker</span></h3>
+<p>Book just mentions the file (p.146). Every endpoint/model compiles only because of its global usings (Models, Requests, Responses, Services, Endpoints, Helpers, <code class="il">Microsoft.EntityFrameworkCore</code>). A file <em>named</em> <code class="il">GlobalUsings.cs</code> that contains a <code class="il">class</code> instead of <code class="il">global using</code> directives does nothing.</p>
+</div>
+
+<div class="gap">
+<h3><span class="id">C5-A3</span> The <code class="il">appsettings.json</code> <code class="il">"Auth"</code> section is never printed <span class="sev blocker">blocker</span></h3>
+<p>Book shows only the connection string and <em>mentions</em> a secret/issuer/audience/<code class="il">DefaultAdminPassword</code> in prose. The structured section that <code class="il">Configure&lt;AuthSettings&gt;</code> / <code class="il">GetSection("Auth")</code> bind to:</p>
+<pre><code><span class="str">"Auth"</span>: {
+  <span class="str">"Secret"</span>: <span class="str">"&lt;at least 32 ASCII chars / 256 bits&gt;"</span>,
+  <span class="str">"Issuer"</span>: <span class="str">"PacktPublishing"</span>,
+  <span class="str">"Audience"</span>: <span class="str">"CardTracker"</span>,
+  <span class="str">"DefaultAdminPassword"</span>: <span class="str">"PacktBooks"</span>
 }</code></pre>
-<p>The key name must match the <code class="il">GetConnectionString("DefaultConnection")</code> call in <code class="il">Program.cs</code>. SQLite creates <code class="il">cardtracker.db</code> on the first migration.</p>
+<p>The <code class="il">Secret</code> <strong>must be ≥ 256 bits</strong> or <code class="il">HmacSha256</code> throws at runtime. The section name must be exactly <code class="il">"Auth"</code>.</p>
 </div>
 
 <div class="gap">
-<h3><span class="id">G4</span> <code class="il">GlobalUsings.cs</code> &mdash; mentioned, never shown <span class="sev build">build</span> <span class="hit">&#9679; hit</span></h3>
-<div class="label">Book says <span class="bookref">(p.&nbsp;146)</span></div>
-<p>&ldquo;a <code class="il">GlobalUsings.cs</code> file containing common using statements&rdquo; &mdash; named, never shown.</p>
-<div class="label">The trap we hit</div>
-<p>A file <em>named</em> <code class="il">GlobalUsings.cs</code> has no special meaning &mdash; what matters is <code class="il">global using</code> <em>directives</em> inside it (file-scoped, no namespace, no class). It's easy to accidentally write an empty <code class="il">class GlobalUsings { }</code>, which does <strong>nothing</strong> &mdash; then <code class="il">CardsDbContext</code>, <code class="il">[Key]</code>, etc. fail to resolve across the project.</p>
-<div class="label">Fix</div>
-<pre><code><span class="kw">global using</span> Microsoft.EntityFrameworkCore;
-<span class="kw">global using</span> System.ComponentModel.DataAnnotations;
-<span class="kw">global using</span> System.ComponentModel.DataAnnotations.Schema;
-<span class="kw">global using</span> CardTrackerWebApi.Models;</code></pre>
+<h3><span class="id">C5-A4</span> Ports come from <code class="il">launchSettings.json</code> <span class="sev info">info</span></h3>
+<p>Book uses <code class="il">localhost:5197</code> without saying it's the template-generated HTTP profile. <strong>Your port is whatever your file says</strong> (ours was 5180). The <code class="il">.http</code> <code class="il">{{BaseUrl}}</code> must match it.</p>
+</div>
+
+<h2 id="c5b">B · EF model &amp; DbContext</h2>
+
+<div class="gap">
+<h3><span class="id">C5-B1</span> ⭐ The real <code class="il">CardsDbContext</code> constructor injects two services the book's signature omits <span class="sev blocker">blocker</span></h3>
+<p>Book prints (twice): <code class="il">CardsDbContext(DbContextOptions&lt;CardsDbContext&gt; options) : DbContext(options)</code>. But the answer key is:</p>
+<pre><code><span class="kw">public class</span> <span class="type">CardsDbContext</span>(
+    <span class="type">DbContextOptions</span>&lt;<span class="type">CardsDbContext</span>&gt; options,
+    <span class="type">IHashingService</span> hasher,
+    <span class="type">IOptionsSnapshot</span>&lt;<span class="type">AuthSettings</span>&gt; authSettings) : <span class="type">DbContext</span>(options)</code></pre>
+<p>The two extra params are <strong>required</strong> because <code class="il">OnModelCreating</code> calls <code class="il">hasher.ComputeHash(...)</code> and <code class="il">authSettings.Value.DefaultAdminPassword</code> to seed the admin (G1). The printed signature simply cannot compile against the seeding code shown later. This is the single most important hidden detail in the chapter. (Needs <code class="il">using Microsoft.Extensions.Options;</code>.)</p>
+<div class="ours"><strong>Ours:</strong> we put EF config in <code class="il">IEntityTypeConfiguration</code> classes, which <em>don't</em> get DI. So our admin seed either (a) goes back in <code class="il">OnModelCreating</code> with this same ctor injection, or (b) lives in a <code class="il">UserConfiguration</code> with <strong>pre-computed literal</strong> salt+hash bytes. Pick (b) to keep the config-class pattern clean.</div>
 </div>
 
 <div class="gap">
-<h3><span class="id">G5</span> <code class="il">launchSettings.json</code> &amp; the port <span class="sev info">info</span></h3>
-<div class="label">Book says <span class="bookref">(p.&nbsp;157)</span></div>
-<p>Uses <code class="il">http://localhost:5197</code> without explaining where the port comes from.</p>
-<div class="label">Reality</div>
-<p>The template generated <code class="il">Properties/launchSettings.json</code> (same as appsettings) &mdash; that's where the run profiles + ports + <code class="il">ASPNETCORE_ENVIRONMENT</code> live. <strong>Your port is whatever <em>your</em> file says</strong> (ours is <code class="il">5180</code> http / <code class="il">7099</code> https, not 5197). Use your own port in the <code class="il">.http</code> file.</p>
-</div>
-
-<!-- ============================================ -->
-<h2 id="ef">2 &mdash; Entity Framework &amp; the database</h2>
-
-<div class="gap">
-<h3><span class="id">G6</span> Migrations &mdash; the book flatly punts <span class="sev blocker">blocker</span></h3>
-<div class="label">Book says <span class="bookref">(p.&nbsp;148)</span></div>
-<p>&ldquo;The answer lies in the form of migrations, <strong>which this book doesn't cover</strong>&rdquo; &mdash; and it only tells you to run <code class="il">dotnet ef database update</code> against its <em>pre-made</em> answer-key migrations. Building it yourself, there are no migrations until you create them.</p>
-<div class="label">Fix &mdash; after the models + DbContext compile</div>
-<pre><code>dotnet tool install --global dotnet-ef    <span class="cmt"># the book DOES show this (p.142)</span>
-dotnet ef migrations add Initial          <span class="cmt"># from CardTrackerWebApi/</span>
-dotnet ef database update                 <span class="cmt"># creates cardtracker.db + schema</span></code></pre>
-<p>Re-run the two <code class="il">ef</code> commands every time you change a model.</p>
+<h3><span class="id">C5-B2</span> <code class="il">CreatureCard</code>: book says <code class="il">record</code>, key uses <code class="il">class</code> <span class="sev silent">silent</span></h3>
+<p>EF entities should be plain classes — a <code class="il">record</code>'s value-equality can confuse change tracking. All three card types are classes in the answer key.</p>
 </div>
 
 <div class="gap">
-<h3><span class="id">G7</span> If you extract <code class="il">IEntityTypeConfiguration&lt;T&gt;</code>, you must apply it <span class="sev silent">silent</span> <span class="hit">&#9679; hit</span></h3>
-<div class="label">Book's approach</div>
-<p>Puts all relationship config <em>inline</em> in <code class="il">OnModelCreating</code> (so it always runs). If you deviate to the cleaner per-entity config-class pattern (e.g. <code class="il">DeckConfiguration</code>), EF only uses it <strong>if you apply it</strong> &mdash; the book never mentions this because it never splits the config out.</p>
-<div class="label">Fix &mdash; in <code class="il">CardsDbContext</code></div>
-<pre><code><span class="kw">protected override void</span> OnModelCreating(<span class="type">ModelBuilder</span> modelBuilder)
-{
-    modelBuilder.ApplyConfigurationsFromAssembly(<span class="kw">typeof</span>(<span class="type">CardsDbContext</span>).Assembly);
-}</code></pre>
-<p>Without this line the config class is dead code and EF falls back to conventions (wrong/incomplete relationships). Also remember: <code class="il">HasMany&lt;Card&gt;().WithMany(c =&gt; c.Decks).UsingEntity&lt;CardDeck&gt;()</code> &mdash; <code class="il">UsingEntity</code> only exists on the many-to-many builder, so it must be <code class="il">HasMany</code>, not <code class="il">HasOne</code>.</p>
-</div>
-
-<!-- ============================================ -->
-<h2 id="test">3 &mdash; Testing &amp; running</h2>
-
-<div class="gap">
-<h3><span class="id">G8</span> The <code class="il">.http</code> env file doesn't work in VS Code as written <span class="sev info">info</span></h3>
-<div class="label">Book says <span class="bookref">(p.&nbsp;157&ndash;158)</span></div>
-<p>Shows <code class="il">http-client.env.json</code> defining <code class="il">{{BaseUrl}}</code>. That file is the <strong>Rider/Visual Studio</strong> convention &mdash; the VS Code <strong>REST Client</strong> extension (which the book itself tells VS Code users to install) does <strong>not</strong> read it.</p>
-<div class="label">Fix (VS Code) &mdash; use a file variable</div>
-<pre><code>@BaseUrl = http://localhost:5180     <span class="cmt"># your port from launchSettings (G5)</span>
-
-### teapot
-GET {{BaseUrl}}/tea</code></pre>
-<p>(Or define it under <code class="il">rest-client.environmentVariables</code> in VS Code <code class="il">settings.json</code> if you want dev/prod switching.) The JWT chaining syntax <code class="il">{{login.response.body.$.token}}</code> <em>does</em> work in REST Client as-is.</p>
+<h3><span class="id">C5-B3</span> <code class="il">OnModelCreating</code> is shown in three disjoint fragments <span class="sev info">info</span></h3>
+<p>The relationship block, the <code class="il">UseTptMappingStrategy()</code> line, and the <code class="il">HasData</code> seed block appear in three different places with <code class="il">// hidden</code> between them. It's <strong>one</strong> method — merge all three.</p>
+<div class="ours"><strong>Ours:</strong> already split into <code class="il">CardConfiguration</code> (<code class="il">UseTptMappingStrategy()</code>) and <code class="il">DeckConfiguration</code> (relationships), applied via <code class="il">ApplyConfigurationsFromAssembly</code>. Only the seed still needs a home (see B1).</div>
 </div>
 
 <div class="gap">
-<h3><span class="id">G9</span> <code class="il">dotnet run</code> targets a project, not a solution <span class="sev runtime">runtime</span> <span class="hit">&#9679; hit</span></h3>
-<div class="label">What happens</div>
-<p><code class="il">dotnet run --project CardTracker.slnx</code> &rarr; <code class="il">MSB4068: The element &lt;Solution&gt; is unrecognized&hellip; is not a valid project file</code>. <code class="il">run</code> executes <em>one</em> project; a solution can hold many, so it can't run a <code class="il">.slnx</code>.</p>
-<div class="label">Fix</div>
-<pre><code>dotnet run --project .\CardTracker\CardTrackerWebApi\CardTrackerWebApi.csproj
-<span class="cmt"># or:  cd CardTracker\CardTrackerWebApi ; dotnet run</span></code></pre>
-<p>(<code class="il">dotnet build CardTracker.slnx</code> <em>does</em> work &mdash; build/restore accept solutions; <code class="il">run</code> does not.)</p>
+<h3><span class="id">C5-B4</span> Migrations &amp; the deterministic seed bytes <span class="sev runtime">runtime</span></h3>
+<p>Book says migrations are out of scope; you must <code class="il">dotnet ef migrations add Initial</code> yourself. The admin seed bakes <strong>literal</strong> bytes: salt = UTF-8 of <code class="il">"AdminUserUsesAHardcodedSaltToPreventEFErrors"</code>, hash = <code class="il">HMACSHA256(salt).ComputeHash("PacktBooks")</code>. If your password, salt string, or hash algorithm differ, the seeded login won't match — <strong>generate</strong> the seed by running your own migration after B1+E1 are correct; don't copy bytes.</p>
 </div>
 
-<!-- ============================================ -->
-<h2 id="deps">4 &mdash; Dependencies &amp; caveats</h2>
+<h2 id="c5c">C · REPR endpoints</h2>
 
 <div class="gap">
-<h3><span class="id">G10</span> AutoMapper: vulnerable, now commercial, and against your own rule <span class="sev info">info</span> <span class="hit">&#9679; hit</span></h3>
-<div class="label">What you'll see</div>
-<p><code class="il">NU1903</code>: <strong>AutoMapper 14.0.0</strong> has a known high-severity vulnerability; <strong>SQLitePCLRaw.lib.e_sqlite3 2.1.11</strong> too (transitive via EF Core Sqlite).</p>
-<div class="label">Context for you</div>
-<ul>
-  <li>For a <strong>local SQLite app on localhost</strong>, real exposure is ~nil &mdash; not urgent. Audit anytime with <code class="il">dotnet list package --vulnerable --include-transitive</code>.</li>
-  <li><strong>AutoMapper is worth dropping outright:</strong> your global rule says map by hand; newer AutoMapper majors moved to a <em>commercial license</em>; and 14.0.0 has the vuln. Mapping by hand in your <code class="il">Responses</code> kills all three birds &mdash; a clean &ldquo;deviate to train&rdquo; move. The book leans on AutoMapper; you don't have to.</li>
-  <li><strong>SQLitePCLRaw</strong> clears when EF Core Sqlite bumps to a patched <code class="il">10.0.x</code> (or pin it directly). Low priority locally.</li>
-</ul>
+<h3><span class="id">C5-C1</span> <code class="il">LoginEndpoints</code> registration + its DTOs omitted <span class="sev blocker">blocker</span></h3>
+<p>Book shows only the <code class="il">HandleLogin</code> body. Missing: the registration (note <code class="il">.AllowAnonymous()</code> — essential, or <code class="il">/login</code> itself would need a token), and:</p>
+<pre><code><span class="cmt">// Responses/LoginResponse.cs - the property is "Token" (the .http reads response.body.token)</span>
+<span class="kw">public record</span> <span class="type">LoginResponse</span>(<span class="kw">string</span> Token);
+<span class="cmt">// Requests/LoginRequest.cs</span>
+<span class="kw">public class</span> <span class="type">LoginRequest</span> { <span class="kw">public required string</span> Username { get; set; } <span class="kw">public required string</span> Password { get; set; } }</code></pre>
 </div>
 
-<h2 id="next">Still to come (will be added)</h2>
-<p>As we move through the rest of the chapter, expect gaps around: assembling the full <code class="il">Program.cs</code> (the book shows it piecemeal), the AutoMapper registration / profiles (or the by-hand replacement), the minimal-API endpoint files + the REPR request/response types, the polymorphic-card <code class="il">JsonConverter</code>, and the JWT auth wiring (<code class="il">AuthSettings</code>, token service, <code class="il">AddAuthentication</code>/<code class="il">AddAuthorization</code>). I'll append each as we reach it.</p>
+<div class="gap">
+<h3><span class="id">C5-C2</span> Entire <code class="il">UserEndpoints</code> omitted (book calls it an exercise) <span class="sev info">info</span></h3>
+<p>Answer key: <code class="il">GET /users</code> &amp; <code class="il">GET /users/{username}</code> (<code class="il">.RequireAuthorization("AdminOnly")</code>), <code class="il">POST /users</code> (<code class="il">.AllowAnonymous()</code>). <code class="il">HandleAddUser</code> is the registration logic the book never demonstrates: lowercase username, reject duplicates, <code class="il">salt = hasher.GenerateSalt(); hash = hasher.ComputeHash(password, salt);</code>, persist. DTOs: <code class="il">CreateUserRequest</code>, <code class="il">UserResponse</code> (Id/Username/IsAdmin — no secrets).</p>
+</div>
 
-<blockquote>Same throughline as Ch.&nbsp;4: the book is a narrative, not a build script. Read it alongside the answer key, and when something won't build/run, suspect an omitted wiring step first.</blockquote>
+<div class="gap">
+<h3><span class="id">C5-C3</span> Entire <code class="il">DeckEndpoints</code> except <code class="il">HandleDeleteDeck</code> omitted <span class="sev info">info</span></h3>
+<p>Book shows only the delete (for the ownership lesson). Also present: <code class="il">GET /decks</code> (filtered to <code class="il">d.UserId == user.Id</code>), <code class="il">GET /decks/{id}</code> (<code class="il">Include(d =&gt; d.CardDecks)</code> + ownership/admin check → <code class="il">Results.Forbid()</code>), <code class="il">POST /decks</code>, and the non-trivial <code class="il">PUT /decks/{id}</code> — clears <code class="il">CardDecks</code>, then <code class="il">request.CardIds.GroupBy(c =&gt; c)</code> to set <code class="il">Count = group.Count()</code> per join row, validating each card exists. All resolve the current user via <code class="il">http.GetCurrentUsername()</code> (E5).</p>
+</div>
+
+<h2 id="c5d">D · Mapping &amp; polymorphic JSON</h2>
+
+<div class="gap">
+<h3><span class="id">C5-D1</span> The <code class="il">JsonOptions</code> alias trap <span class="sev silent">silent</span></h3>
+<p>Book: <code class="il">builder.Services.Configure&lt;JsonOptions&gt;(o =&gt; o.SerializerOptions.Converters.Add(new CreateCardRequestConverter()))</code> — but never says <em>which</em> <code class="il">JsonOptions</code>. There are two; minimal APIs read <strong><code class="il">Microsoft.AspNetCore.Http.Json.JsonOptions</code></strong>. Pick the <code class="il">Mvc</code> one and it compiles but the converter is silently never applied → polymorphic card POST fails. The answer key adds <code class="il">using JsonOptions = Microsoft.AspNetCore.Http.Json.JsonOptions;</code>.</p>
+<div class="ours"><strong>Ours:</strong> moot — we use built-in <code class="il">[JsonPolymorphic]</code>/<code class="il">[JsonDerivedType]</code> on the request hierarchy, no custom converter and no <code class="il">JsonOptions</code> registration.</div>
+</div>
+
+<div class="gap">
+<h3><span class="id">C5-D2</span> AutoMapper registration + <code class="il">.Include&lt;&gt;()</code> chains <span class="sev info">info</span></h3>
+<p>Book shows the <code class="il">map.CreateMap&lt;&gt;</code> bodies but not <code class="il">builder.Services.AddAutoMapper(map =&gt; { ... })</code>, nor that endpoint files need <code class="il">using AutoMapper;</code> for <code class="il">IMapper</code>. The <code class="il">CreateCardRequestConverter.Write</code> is "hidden" — it's <code class="il">JsonSerializer.Serialize(writer, (object)value, value.GetType(), options)</code> (the <code class="il">(object)</code> cast forces runtime-type serialization).</p>
+<div class="ours"><strong>Ours:</strong> replaced wholesale by <code class="il">CardMapper</code>/<code class="il">UserMapper</code> (Mapperly) with <code class="il">[MapDerivedType]</code> — see the build walkthrough &amp; <a href="Mapperly_Guide.html">Mapperly guide</a>.</div>
+</div>
+
+<h2 id="c5e">E · Auth services &amp; wiring (the biggest cluster)</h2>
+
+<div class="gap">
+<h3><span class="id">C5-E1</span> <code class="il">IHashingService</code> + <code class="il">HmacHashingService</code> never shown <span class="sev blocker">blocker</span></h3>
+<p>Used everywhere (login, user create, seeding) but neither file is printed.</p>
+<pre><code><span class="kw">public interface</span> <span class="type">IHashingService</span> {
+    <span class="kw">byte</span>[] ComputeHash(<span class="kw">string</span> inputString, <span class="kw">byte</span>[] salt);
+    <span class="kw">byte</span>[] GenerateSalt();
+}
+<span class="cmt">// HmacHashingService:</span>
+<span class="cmt">//   ComputeHash: using HMACSHA256 hmac = new(salt); return hmac.ComputeHash(Encoding.UTF8.GetBytes(inputString));</span>
+<span class="cmt">//   GenerateSalt: 16 random bytes via RandomNumberGenerator</span></code></pre>
+</div>
+
+<div class="gap">
+<h3><span class="id">C5-E2</span> <code class="il">ITokenGenerationService</code> interface omitted <span class="sev blocker">blocker</span></h3>
+<p>Book shows <code class="il">JwtGenerationService : ITokenGenerationService</code> but not the interface: <code class="il">string GenerateToken(string username, string role);</code></p>
+</div>
+
+<div class="gap">
+<h3><span class="id">C5-E3</span> <code class="il">JwtGenerationService</code> differs in 3 runtime-relevant ways <span class="sev silent">silent</span></h3>
+<p>vs the printed code: it adds a <strong>JTI</strong> claim (<code class="il">JwtRegisteredClaimNames.Jti</code>), uses <strong><code class="il">DateTime.UtcNow</code></strong>.AddDays(7) not <code class="il">DateTime.Now</code> (with <code class="il">ValidateLifetime=true</code>, non-UTC shifts validity by your timezone), and null-guards each setting. Omitted usings: <code class="il">System.IdentityModel.Tokens.Jwt</code>, <code class="il">System.Security.Claims</code>, <code class="il">Microsoft.IdentityModel.Tokens</code>, <code class="il">Microsoft.Extensions.Options</code>.</p>
+</div>
+
+<div class="gap">
+<h3><span class="id">C5-E4</span> <code class="il">AuthSettings</code> class omitted <span class="sev blocker">blocker</span></h3>
+<p>Referenced everywhere, never shown: a POCO with <code class="il">required string</code> <code class="il">Secret</code>, <code class="il">Issuer</code>, <code class="il">Audience</code>, <code class="il">DefaultAdminPassword</code> (in <code class="il">Settings/</code>).</p>
+</div>
+
+<div class="gap">
+<h3><span class="id">C5-E5</span> <code class="il">GetCurrentUsername()</code> helper used but never defined <span class="sev blocker">blocker</span></h3>
+<pre><code><span class="kw">public static string</span> GetCurrentUsername(<span class="kw">this</span> <span class="type">HttpContext</span> http) =&gt;
+    http.User.Identity?.Name ?? <span class="kw">throw new</span> <span class="type">InvalidOperationException</span>(<span class="str">"User is not authenticated."</span>);</code></pre>
+<p>Lives in <code class="il">Helpers/AuthExtensions.cs</code> — every deck handler calls it.</p>
+</div>
+
+<div class="gap">
+<h3><span class="id">C5-E6</span> <code class="il">AddJwtAuthentication</code> wrapper + the claim-type maps <span class="sev blocker">blocker</span> <span class="sev silent">silent</span></h3>
+<p>Book shows a bare <code class="il">AddAuthentication(...).AddJwtBearer(...)</code> fragment and says it "is stored in the AuthExtensions class" — but never shows the method signature <code class="il">public static void AddJwtAuthentication(this IServiceCollection services, AuthSettings jwtSettings)</code>, nor the two lines inside <code class="il">TokenValidationParameters</code> that make everything work:</p>
+<pre><code>RoleClaimType = <span class="type">ClaimTypes</span>.Role,   <span class="cmt">// makes RequireRole("Admin") match -> AdminOnly works</span>
+NameClaimType = <span class="type">ClaimTypes</span>.Name    <span class="cmt">// makes User.Identity.Name resolve -> GetCurrentUsername works</span></code></pre>
+<p>Omit these and ownership lookups + admin authorization silently break.</p>
+</div>
+
+<h2 id="c5f">F · Program.cs assembly</h2>
+<div class="gap">
+<h3><span class="id">C5-F1</span> The full <code class="il">Program.cs</code> is never printed — ~6 disconnected fragments <span class="sev blocker">blocker</span></h3>
+<p>Never-shown lines that are mandatory:</p>
+<pre><code>builder.Services.AddScoped&lt;<span class="type">IHashingService</span>, <span class="type">HmacHashingService</span>&gt;();
+builder.Services.AddScoped&lt;<span class="type">ITokenGenerationService</span>, <span class="type">JwtGenerationService</span>&gt;();
+builder.Services.Configure&lt;<span class="type">AuthSettings</span>&gt;(builder.Configuration.GetSection(<span class="str">"Auth"</span>));
+<span class="type">AuthSettings</span> jwtSettings = builder.Configuration.GetRequiredSection(<span class="str">"Auth"</span>).Get&lt;<span class="type">AuthSettings</span>&gt;()!;
+builder.Services.AddJwtAuthentication(jwtSettings);</code></pre>
+<p>Without the two <code class="il">AddScoped</code>s, every hashing/token injection (incl. the <strong>DbContext seed</strong>) throws at resolve. Without <code class="il">Configure&lt;AuthSettings&gt;</code>, <code class="il">IOptionsSnapshot&lt;AuthSettings&gt;</code> can't resolve.</p>
+<p class="lbl">Pipeline order (differs from book)</p>
+<pre><code><span class="kw">if</span> (app.Environment.IsDevelopment()) { app.UseDeveloperExceptionPage(); app.MapOpenApi(); }
+<span class="kw">else</span> { app.UseHttpsRedirection(); }    <span class="cmt">// HTTPS redirect gated to PROD - or it bounces your plain-HTTP .http calls</span>
+app.UseAuthentication();
+app.UseAuthorization();
+<span class="cmt">// ...then the endpoint Add*Endpoints() calls</span></code></pre>
+<p><code class="il">UseAuthentication</code> before <code class="il">UseAuthorization</code>, both before endpoints. The book's unconditional <code class="il">UseHttpsRedirection</code> will block your dev HTTP requests.</p>
+</div>
+
+<h2 id="c5g">G · Admin seeding</h2>
+<div class="gap">
+<h3><span class="id">C5-G1</span> The seed only compiles because of B1 <span class="sev blocker">blocker</span></h3>
+<pre><code><span class="kw">byte</span>[] salt = <span class="str">"AdminUserUsesAHardcodedSaltToPreventEFErrors"</span>u8.ToArray();
+<span class="kw">string</span> password = authSettings.Value.DefaultAdminPassword;
+modelBuilder.Entity&lt;<span class="type">User</span>&gt;().HasData(<span class="kw">new</span> <span class="type">User</span> {
+    Id = <span class="num">1</span>, Username = <span class="str">"admin"</span>, Salt = salt,
+    PasswordHash = hasher.ComputeHash(password, salt), IsAdmin = <span class="kw">true</span> });</code></pre>
+<p>The fixed <code class="il">u8</code> salt + fixed password is deliberate — <code class="il">HasData</code> must be stable across migrations (a random salt would re-diff every <code class="il">migrations add</code>). The non-obvious part is that a <em>DbContext</em> depends on DI-injected <code class="il">hasher</code>/<code class="il">authSettings</code> at model-build time.</p>
+</div>
+
+<!-- ==================== CHAPTER 6 ==================== -->
+<div class="part"><h2>Chapter 6 — the Blazor WebAssembly front-end</h2></div>
+<p style="font-size:14px;color:var(--text-dim)">Ch.&nbsp;6 turns the single API project into a <strong>3-project solution</strong>: <code class="il">CardTrackerWebApi</code> (carried forward) + <code class="il">CardTracker.Contracts</code> (new shared lib) + <code class="il">CardTrackerClient</code> (new Blazor WASM). <strong>Heads-up correction:</strong> the answer key uses <em>no</em> <code class="il">Blazored.LocalStorage</code> and <em>no</em> <code class="il">DelegatingHandler</code> — the JWT lives in an in-memory field on a scoped service and is attached per-request by hand.</p>
+
+<h2 id="c6a">A · Solution &amp; three projects</h2>
+<div class="gap">
+<h3><span class="id">C6-A1</span> Creating the 3 projects &amp; the solution <span class="sev blocker">blocker</span></h3>
+<p>Book is prose-only (and prints a fictional <code class="il">SideProjectTracker.Client/</code> tree with the wrong name + wrong folders, e.g. <code class="il">Shared/</code> which is really <code class="il">Layout/</code>). No commands.</p>
+<pre><code>dotnet new blazorwasm -n CardTrackerClient
+dotnet new classlib   -n CardTracker.Contracts
+dotnet sln CardTracker.sln add CardTrackerClient CardTracker.Contracts CardTrackerWebApi</code></pre>
+</div>
+<div class="gap">
+<h3><span class="id">C6-A2</span> The project-reference triangle <span class="sev blocker">blocker</span></h3>
+<p>Both the client <strong>and</strong> the carried-forward WebApi reference <code class="il">CardTracker.Contracts</code>; nothing references the client.</p>
+<pre><code>dotnet add CardTrackerClient reference CardTracker.Contracts
+dotnet add CardTrackerWebApi reference CardTracker.Contracts</code></pre>
+</div>
+<div class="gap">
+<h3><span class="id">C6-A3</span> Client csproj SDK + packages <span class="sev blocker">blocker</span></h3>
+<p>Never shown. SDK is <strong><code class="il">Microsoft.NET.Sdk.BlazorWebAssembly</code></strong> (not plain Sdk). Packages: <code class="il">Microsoft.AspNetCore.Components.WebAssembly</code> + <code class="il">...WebAssembly.DevServer</code> (PrivateAssets=all). (<code class="il">Microsoft.Extensions.Http</code> is in the key but effectively unused — the app registers a bare <code class="il">HttpClient</code>, not typed clients.) Contracts csproj is plain <code class="il">Microsoft.NET.Sdk</code> with <strong>zero</strong> packages.</p>
+</div>
+
+<h2 id="c6b">B · Contracts sharing</h2>
+<div class="gap">
+<h3><span class="id">C6-B1</span> What actually moves into <code class="il">CardTracker.Contracts</code> <span class="sev blocker">blocker</span></h3>
+<p>Book only says "requests/responses and the converter have been moved." The full inventory both projects now depend on: <code class="il">Requests/</code> (all <code class="il">Create*Request</code>, <code class="il">EditDeckRequest</code>, <code class="il">LoginRequest</code>), <code class="il">Responses/</code> (<code class="il">CardResponse</code> hierarchy, <code class="il">DeckResponse</code> <strong>+ a DTO <code class="il">CardDeck</code> declared in the same file</strong>, <code class="il">LoginResponse</code>, <code class="il">UserResponse</code>), <code class="il">Converters/</code> (<code class="il">CardResponseConverter</code>, <code class="il">CreateCardRequestConverter</code>) — all under <code class="il">CardTracker.Contracts.*</code> namespaces.</p>
+</div>
+<div class="gap">
+<h3><span class="id">C6-B2</span> There are now <em>two</em> <code class="il">CardDeck</code> types <span class="sev silent">silent</span></h3>
+<p>The EF entity <code class="il">CardTrackerWebApi.Models.CardDeck</code> and the DTO <code class="il">CardTracker.Contracts.Responses.CardDeck</code> (nested in <code class="il">DeckResponse.cs</code>). The client uses the Contracts one; the WebApi maps between them.</p>
+<div class="ours"><strong>Ours:</strong> with Mapperly you'd add a <code class="il">CardDeck → CardDeck-DTO</code> mapping; don't try to reuse the EF entity on the client (it's not even referenceable there).</div>
+</div>
+<div class="gap">
+<h3><span class="id">C6-B3</span> Re-register the request converter with its new namespace <span class="sev blocker">blocker</span></h3>
+<p>After the move, the WebApi's <code class="il">Configure&lt;JsonOptions&gt;(... new CreateCardRequestConverter())</code> now needs <code class="il">using CardTracker.Contracts.Converters;</code>.</p>
+<div class="ours"><strong>Ours:</strong> moot — <code class="il">[JsonPolymorphic]</code> instead of converters (the attribute hierarchy just moves into Contracts with the DTOs).</div>
+</div>
+
+<h2 id="c6c">C · Client bootstrap</h2>
+<div class="gap">
+<h3><span class="id">C6-C1</span> <code class="il">Program.cs</code> usings + host type <span class="sev blocker">blocker</span></h3>
+<p>Book shows the body but omits the 4 usings: <code class="il">Microsoft.AspNetCore.Components.Web</code>, <code class="il">...WebAssembly.Hosting</code>, <code class="il">CardTrackerClient</code>, <code class="il">CardTrackerClient.Services</code>.</p>
+</div>
+<div class="gap">
+<h3><span class="id">C6-C2</span> DI is Scoped — token is lost on full reload <span class="sev silent">silent</span></h3>
+<p>In WASM there's effectively one app-lifetime scope, so a scoped <code class="il">UserService</code> keeps its in-memory <code class="il">_token</code> during nav — <strong>but a hard refresh / F5 / direct URL wipes it</strong> (nothing persists it). The book never flags this "log in then refresh = logged out" behaviour. (This is the gap people expect <code class="il">Blazored.LocalStorage</code> to fill; the key just accepts the limitation.)</p>
+</div>
+<div class="gap">
+<h3><span class="id">C6-C3</span> <code class="il">wwwroot/index.html</code> never shown <span class="sev blocker">blocker</span></h3>
+<p>Mandatory host page: <code class="il">&lt;base href="/"&gt;</code>, the <code class="il">&lt;div id="app"&gt;</code> that <code class="il">RootComponents.Add&lt;App&gt;("#app")</code> binds to, and <code class="il">&lt;script src="_framework/blazor.webassembly.js"&gt;&lt;/script&gt;</code>. Without <code class="il">#app</code> + that script the app renders nothing.</p>
+</div>
+<div class="gap">
+<h3><span class="id">C6-C4 / C5 / C6</span> <code class="il">App.razor</code>, <code class="il">_Imports.razor</code>, Layout — mentioned, never shown <span class="sev blocker">blocker</span></h3>
+<p><code class="il">App.razor</code> needs the <code class="il">&lt;Router&gt;</code> with <code class="il">RouteView DefaultLayout="@typeof(MainLayout)"</code> + a <code class="il">&lt;NotFound&gt;</code>. <code class="il">_Imports.razor</code> needs the common <code class="il">@using</code>s (<code class="il">System.Net.Http.Json</code>, the Components namespaces, <code class="il">CardTrackerClient</code>, <code class="il">.Layout</code>) — note it does <em>not</em> globally import <code class="il">Contracts.Responses</code>/<code class="il">.Services</code>/<code class="il">.Components</code>, which is why individual pages add those <code class="il">@using</code>s inline. <code class="il">Layout/MainLayout.razor</code> + <code class="il">Layout/NavMenu.razor</code> (routes: <code class="il">""</code>, <code class="il">cards</code>, <code class="il">decks</code>, <code class="il">decks/add</code>) + bundled Bootstrap 5.3 must all exist.</p>
+</div>
+
+<h2 id="c6d">D · HttpClient / API base URL</h2>
+<div class="gap">
+<h3><span class="id">C6-D1</span> <code class="il">wwwroot/appsettings.json</code> — must be in <code class="il">wwwroot</code> <span class="sev runtime">runtime</span></h3>
+<p>For WASM the config file must live under <code class="il">wwwroot/</code> (it's served to the browser), unlike server apps. Content: <code class="il">{ "ApiBaseUrl": "http://localhost:5197" }</code>. <code class="il">builder.Configuration["ApiBaseUrl"]!</code> is null-forgiving — if the file's missing/misnamed it throws at startup. The value must match the API's port.</p>
+</div>
+<div class="gap">
+<h3><span class="id">C6-D2</span> Three ports to reconcile <span class="sev runtime">runtime</span></h3>
+<p>Client dev port (key: <strong>5211</strong>), API port (<strong>5197</strong>), and <code class="il">ApiBaseUrl</code> must all line up, and the API's CORS must allow the client origin. Template-picked ports won't match by luck.</p>
+</div>
+<div class="gap">
+<h3><span class="id">C6-D3</span> Service usings + the interfaces <span class="sev blocker">blocker</span></h3>
+<p>Book shows <code class="il">CardApiService</code>/<code class="il">UserService</code> bodies but not the file headers (<code class="il">System.Net.Http.Json</code>, <code class="il">System.Net.Http.Headers</code>, the Contracts namespaces) nor the <code class="il">ICardApiService</code>/<code class="il">IUserService</code> interfaces that DI binds to.</p>
+</div>
+
+<h2 id="c6e">E · CORS (WebApi changes)</h2>
+<div class="gap">
+<h3><span class="id">C6-E1</span> <code class="il">AddCors</code> + <code class="il">UseCors()</code> placement <span class="sev runtime">runtime</span></h3>
+<p>Book shows the snippets but with <code class="il">// other config…</code> placeholders, never the full pipeline. Order in the key: <code class="il">UseAuthentication → UseAuthorization → UseCors</code>, then endpoints. Without <code class="il">UseCors()</code>, every browser call fails with the <code class="il">No 'Access-Control-Allow-Origin'</code> error the book quotes.</p>
+<pre><code>builder.Services.AddCors(o =&gt; o.AddDefaultPolicy(p =&gt;
+    p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+<span class="cmt">// ...after Build():</span>  app.UseCors();</code></pre>
+</div>
+<div class="gap">
+<h3><span class="id">C6-E2</span> Other WebApi changes the book doesn't re-explain <span class="sev blocker">blocker</span></h3>
+<p>Beyond CORS: the <code class="il">&lt;ProjectReference&gt;</code> to Contracts (A2), and Requests/Responses/Converters <strong>deleted locally and re-pointed</strong> to <code class="il">CardTracker.Contracts.*</code> (its <code class="il">Program.cs</code> usings change). All Ch.5 auth wiring is unchanged and not re-explained.</p>
+</div>
+
+<h2 id="c6f">F · Auth / token storage</h2>
+<div class="gap">
+<h3><span class="id">C6-F1</span> The token strategy: in-memory, manual, not persisted <span class="sev info">info</span></h3>
+<p>No auth NuGet package at all — no <code class="il">Blazored.LocalStorage</code>, no <code class="il">AuthenticationStateProvider</code>, no <code class="il">&lt;AuthorizeView&gt;</code>, no <code class="il">DelegatingHandler</code>. "Logged in" = a non-null <code class="il">_token</code> on the scoped <code class="il">UserService</code>; route protection is a manual <code class="il">if (!UserService.IsLoggedIn) Nav.NavigateTo("/login")</code> in each page's <code class="il">OnInitialized</code>; the token is attached by hand via <code class="il">AddAuthorizationHeader</code> (<code class="il">Authorization: Bearer &lt;token&gt;</code>). Default seeded creds: <code class="il">admin</code> / <code class="il">PacktBooks</code>.</p>
+</div>
+
+<h2 id="c6g">G · Running both together</h2>
+<div class="gap">
+<h3><span class="id">C6-G1</span> Multi-startup config never shown <span class="sev runtime">runtime</span></h3>
+<p>Book says "run both projects" and links docs but shows no config. The key has a <code class="il">.vscode/launch.json</code> with two launch configs. The API must be running (and the DB migrated) before the client can fetch anything.</p>
+</div>
+<div class="gap">
+<h3><span class="id">C6-G2</span> DB prerequisite carried from Ch.5 <span class="sev runtime">runtime</span></h3>
+<p>You must <code class="il">dotnet ef database update</code> (creating the <code class="il">admin</code>/<code class="il">PacktBooks</code> seed the client logs in with) and have a few cards present, or the client shows nothing.</p>
+</div>
+
+<blockquote>This file is the <em>audit</em> (what the book omits). For the <em>recipe</em> (how to build our variant), see <a href="CardTracker_Build_Walkthrough.html">CardTracker_Build_Walkthrough.html</a>. The throughline both chapters: the book is a narrative, not a build script &mdash; when something won't compile/run, suspect an omitted wiring step (csproj, global usings, a DI registration, a missing service/interface, a CORS/middleware line, or a key-name/namespace mismatch) before your own logic.</blockquote>
 
 </div>
 </body>
