@@ -475,7 +475,7 @@ Authorization: Bearer {{login.response.body.$.token}}
 
 <!-- ============ PHASE 9 ============ -->
 <h2 id="p9">10 &mdash; Still to come: authentication</h2>
-<p class="wip">Not built yet &mdash; this is the next stretch (book ~p.171+). When we get there it adds:</p>
+<p class="wip"><strong>Full do-it-yourself build:</strong> <a href="CardTracker_Auth_Tutorial.html">CardTracker_Auth_Tutorial.html</a> &mdash; a complete, self-guided JWT auth tutorial (hasher &rarr; settings &rarr; token service &rarr; login &rarr; authentication &rarr; policy &rarr; ownership checks &rarr; admin seeding &rarr; Program.cs wiring &rarr; testing), with full code and the <em>why</em> for every box. Summary of what it adds:</p>
 <ul>
   <li><strong>Settings/AuthSettings.cs</strong> + an <code class="il">appsettings</code> section (JWT key, issuer, audience).</li>
   <li><strong>Services/</strong> &mdash; <code class="il">IHashingService</code>/<code class="il">HmacHashingService</code> (salt + hash passwords) and <code class="il">ITokenGenerationService</code>/<code class="il">JwtGenerationService</code> (issue JWTs).</li>

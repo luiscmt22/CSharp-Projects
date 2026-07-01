@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>JWT Auth from Scratch — CardTracker (Self-Guided)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {
+  --bg: #0b1220; --surface: #111a2e; --surface-2: #16223c; --border: #243352;
+  --text: #e6ecf5; --text-dim: #9aa7c0; --accent: #6aa6ff; --accent-2: #b06aff;
+  --code-bg: #0a1120; --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.62 -apple-system, "Segoe UI", system-ui, sans-serif; }
+.wrap { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 24px; }
+header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
+header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
+header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
+h1,h2,h3,h4 { color: var(--text); margin-top: 1.5em; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+a { color: var(--accent); }
+code, pre, code.il { font-family: "JetBrains Mono","Cascadia Code",Consolas,monospace; }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.9em; border: 1px solid var(--border); }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; overflow-x: auto; font-size: 12.5px; line-height: 1.5; }
+pre code { background: transparent; border: 0; padding: 0; }
+blockquote { border-left: 3px solid var(--accent); background: var(--surface); padding: 10px 16px; margin: 12px 0; color: var(--text-dim); border-radius: 0 6px 6px 0; }
+.callout { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent-2); padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; }
+.callout.warn { border-left-color: var(--warn); } .callout.ok { border-left-color: var(--ok); } .callout.bad { border-left-color: var(--bad); }
+.why { background: rgba(106,166,255,0.06); border-left: 3px solid var(--accent); padding: 8px 13px; margin: 10px 0; border-radius: 0 5px 5px 0; font-size: 14px; }
+.why strong { color: var(--accent); }
+.observe { background: rgba(74,222,128,0.06); border-left: 3px solid var(--ok); padding: 8px 13px; margin: 10px 0; border-radius: 0 5px 5px 0; font-size: 14px; }
+.observe strong { color: var(--ok); }
+.ours { background: rgba(176,106,255,0.08); border-left: 3px solid var(--accent-2); padding: 8px 13px; margin: 10px 0; border-radius: 0 5px 5px 0; font-size: 14px; }
+.ours strong { color: var(--accent-2); }
+.file { color: var(--accent); font-family: "JetBrains Mono",monospace; font-size: 13px; margin: 16px 0 4px; font-weight: 600; }
+.step { color: var(--accent); font-family: "JetBrains Mono",monospace; }
+.kw { color: #c792ea; } .type { color: #82aaff; } .str { color: #c3e88d; } .num { color: #f78c6c; } .cmt { color: #6c7a96; font-style: italic; }
+.toc { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; margin: 16px 0 24px; font-size: 14px; }
+.toc ol { margin: 6px 0; padding-left: 22px; } .toc li { margin: 2px 0; }
+.toc a { text-decoration: none; } .toc a:hover { text-decoration: underline; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; margin: 12px 0; }
+th,td { border: 1px solid var(--border); padding: 7px 11px; text-align: left; vertical-align: top; }
+th { background: var(--surface-2); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">C5 &rsaquo; docs</div>
+  <h1>JWT auth from scratch — self-guided</h1>
+  <div class="meta">Build login + JWT bearer auth for the CardTracker API <strong>without the book and without help</strong>. Every box has the full code <em>and</em> the why. Adapted to our variant (Mapperly, <code class="il">BaseEntity</code>, config classes). Companion to <a href="CardTracker_Build_Walkthrough.html">the build walkthrough</a> and <a href="Chapter5_Book_Gaps.html">the gaps audit</a> (Sections E/F).</div>
+</header>
+
+<h2 id="model">The mental model (the wristband)</h2>
+<p>Auth has two halves:</p>
+<ul>
+  <li><strong>Authentication</strong> = "who are you?" — prove it with username + password. The bouncer checks your ID.</li>
+  <li><strong>Authorization</strong> = "what are you allowed to do?" — a VIP wristband opens the VIP room; a regular one doesn't.</li>
+</ul>
+<p>HTTP is forgetful: every request is a stranger. So you prove yourself <strong>once</strong> (login) and get a <strong>token</strong> — a tamper-proof wristband. On each later request you flash it (<code class="il">Authorization: Bearer &lt;token&gt;</code>). The server verifies the wristband's <em>signature</em> (made with a secret only it knows) — so it trusts the token <strong>without looking anything up</strong>. The token carries little facts called <strong>claims</strong> (your name, whether you're admin) and an expiry.</p>
+<div class="callout warn"><strong>One rule to remember:</strong> a JWT is <em>signed, not encrypted</em> — anyone can read it, nobody can forge it. So never put secrets in it, and always send it over HTTPS.</div>
+
+<h2 id="map">The build order (each box needs the previous)</h2>
+<table>
+<thead><tr><th>#</th><th>Box</th><th>Job</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Password hasher</td><td>scramble passwords so you never store the real one</td></tr>
+<tr><td>2</td><td><code class="il">AuthSettings</code> + config</td><td>the secret key, issuer, audience, default admin password</td></tr>
+<tr><td>3</td><td>Token service</td><td>build &amp; sign the JWT (make the wristband)</td></tr>
+<tr><td>4</td><td>Login endpoint + DTOs</td><td>check creds, hand out a token</td></tr>
+<tr><td>5</td><td>Turn on authentication</td><td>teach ASP.NET to verify incoming tokens</td></tr>
+<tr><td>6</td><td>Authorization policy</td><td>define "AdminOnly", guard endpoints</td></tr>
+<tr><td>7</td><td>Ownership checks</td><td>stop users touching each other's data</td></tr>
+<tr><td>8</td><td>Seed an admin</td><td>a first user to log in with</td></tr>
+<tr><td>9</td><td>Wire Program.cs</td><td>register + order everything</td></tr>
+<tr><td>10</td><td>Test it</td><td>login → token → protected call</td></tr>
+</tbody>
+</table>
+<p>Build top to bottom and it compiles incrementally.</p>
+
+<div class="toc"><strong>Steps</strong>
+<ol>
+  <li><a href="#s1">Password hasher</a></li>
+  <li><a href="#s2">AuthSettings &amp; config</a></li>
+  <li><a href="#s3">Token service</a></li>
+  <li><a href="#s4">Login endpoint &amp; DTOs</a></li>
+  <li><a href="#s5">Turn on authentication</a></li>
+  <li><a href="#s6">Authorization policy</a></li>
+  <li><a href="#s7">Ownership checks</a></li>
+  <li><a href="#s8">Seed an admin user</a></li>
+  <li><a href="#s9">Wire Program.cs</a></li>
+  <li><a href="#s10">Test it end-to-end</a></li>
+</ol></div>
+
+<h2 id="s1"><span class="step">1</span> — Password hasher</h2>
+<div class="why"><strong>Why:</strong> never store a real password. Store a <em>one-way scramble</em> (a hash) plus a per-user random <em>salt</em>. Then even if your DB leaks, passwords can't be recovered, and two users with the same password still look different.</div>
+<p class="file">Services/IHashingService.cs</p>
+<pre><code><span class="kw">namespace</span> CardTrackerWebApi.Services;
+
+<span class="kw">public interface</span> <span class="type">IHashingService</span>
+{
+    <span class="kw">byte</span>[] ComputeHash(<span class="kw">string</span> inputString, <span class="kw">byte</span>[] salt);
+    <span class="kw">byte</span>[] GenerateSalt();
+}</code></pre>
+<p class="file">Services/HmacHashingService.cs</p>
+<pre><code><span class="kw">using</span> System.Security.Cryptography;
+<span class="kw">using</span> System.Text;
+<span class="kw">namespace</span> CardTrackerWebApi.Services;
+
+<span class="kw">public class</span> <span class="type">HmacHashingService</span> : <span class="type">IHashingService</span>
+{
+    <span class="kw">public byte</span>[] ComputeHash(<span class="kw">string</span> inputString, <span class="kw">byte</span>[] salt)
+    {
+        <span class="kw">using</span> <span class="type">HMACSHA256</span> hmac = <span class="kw">new</span>(salt);            <span class="cmt">// the salt IS the HMAC key</span>
+        <span class="kw">return</span> hmac.ComputeHash(<span class="type">Encoding</span>.UTF8.GetBytes(inputString));
+    }
+
+    <span class="kw">public byte</span>[] GenerateSalt() =&gt; <span class="type">RandomNumberGenerator</span>.GetBytes(<span class="num">16</span>); <span class="cmt">// 16 cryptographically-random bytes</span>
+}</code></pre>
+<div class="why"><strong>Why HMAC + salt:</strong> the salt is unique per user and is mixed into the hash, so identical passwords produce different hashes. Hashing is one-way — you can recompute it to <em>compare</em>, but never reverse it to the password.</div>
+
+<h2 id="s2"><span class="step">2</span> — AuthSettings &amp; config</h2>
+<div class="why"><strong>Why:</strong> the server needs a <em>secret key</em> (it signs every token with this), an <em>issuer</em> and <em>audience</em> (who made the token / who it's for), and a default admin password (to seed the first user).</div>
+<p class="file">Settings/AuthSettings.cs</p>
+<pre><code><span class="kw">namespace</span> CardTrackerWebApi.Settings;
+
+<span class="kw">public class</span> <span class="type">AuthSettings</span>
+{
+    <span class="kw">public required string</span> Secret { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public required string</span> Issuer { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public required string</span> Audience { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public required string</span> DefaultAdminPassword { <span class="kw">get</span>; <span class="kw">set</span>; }
+}</code></pre>
+<p class="file">appsettings.json — add an "Auth" section</p>
+<pre><code><span class="str">"Auth"</span>: {
+  <span class="str">"Secret"</span>: <span class="str">"change-me-to-a-long-random-string-at-least-32-chars-long!!"</span>,
+  <span class="str">"Issuer"</span>: <span class="str">"CardTracker"</span>,
+  <span class="str">"Audience"</span>: <span class="str">"CardTracker"</span>,
+  <span class="str">"DefaultAdminPassword"</span>: <span class="str">"PacktBooks"</span>
+}</code></pre>
+<div class="callout warn"><strong>Two traps:</strong> (1) the <code class="il">Secret</code> must be <strong>≥ 32 ASCII chars (256 bits)</strong> or HMAC-SHA256 throws at runtime. (2) The section name must be exactly <code class="il">"Auth"</code> — it's matched by string later. <strong>Never commit a real production secret</strong> — for real deployments it comes from an environment variable or a secret store.</div>
+
+<h2 id="s3"><span class="step">3</span> — Token service (the wristband maker)</h2>
+<div class="why"><strong>Why:</strong> on a successful login you mint a JWT containing the user's name + role, signed with your secret. That signed string is what the client carries around.</div>
+<p class="file">Services/ITokenGenerationService.cs</p>
+<pre><code><span class="kw">namespace</span> CardTrackerWebApi.Services;
+<span class="kw">public interface</span> <span class="type">ITokenGenerationService</span> { <span class="kw">string</span> GenerateToken(<span class="kw">string</span> username, <span class="kw">string</span> role); }</code></pre>
+<p class="file">Services/JwtGenerationService.cs</p>
+<pre><code><span class="kw">using</span> System.IdentityModel.Tokens.Jwt;
+<span class="kw">using</span> System.Security.Claims;
+<span class="kw">using</span> System.Text;
+<span class="kw">using</span> CardTrackerWebApi.Settings;
+<span class="kw">using</span> Microsoft.Extensions.Options;
+<span class="kw">using</span> Microsoft.IdentityModel.Tokens;
+<span class="kw">namespace</span> CardTrackerWebApi.Services;
+
+<span class="kw">public class</span> <span class="type">JwtGenerationService</span>(<span class="type">IOptionsSnapshot</span>&lt;<span class="type">AuthSettings</span>&gt; settings) : <span class="type">ITokenGenerationService</span>
+{
+    <span class="kw">private readonly</span> <span class="type">AuthSettings</span> _s = settings.Value;
+
+    <span class="kw">public string</span> GenerateToken(<span class="kw">string</span> username, <span class="kw">string</span> role)
+    {
+        <span class="kw">byte</span>[] keyBytes = <span class="type">Encoding</span>.UTF8.GetBytes(_s.Secret);
+        <span class="type">SymmetricSecurityKey</span> key = <span class="kw">new</span>(keyBytes);
+        <span class="type">SigningCredentials</span> creds = <span class="kw">new</span>(key, <span class="type">SecurityAlgorithms</span>.HmacSha256);
+
+        <span class="type">JwtSecurityToken</span> token = <span class="kw">new</span>(
+            issuer: _s.Issuer,
+            audience: _s.Audience,
+            claims: [
+                <span class="kw">new</span> <span class="type">Claim</span>(<span class="type">ClaimTypes</span>.Name, username),                       <span class="cmt">// who you are</span>
+                <span class="kw">new</span> <span class="type">Claim</span>(<span class="type">ClaimTypes</span>.Role, role),                           <span class="cmt">// "Admin" or "User"</span>
+                <span class="kw">new</span> <span class="type">Claim</span>(<span class="type">JwtRegisteredClaimNames</span>.Jti, <span class="type">Guid</span>.NewGuid().ToString()) <span class="cmt">// unique token id</span>
+            ],
+            expires: <span class="type">DateTime</span>.UtcNow.AddDays(<span class="num">7</span>),                           <span class="cmt">// UTC, or lifetime shifts by your timezone</span>
+            signingCredentials: creds);
+
+        <span class="kw">return new</span> <span class="type">JwtSecurityTokenHandler</span>().WriteToken(token);
+    }
+}</code></pre>
+<div class="why"><strong>The claims matter later:</strong> <code class="il">ClaimTypes.Name</code> is how the server later knows "who is this request from" (Step 7), and <code class="il">ClaimTypes.Role</code> is what the <code class="il">AdminOnly</code> policy checks (Step 6). The <code class="il">Jti</code> (a unique id) lets you revoke a single token if you ever build that.</div>
+<div class="callout"><strong>Package note:</strong> <code class="il">JwtSecurityToken</code> lives in <code class="il">System.IdentityModel.Tokens.Jwt</code>, which comes in transitively with <code class="il">Microsoft.AspNetCore.Authentication.JwtBearer</code> (already added). If the type won't resolve, <code class="il">dotnet add package System.IdentityModel.Tokens.Jwt</code>.</div>
+
+<h2 id="s4"><span class="step">4</span> — Login endpoint &amp; DTOs</h2>
+<p class="file">Requests/LoginRequest.cs &amp; Responses/LoginResponse.cs</p>
+<pre><code><span class="kw">public class</span> <span class="type">LoginRequest</span> { <span class="kw">public required string</span> Username { <span class="kw">get</span>; <span class="kw">set</span>; } <span class="kw">public required string</span> Password { <span class="kw">get</span>; <span class="kw">set</span>; } }
+
+<span class="kw">public record</span> <span class="type">LoginResponse</span>(<span class="kw">string</span> Token);   <span class="cmt">// the property is "Token" - your .http reads response.body.token</span></code></pre>
+<p class="file">Endpoints/LoginEndpoints.cs</p>
+<pre><code><span class="kw">namespace</span> CardTrackerWebApi.Endpoints;
+
+<span class="kw">public static class</span> <span class="type">LoginEndpoints</span>
+{
+    <span class="kw">public static void</span> AddLoginEndpoints(<span class="kw">this</span> <span class="type">WebApplication</span> app) =&gt;
+        app.MapPost(<span class="str">"/login"</span>, HandleLogin).AllowAnonymous();   <span class="cmt">// login itself can't require a token!</span>
+
+    <span class="kw">private static</span> <span class="type">IResult</span> HandleLogin(<span class="type">LoginRequest</span> request, <span class="type">CardsDbContext</span> db,
+                                       <span class="type">IHashingService</span> hasher, <span class="type">ITokenGenerationService</span> tokens)
+    {
+        <span class="kw">string</span> username = request.Username.ToLowerInvariant();
+        <span class="type">User</span>? user = db.Users.AsNoTracking().FirstOrDefault(u =&gt; u.Username == username);
+        <span class="kw">if</span> (user <span class="kw">is null</span>) <span class="kw">return</span> <span class="type">Results</span>.BadRequest(<span class="str">"Invalid username or password."</span>);
+
+        <span class="kw">byte</span>[] hash = hasher.ComputeHash(request.Password, user.Salt);   <span class="cmt">// re-hash with THEIR salt</span>
+        <span class="kw">if</span> (!user.PasswordHash.SequenceEqual(hash))
+            <span class="kw">return</span> <span class="type">Results</span>.BadRequest(<span class="str">"Invalid username or password."</span>);
+
+        <span class="kw">string</span> role = user.IsAdmin ? <span class="str">"Admin"</span> : <span class="str">"User"</span>;
+        <span class="kw">string</span> jwt = tokens.GenerateToken(user.Username, role);
+        <span class="kw">return</span> <span class="type">Results</span>.Ok(<span class="kw">new</span> <span class="type">LoginResponse</span>(jwt));
+    }
+}</code></pre>
+<div class="why"><strong>Why the vague error:</strong> both "no such user" and "wrong password" return the <em>same</em> <code class="il">"Invalid username or password."</code> — telling an attacker "valid username, wrong password" hands them a confirmed username. <strong>Why re-hash:</strong> you can't un-hash the stored password; instead you hash the <em>submitted</em> one with the stored salt and compare the bytes.</div>
+
+<h2 id="s5"><span class="step">5</span> — Turn on authentication</h2>
+<div class="why"><strong>Why:</strong> Steps 1–4 <em>issue</em> tokens. Now you teach ASP.NET to <em>verify</em> tokens on incoming requests — check the signature, issuer, audience, and expiry.</div>
+<p class="file">Helpers/AuthExtensions.cs</p>
+<pre><code><span class="kw">using</span> System.Security.Claims;
+<span class="kw">using</span> System.Text;
+<span class="kw">using</span> CardTrackerWebApi.Settings;
+<span class="kw">using</span> Microsoft.AspNetCore.Authentication.JwtBearer;
+<span class="kw">using</span> Microsoft.IdentityModel.Tokens;
+<span class="kw">namespace</span> CardTrackerWebApi.Helpers;
+
+<span class="kw">public static class</span> <span class="type">AuthExtensions</span>
+{
+    <span class="kw">public static void</span> AddJwtAuthentication(<span class="kw">this</span> <span class="type">IServiceCollection</span> services, <span class="type">AuthSettings</span> s)
+    {
+        services.AddAuthentication(<span class="type">JwtBearerDefaults</span>.AuthenticationScheme)
+            .AddJwtBearer(o =&gt; o.TokenValidationParameters = <span class="kw">new</span> <span class="type">TokenValidationParameters</span>
+            {
+                ValidateIssuer = <span class="kw">true</span>,  ValidIssuer = s.Issuer,
+                ValidateAudience = <span class="kw">true</span>, ValidAudience = s.Audience,
+                ValidateLifetime = <span class="kw">true</span>,                                   <span class="cmt">// reject expired tokens</span>
+                ValidateIssuerSigningKey = <span class="kw">true</span>,                           <span class="cmt">// reject tampered signatures</span>
+                IssuerSigningKey = <span class="kw">new</span> <span class="type">SymmetricSecurityKey</span>(<span class="type">Encoding</span>.UTF8.GetBytes(s.Secret)),
+                RoleClaimType = <span class="type">ClaimTypes</span>.Role,   <span class="cmt">// &lt;-- makes RequireRole("Admin") work</span>
+                NameClaimType = <span class="type">ClaimTypes</span>.Name    <span class="cmt">// &lt;-- makes User.Identity.Name resolve</span>
+            });
+    }
+
+    <span class="kw">public static string</span> GetCurrentUsername(<span class="kw">this</span> <span class="type">HttpContext</span> http) =&gt;
+        http.User.Identity?.Name ?? <span class="kw">throw new</span> <span class="type">InvalidOperationException</span>(<span class="str">"User is not authenticated."</span>);
+}</code></pre>
+<div class="callout warn"><strong>The two easy-to-miss lines</strong> are <code class="il">RoleClaimType</code> and <code class="il">NameClaimType</code>. Without them, the framework doesn't know which claim is the role / the name, so your <code class="il">AdminOnly</code> policy and <code class="il">GetCurrentUsername()</code> silently fail even though everything compiles. (<code class="il">GetCurrentUsername</code> is here too — you'll use it in Step 7.)</div>
+
+<h2 id="s6"><span class="step">6</span> — Authorization policy &amp; guarding endpoints</h2>
+<div class="why"><strong>Why:</strong> authentication says "you're logged in"; authorization says "you're allowed to do <em>this</em>". A named policy bundles a rule you can attach to endpoints.</div>
+<p>In <code class="il">Program.cs</code> (full wiring in Step 9):</p>
+<pre><code>builder.Services.AddAuthorization(o =&gt;
+    o.AddPolicy(<span class="str">"AdminOnly"</span>, p =&gt; p.RequireRole(<span class="str">"Admin"</span>)));</code></pre>
+<p>Then guard endpoints:</p>
+<pre><code>app.MapPost(<span class="str">"cards"</span>, HandleCreateCard).RequireAuthorization(<span class="str">"AdminOnly"</span>); <span class="cmt">// admins only</span>
+app.MapGet(<span class="str">"decks"</span>, HandleGetDecks).RequireAuthorization();              <span class="cmt">// any logged-in user</span>
+app.MapGet(<span class="str">"cards"</span>, HandleGetAllCards).AllowAnonymous();                  <span class="cmt">// open</span></code></pre>
+<table>
+<thead><tr><th>Result</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code class="il">401 Unauthorized</code></td><td>no/invalid token — you're not logged in</td></tr>
+<tr><td><code class="il">403 Forbidden</code></td><td>logged in, but not allowed (e.g. not Admin)</td></tr>
+</tbody>
+</table>
+
+<h2 id="s7"><span class="step">7</span> — Ownership checks (the part most tutorials skip)</h2>
+<div class="why"><strong>Why:</strong> "is this user an Admin?" is not enough. A normal user shouldn't delete <em>another</em> user's deck. Role checks don't stop that — you must compare the resource's owner to the caller.</div>
+<pre><code><span class="kw">private static</span> <span class="type">IResult</span> HandleDeleteDeck(<span class="kw">int</span> id, <span class="type">CardsDbContext</span> db, <span class="type">HttpContext</span> http)
+{
+    <span class="kw">string</span> username = http.GetCurrentUsername();                          <span class="cmt">// from Step 5's helper</span>
+    <span class="type">User</span> user = db.Users.AsNoTracking().First(u =&gt; u.Username == username);
+    <span class="type">Deck</span>? deck = db.Decks.FirstOrDefault(d =&gt; d.Id == id);
+    <span class="kw">if</span> (deck <span class="kw">is null</span>) <span class="kw">return</span> <span class="type">Results</span>.NotFound();
+
+    <span class="kw">if</span> (deck.UserId != user.Id &amp;&amp; !user.IsAdmin)                          <span class="cmt">// not yours AND not admin</span>
+        <span class="kw">return</span> <span class="type">Results</span>.Forbid();
+
+    db.Decks.Remove(deck);
+    <span class="kw">await</span> db.SaveChangesAsync();
+    <span class="kw">return</span> <span class="type">Results</span>.NoContent();
+}</code></pre>
+<div class="callout">This bug class has a name: <strong>IDOR / broken object-level authorization</strong> — passing someone else's <code class="il">id</code> to act on their data. The owner-or-admin check is the fix.</div>
+
+<h2 id="s8"><span class="step">8</span> — Seed an admin user</h2>
+<div class="why"><strong>Why:</strong> a brand-new database has no users, so you can't log in to create the first one. Seed an <code class="il">admin</code> at migration time.</div>
+<div class="ours"><strong>Our variant wrinkle:</strong> we keep EF config in <code class="il">IEntityTypeConfiguration</code> classes, but those don't get DI — and seeding a <em>hashed</em> password needs the hasher. So the seed goes in <code class="il">OnModelCreating</code> (which already calls <code class="il">ApplyConfigurationsFromAssembly</code>), and the <code class="il">CardsDbContext</code> constructor takes the two services it needs. Card/Deck config stays in their config classes.</div>
+<p class="file">Models/CardsDbContext.cs</p>
+<pre><code><span class="kw">using</span> Microsoft.EntityFrameworkCore;
+<span class="kw">using</span> Microsoft.Extensions.Options;
+<span class="kw">using</span> CardTrackerWebApi.Services;
+<span class="kw">using</span> CardTrackerWebApi.Settings;
+<span class="kw">namespace</span> CardTrackerWebApi.Models;
+
+<span class="kw">public class</span> <span class="type">CardsDbContext</span>(
+    <span class="type">DbContextOptions</span>&lt;<span class="type">CardsDbContext</span>&gt; options,
+    <span class="type">IHashingService</span> hasher,                          <span class="cmt">// &lt;-- injected for the seed</span>
+    <span class="type">IOptionsSnapshot</span>&lt;<span class="type">AuthSettings</span>&gt; authSettings) : <span class="type">DbContext</span>(options)
+{
+    <span class="cmt">// ... your DbSets ...</span>
+
+    <span class="kw">protected override void</span> OnModelCreating(<span class="type">ModelBuilder</span> modelBuilder)
+    {
+        modelBuilder.ApplyConfigurationsFromAssembly(<span class="kw">typeof</span>(<span class="type">CardsDbContext</span>).Assembly);
+
+        <span class="kw">byte</span>[] salt = <span class="str">"AdminUserUsesAHardcodedSaltToPreventEFErrors"</span>u8.ToArray();   <span class="cmt">// FIXED salt - see below</span>
+        <span class="kw">string</span> password = authSettings.Value.DefaultAdminPassword;
+        modelBuilder.Entity&lt;<span class="type">User</span>&gt;().HasData(<span class="kw">new</span> <span class="type">User</span>
+        {
+            Id = <span class="num">1</span>, Username = <span class="str">"admin"</span>, Salt = salt,
+            PasswordHash = hasher.ComputeHash(password, salt), IsAdmin = <span class="kw">true</span>
+        });
+    }
+}</code></pre>
+<div class="callout warn"><strong>Why a FIXED salt here only:</strong> <code class="il">HasData</code> must produce the <em>same</em> bytes every time, or EF generates a new migration on every <code class="il">migrations add</code>. A random salt would change each build. <em>Real</em> users (Step 4's registration) use <code class="il">GenerateSalt()</code>; this one seeded row is the exception. The <code class="il">u8</code> suffix makes a UTF-8 <code class="il">byte[]</code> literal.</div>
+<p>Then generate &amp; apply the migration:</p>
+<pre><code>dotnet ef migrations add SeedAdminUser
+dotnet ef database update</code></pre>
+
+<h2 id="s9"><span class="step">9</span> — Wire it all in Program.cs</h2>
+<div class="why"><strong>Why order matters:</strong> services must be registered before <code class="il">Build()</code>; in the pipeline, <code class="il">UseAuthentication</code> (who are you?) must run before <code class="il">UseAuthorization</code> (are you allowed?), and both before your endpoints.</div>
+<pre><code><span class="kw">using</span> CardTrackerWebApi.Helpers;
+<span class="kw">using</span> CardTrackerWebApi.Services;
+<span class="kw">using</span> CardTrackerWebApi.Settings;
+<span class="cmt">// ...your existing usings...</span>
+
+<span class="kw">var</span> builder = <span class="type">WebApplication</span>.CreateBuilder(args);
+
+builder.Services.AddOpenApi();
+builder.Services.AddDbContext&lt;<span class="type">CardsDbContext</span>&gt;(o =&gt;
+    o.UseSqlite(builder.Configuration.GetConnectionString(<span class="str">"DefaultConnection"</span>)));
+
+<span class="cmt">// --- auth services (Step 1 & 3) ---</span>
+builder.Services.AddScoped&lt;<span class="type">IHashingService</span>, <span class="type">HmacHashingService</span>&gt;();
+builder.Services.AddScoped&lt;<span class="type">ITokenGenerationService</span>, <span class="type">JwtGenerationService</span>&gt;();
+
+<span class="cmt">// --- settings binding + authentication (Step 2 & 5) ---</span>
+builder.Services.Configure&lt;<span class="type">AuthSettings</span>&gt;(builder.Configuration.GetSection(<span class="str">"Auth"</span>));
+<span class="type">AuthSettings</span> authSettings = builder.Configuration.GetRequiredSection(<span class="str">"Auth"</span>).Get&lt;<span class="type">AuthSettings</span>&gt;()!;
+builder.Services.AddJwtAuthentication(authSettings);
+
+<span class="cmt">// --- authorization policy (Step 6) ---</span>
+builder.Services.AddAuthorization(o =&gt; o.AddPolicy(<span class="str">"AdminOnly"</span>, p =&gt; p.RequireRole(<span class="str">"Admin"</span>)));
+
+builder.Services.AddSingleton&lt;<span class="type">CardMapper</span>&gt;();   <span class="cmt">// your Mapperly mappers</span>
+builder.Services.AddSingleton&lt;<span class="type">UserMapper</span>&gt;();
+
+<span class="kw">var</span> app = builder.Build();
+
+<span class="kw">if</span> (app.Environment.IsDevelopment()) app.MapOpenApi();
+<span class="kw">else</span> app.UseHttpsRedirection();             <span class="cmt">// gate HTTPS-redirect to PROD so plain-HTTP .http calls work in dev</span>
+
+app.UseAuthentication();                    <span class="cmt">// 1. verify the token (who?)</span>
+app.UseAuthorization();                      <span class="cmt">// 2. enforce policies (allowed?)</span>
+
+app.AddLoginEndpoints();
+app.AddCardEndpoints();
+<span class="cmt">// app.AddUserEndpoints(); app.AddDeckEndpoints();  // as you build them</span>
+
+app.Run();</code></pre>
+<div class="callout bad"><strong>If you skip the two <code class="il">AddScoped</code> lines</strong>, everything that injects <code class="il">IHashingService</code>/<code class="il">ITokenGenerationService</code> — including the <strong>DbContext seed</strong> — throws "Unable to resolve service" at startup. If you skip <code class="il">Configure&lt;AuthSettings&gt;</code>, <code class="il">IOptionsSnapshot&lt;AuthSettings&gt;</code> can't resolve. These are the most common "it built but won't start" failures.</div>
+
+<h2 id="s10"><span class="step">10</span> — Test it end-to-end</h2>
+<p>In your <code class="il">.http</code> (VS Code REST Client — name the request, reuse its token):</p>
+<pre><code>@BaseUrl = http://localhost:5180
+
+# @name login
+POST {{BaseUrl}}/login
+Content-Type: application/json
+
+{ "username": "admin", "password": "PacktBooks" }
+
+### now call a protected endpoint with the captured token
+POST {{BaseUrl}}/cards
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.token}}
+
+{ "type": "Action", "name": "Test", "effect": "wins", "cost": 1 }</code></pre>
+<div class="observe"><strong>Observe the three states</strong> (this is the real test that auth works):
+<ol style="margin:4px 0">
+  <li>Call <code class="il">POST /cards</code> with <strong>no</strong> <code class="il">Authorization</code> header → <strong>401</strong>.</li>
+  <li>Log in as a <em>non-admin</em> user, use that token → <strong>403</strong> (authenticated, not allowed).</li>
+  <li>Log in as <code class="il">admin</code>, use that token → <strong>201 Created</strong>.</li>
+</ol>
+If you get all three, every box is wired correctly.</div>
+
+<h2 id="checklist">Solo checklist (the boxes the book never prints)</h2>
+<ol>
+  <li><code class="il">Services/IHashingService.cs</code> + <code class="il">HmacHashingService.cs</code></li>
+  <li><code class="il">Settings/AuthSettings.cs</code> + the <code class="il">"Auth"</code> section in appsettings (Secret ≥ 32 chars)</li>
+  <li><code class="il">Services/ITokenGenerationService.cs</code> + <code class="il">JwtGenerationService.cs</code></li>
+  <li><code class="il">Requests/LoginRequest.cs</code>, <code class="il">Responses/LoginResponse.cs</code>, <code class="il">Endpoints/LoginEndpoints.cs</code></li>
+  <li><code class="il">Helpers/AuthExtensions.cs</code> (<code class="il">AddJwtAuthentication</code> + the two claim-type lines + <code class="il">GetCurrentUsername</code>)</li>
+  <li><code class="il">CardsDbContext</code> constructor takes <code class="il">IHashingService</code> + <code class="il">IOptionsSnapshot&lt;AuthSettings&gt;</code> + the <code class="il">HasData</code> seed</li>
+  <li><code class="il">Program.cs</code>: 2× <code class="il">AddScoped</code>, <code class="il">Configure&lt;AuthSettings&gt;</code>, get settings, <code class="il">AddJwtAuthentication</code>, <code class="il">AddAuthorization</code>, then <code class="il">UseAuthentication</code> → <code class="il">UseAuthorization</code> → endpoints</li>
+  <li><code class="il">dotnet ef migrations add SeedAdminUser</code> + <code class="il">database update</code></li>
+</ol>
+
+<blockquote>Build the boxes in order, test the three states, and you've shipped JWT auth with zero help. The pattern under all of it: <strong>issue a signed token on login → verify it on every request → trust its claims for who-you-are and what-you-can-do.</strong></blockquote>
+
+</div>
+</body>
+</html>

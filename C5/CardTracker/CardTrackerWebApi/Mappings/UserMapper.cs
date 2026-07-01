@@ -7,4 +7,6 @@ public partial class UserMapper
     [MapperIgnoreSource(nameof(User.PasswordHash))]
     [MapperIgnoreSource(nameof(User.Salt))]
     public partial UserResponse ToResponse(User user);
+
+    public partial List<UserResponse> ToResponse(IEnumerable<User> users);
 }
