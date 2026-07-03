@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Operators &mdash; Overloading &amp; Conversions &mdash; Blank-Page Drills</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root { --bg:#0b1220; --surface:#111a2e; --surface-2:#16223c; --border:#243352; --text:#e6ecf5; --text-dim:#9aa7c0; --accent:#6aa6ff; --accent-2:#b06aff; --code-bg:#0a1120; --ok:#4ade80; --warn:#fbbf24; --bad:#f87171; }
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font:16px/1.65 -apple-system,"Segoe UI",system-ui,sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:32px 24px 80px}
+header.doc-head{border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:28px}
+header.doc-head .crumbs{color:var(--text-dim);font-size:13px}
+header.doc-head h1{margin:6px 0 4px;font-size:28px;line-height:1.2}
+header.doc-head .meta{color:var(--text-dim);font-size:13px}
+h1,h2,h3,h4{color:var(--text);margin-top:1.6em}
+h2{border-bottom:1px solid var(--border);padding-bottom:6px}
+a{color:var(--accent)}
+code,pre,code.il{font-family:"JetBrains Mono","Cascadia Code",Consolas,monospace}
+code.il{background:var(--code-bg);padding:1px 6px;border-radius:4px;font-size:.92em;border:1px solid var(--border)}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:14px 16px;overflow-x:auto;font-size:13px;line-height:1.55}
+pre code{background:transparent;border:0;padding:0}
+blockquote{border-left:3px solid var(--accent);background:var(--surface);padding:10px 16px;margin:12px 0;color:var(--text-dim);border-radius:0 6px 6px 0}
+.callout{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent-2);padding:12px 16px;margin:14px 0;border-radius:0 6px 6px 0}
+.callout.warn{border-left-color:var(--warn)}
+.kw{color:#c792ea} .type{color:#82aaff} .str{color:#c3e88d} .num{color:#f78c6c} .cmt{color:#6c7a96;font-style:italic}
+.drill{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin:20px 0}
+.drill h3{margin-top:0;font-size:17px}
+.drill .meta-row{display:flex;flex-wrap:wrap;gap:8px;font-size:12px;color:var(--text-dim);margin-bottom:8px}
+.drill .meta-row span.tag{background:var(--surface-2);border:1px solid var(--border);padding:2px 8px;border-radius:4px}
+.drill .meta-row span.tag.time{color:var(--accent)}
+.drill .meta-row span.tag.topic{color:var(--accent-2)}
+.section-label{text-transform:uppercase;font-size:10px;letter-spacing:.08em;color:var(--text-dim);margin:14px 0 4px;font-weight:600}
+.checklist{list-style:none;padding-left:0;margin:4px 0}
+.checklist li{padding:3px 0 3px 26px;position:relative;font-size:14px}
+.checklist li::before{content:"";position:absolute;left:0;top:8px;width:13px;height:13px;border:1.5px solid var(--text-dim);border-radius:3px;background:var(--code-bg)}
+details{background:var(--code-bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;margin:10px 0}
+details>summary{cursor:pointer;color:var(--accent);font-weight:500;user-select:none;font-size:13px}
+details[open]>summary{margin-bottom:8px}
+.toc{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px 18px;margin:18px 0 28px;font-size:14px}
+.toc ol{margin:6px 0;padding-left:22px}
+.toc li{margin:2px 0}
+.toc a{text-decoration:none}
+.toc a:hover{text-decoration:underline}
+.section-anchor{padding-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">GeneralExercises &rsaquo; Operators</div>
+  <h1>Operator overloading &amp; conversions &mdash; blank-page drills</h1>
+  <div class="meta">14 drills covering user-defined conversion operators (<code class="il">implicit</code>/<code class="il">explicit</code>), symbol overloading (<code class="il">+</code>, <code class="il">==</code>, <code class="il">&lt;</code>), and when NOT to use either. Live example in your own code: <code class="il">DesignPatterns/Patterns/Creational/Builder/FacetedBuilder/PersonBuilder.cs</code>.</div>
+</header>
+
+<h2 id="why">Why this</h2>
+
+<p>You met <code class="il">implicit operator</code> in your FacetedBuilder and didn't recognise it &mdash; that's the sign it never became reflex. Operators are a small feature with sharp edges: two distinct species (conversions vs. symbol overloads), strict pairing rules, and a design bar (&ldquo;obvious to a stranger&rdquo;) that most codebases fail. After these drills you'll read <code class="il">public static implicit operator Person(PersonBuilder pb)</code> the way you read a property.</p>
+
+<blockquote>The two species: <strong>conversion operators</strong> teach the compiler how your type becomes another type (<code class="il">implicit operator Person(PersonBuilder)</code>). <strong>Symbol overloads</strong> teach an existing symbol a new meaning for your type (<code class="il">operator +(Money, Money)</code>). Same keyword, different job.</blockquote>
+
+<div class="toc">
+  <strong>Drill index</strong>
+  <ol>
+    <li><a href="#sec-conversion">Conversion operators (drills 1&ndash;5)</a></li>
+    <li><a href="#sec-overload">Symbol overloading (drills 6&ndash;9)</a></li>
+    <li><a href="#sec-equality">Equality &amp; comparison (drills 10&ndash;12)</a></li>
+    <li><a href="#sec-design">Design judgment (drills 13&ndash;14)</a></li>
+  </ol>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-conversion" class="section-anchor">1 &mdash; Conversion operators</h2>
+
+<div class="drill">
+<h3>Drill 1 &mdash; Rebuild the builder unwrap</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">implicit operator</span></div>
+<div class="section-label">Goal</div>
+<p>From a blank file, recreate the trick from your FacetedBuilder without looking at it. A <code class="il">PizzaBuilder</code> with fluent methods <code class="il">WithSize(string)</code> and <code class="il">AddTopping(string)</code>, holding a private <code class="il">Pizza</code>. Add an implicit conversion so this compiles:</p>
+<pre><code><span class="type">Pizza</span> pizza = <span class="kw">new</span> <span class="type">PizzaBuilder</span>().WithSize(<span class="str">"L"</span>).AddTopping(<span class="str">"mushrooms"</span>);</code></pre>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static implicit operator</span> <span class="type">Pizza</span>(<span class="type">PizzaBuilder</span> builder)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The operator is <code class="il">public static</code> &mdash; I know it won't compile otherwise.</li>
+  <li>The <em>target type</em> is where a method name would go; there's no separate return type.</li>
+  <li>I can say out loud when the conversion fires: &ldquo;when a Pizza is expected and a PizzaBuilder is given.&rdquo;</li>
+</ul>
+<details><summary>Hint</summary>
+<p>The declaration reads backwards compared to a method: <code class="il">implicit operator TargetType(SourceType source)</code>. The parameter is what you convert <em>from</em>, the &ldquo;name&rdquo; is what you convert <em>to</em>. Body: just <code class="il">return builder.pizza;</code>. One of source or target must be the enclosing type &mdash; you can't declare a conversion between two types you don't own.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 2 &mdash; The var trap (predict)</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">when conversions fire</span></div>
+<div class="section-label">Goal</div>
+<p>Using drill 1's types, predict the compile-time type of each variable, then verify by hovering in the IDE:</p>
+<pre><code><span class="kw">var</span> a = <span class="kw">new</span> <span class="type">PizzaBuilder</span>().WithSize(<span class="str">"L"</span>);   <span class="cmt">// type of a?</span>
+<span class="type">Pizza</span> b = <span class="kw">new</span> <span class="type">PizzaBuilder</span>().WithSize(<span class="str">"L"</span>); <span class="cmt">// type of b?</span>
+
+<span class="kw">void</span> Bake(<span class="type">Pizza</span> p) { }
+Bake(<span class="kw">new</span> <span class="type">PizzaBuilder</span>());                    <span class="cmt">// compiles?</span></code></pre>
+<details><summary>Hint</summary>
+<p><code class="il">a</code> is a <code class="il">PizzaBuilder</code> &mdash; <code class="il">var</code> adopts the expression's existing type and <strong>never</strong> triggers a conversion. <code class="il">b</code> is a <code class="il">Pizza</code>; the explicit target type makes the compiler search for a conversion. The <code class="il">Bake</code> call compiles too: a parameter is also a typed target. Conversions fire at <em>assignment to a typed target, argument passing, and return statements</em> &mdash; never with <code class="il">var</code>.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 3 &mdash; When explicit is the honest choice</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">explicit operator</span></div>
+<div class="section-label">Goal</div>
+<p>Create a <code class="il">Percentage</code> readonly record struct wrapping a <code class="il">double</code>. Add an <em>explicit</em> conversion to <code class="il">int</code> that rounds, and throws <code class="il">InvalidOperationException</code> if the value is negative.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static explicit operator</span> <span class="kw">int</span>(<span class="type">Percentage</span> p)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li><code class="il">int x = pct;</code> does NOT compile; <code class="il">int x = (int)pct;</code> does.</li>
+  <li>I can state the convention: implicit = always succeeds, never loses data; explicit = may lose data or throw, so the caller must opt in visibly.</li>
+  <li>I can name the built-in twins: <code class="il">int&rarr;long</code> is implicit, <code class="il">long&rarr;int</code> is explicit. Same logic.</li>
+</ul>
+<details><summary>Hint</summary>
+<p>Rounding loses the decimals and negatives throw &mdash; two reasons this must not happen silently. If your conversion can throw, also consider whether a named method (<code class="il">ToWholePercent()</code>, or <code class="il">Parse</code>/<code class="il">TryParse</code> style) is clearer than a cast. <code class="il">DateTime</code>&harr;<code class="il">string</code> famously has <em>no</em> conversion operators for exactly this reason.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 4 &mdash; The compiler's rules (experiment)</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">restrictions</span></div>
+<div class="section-label">Goal</div>
+<p>Try each of these and record the compiler error (or lack of one):</p>
+<ol>
+  <li>Declare <em>both</em> <code class="il">implicit</code> and <code class="il">explicit</code> operators for the same type pair.</li>
+  <li>With only the implicit operator from drill 1, write <code class="il">var p = (Pizza)builder;</code> &mdash; does the cast syntax work anyway?</li>
+  <li>Declare a conversion between <code class="il">string</code> and <code class="il">int</code> inside some unrelated class of yours.</li>
+  <li>Declare a conversion from your class to an interface it could implement.</li>
+</ol>
+<details><summary>Hint</summary>
+<ol>
+  <li>Error &mdash; they'd be ambiguous; one pair, one operator.</li>
+  <li>Compiles fine. Implicit <em>permits</em> the cast syntax too; it's a superset of explicit.</li>
+  <li>Error CS0556 &mdash; at least one of the two types must be the enclosing type. You can't retroactively glue conversions onto types you don't own.</li>
+  <li>Error &mdash; conversions to/from interfaces and base classes are forbidden, because the runtime already owns those (casting, boxing, inheritance). User conversions can't shadow the type system.</li>
+</ol>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 5 &mdash; is / as ignore your operator (predict)</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">runtime vs compile time</span></div>
+<div class="section-label">Goal</div>
+<p>With drill 1's implicit operator in place, predict what each line does &mdash; compile error, null, false, or success:</p>
+<pre><code><span class="type">PizzaBuilder</span> builder = <span class="kw">new</span>();
+<span class="kw">var</span> a = builder <span class="kw">as</span> <span class="type">Pizza</span>;     <span class="cmt">// ?</span>
+<span class="kw">bool</span> b = builder <span class="kw">is</span> <span class="type">Pizza</span>;    <span class="cmt">// ?</span>
+<span class="type">Pizza</span> c = (<span class="type">Pizza</span>)builder;     <span class="cmt">// ?</span></code></pre>
+<details><summary>Hint</summary>
+<p>Both <code class="il">as</code> and <code class="il">is</code> fail to compile (CS0039 / &ldquo;expression is never of the provided type&rdquo;): they perform <em>runtime type checks on an existing object</em> and never invoke user-defined conversions. Only the cast <code class="il">(Pizza)builder</code> works &mdash; it's resolved at <em>compile time</em> into a call to your operator method. That's the deep difference: a conversion operator runs code and produces a (possibly different) object; <code class="il">is</code>/<code class="il">as</code> just inspect what's already there.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-overload" class="section-anchor">2 &mdash; Symbol overloading</h2>
+
+<div class="drill">
+<h3>Drill 6 &mdash; Money + Money</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">binary operator</span></div>
+<div class="section-label">Goal</div>
+<p>Create a <code class="il">Money</code> readonly record struct with <code class="il">decimal Amount</code> and <code class="il">string Currency</code>. Overload <code class="il">+</code> so two Money values add &mdash; throwing if the currencies differ.</p>
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">Money</span> <span class="kw">operator</span> +(<span class="type">Money</span> left, <span class="type">Money</span> right)</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Structural difference from a conversion: an overload has a real return type AND a symbol where the name goes; a conversion uses the target type as its name.</li>
+  <li>The operator returns a <em>new</em> Money &mdash; it never mutates an operand.</li>
+  <li><code class="il">total = a + b + c;</code> chains naturally (each + returns a Money that feeds the next).</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 7 &mdash; Mixed operands, both orders</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">operand order matters</span></div>
+<div class="section-label">Goal</div>
+<p>Support scaling: <code class="il">money * 1.5m</code> AND <code class="il">1.5m * money</code>. Write what's needed &mdash; then answer: why did one overload not cover both?</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I needed TWO overloads: <code class="il">operator *(Money, decimal)</code> and <code class="il">operator *(decimal, Money)</code>.</li>
+  <li>I know overload resolution matches operand types positionally &mdash; the compiler won't swap them for me, even for &ldquo;obviously commutative&rdquo; math.</li>
+  <li>The second overload just delegates to the first &mdash; one line, no duplicated logic.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 8 &mdash; Unary operators</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">unary</span></div>
+<div class="section-label">Goal</div>
+<p>Add unary minus to Money (<code class="il">var refund = -charge;</code>). Then overload <code class="il">++</code> on a <code class="il">Counter</code> record struct and test both <code class="il">c++</code> and <code class="il">++c</code>.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Unary signatures take ONE parameter of the enclosing type.</li>
+  <li>My <code class="il">++</code> returns a new incremented value &mdash; it does not mutate. The compiler handles prefix/postfix ordering; I only define &ldquo;what +1 means&rdquo;.</li>
+  <li>I know which symbols are off-limits: <code class="il">=</code>, <code class="il">.</code>, <code class="il">?:</code>, <code class="il">&amp;&amp;</code>/<code class="il">||</code> directly, <code class="il">new</code>, <code class="il">typeof</code>.</li>
+</ul>
+</div>
+
+<div class="drill">
+<h3>Drill 9 &mdash; Compound assignment for free (predict)</h3>
+<div class="meta-row"><span class="tag time">3 min</span><span class="tag topic">+=</span></div>
+<div class="section-label">Goal</div>
+<p>Without adding any code, predict: does <code class="il">wallet += price;</code> compile, given only <code class="il">operator +</code> from drill 6? Then verify.</p>
+<details><summary>Hint</summary>
+<p>Yes. C# does not let you overload <code class="il">+=</code> separately &mdash; it's always rewritten as <code class="il">wallet = wallet + price</code>, reusing your <code class="il">+</code>. One less thing to define, one less place for the two to disagree. (Same for <code class="il">-=</code>, <code class="il">*=</code>, etc.)</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-equality" class="section-anchor">3 &mdash; Equality &amp; comparison</h2>
+
+<div class="drill">
+<h3>Drill 10 &mdash; == on a class, done right</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">equality pair</span></div>
+<div class="section-label">Goal</div>
+<p>Take a plain <code class="il">class Isbn { public string Value; }</code>. Overload <code class="il">==</code> and <code class="il">!=</code> so two Isbn instances with the same Value are equal &mdash; handling all null combinations without throwing.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>The compiler forced me to define BOTH <code class="il">==</code> and <code class="il">!=</code> &mdash; they're a mandatory pair.</li>
+  <li>I guarded with <code class="il">ReferenceEquals</code> first &mdash; including the both-null case &mdash; and did NOT write <code class="il">left == null</code> inside the operator (infinite recursion!).</li>
+  <li>I also overrode <code class="il">Equals</code> and <code class="il">GetHashCode</code> so dictionaries and <code class="il">==</code> agree.</li>
+</ul>
+<details><summary>Hint</summary>
+<p>Canonical shape: <code class="il">if (ReferenceEquals(left, right)) return true; if (left is null || right is null) return false; return left.Value == right.Value;</code> &mdash; note <code class="il">is null</code>, which bypasses your operator, versus <code class="il">== null</code>, which would recurse into it. This bug is a rite of passage; have it once on purpose, in a drill, instead of in production.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 11 &mdash; What records give you free (predict)</h3>
+<div class="meta-row"><span class="tag time">5 min</span><span class="tag topic">records</span></div>
+<div class="section-label">Goal</div>
+<p>Predict each result, then run:</p>
+<pre><code><span class="kw">record</span> <span class="type">Point</span>(<span class="kw">int</span> X, <span class="kw">int</span> Y);
+<span class="kw">class</span> <span class="type">PointC</span> { <span class="kw">public int</span> X, Y; }
+
+<span class="kw">var</span> r1 = <span class="kw">new</span> <span class="type">Point</span>(<span class="num">1</span>, <span class="num">2</span>); <span class="kw">var</span> r2 = <span class="kw">new</span> <span class="type">Point</span>(<span class="num">1</span>, <span class="num">2</span>);
+<span class="type">Console</span>.WriteLine(r1 == r2);        <span class="cmt">// ?</span>
+
+<span class="kw">var</span> c1 = <span class="kw">new</span> <span class="type">PointC</span>(); <span class="kw">var</span> c2 = <span class="kw">new</span> <span class="type">PointC</span>();
+<span class="type">Console</span>.WriteLine(c1 == c2);        <span class="cmt">// ?</span>
+
+<span class="type">Console</span>.WriteLine(r1 &lt; r2);         <span class="cmt">// ?</span></code></pre>
+<details><summary>Hint</summary>
+<p><code class="il">r1 == r2</code> is <code class="il">True</code> &mdash; records synthesize value-based <code class="il">==</code>/<code class="il">!=</code>/<code class="il">Equals</code>/<code class="il">GetHashCode</code> for you; drill 10 by hand is what the record compiler emits. <code class="il">c1 == c2</code> is <code class="il">False</code> &mdash; classes default to reference equality. <code class="il">r1 &lt; r2</code> doesn't compile &mdash; records give you equality, never ordering. Ordering is drill 12.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 12 &mdash; Ordering a SemVer</h3>
+<div class="meta-row"><span class="tag time">12 min</span><span class="tag topic">comparison operators</span></div>
+<div class="section-label">Goal</div>
+<p>Create <code class="il">SemVer(int Major, int Minor, int Patch)</code>. Implement <code class="il">IComparable&lt;SemVer&gt;</code>, then overload <code class="il">&lt;</code>, <code class="il">&gt;</code>, <code class="il">&lt;=</code>, <code class="il">&gt;=</code> &mdash; each one a one-liner delegating to <code class="il">CompareTo</code>. Verify <code class="il">new SemVer(1,10,0) &gt; new SemVer(1,9,9)</code> and that a <code class="il">List&lt;SemVer&gt;.Sort()</code> orders correctly.</p>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Pairing rule again: <code class="il">&lt;</code> requires <code class="il">&gt;</code>, and <code class="il">&lt;=</code> requires <code class="il">&gt;=</code>.</li>
+  <li>All four operators delegate to ONE CompareTo &mdash; single source of truth for the ordering.</li>
+  <li>I know why 1.10.0 &gt; 1.9.9 would fail with string comparison, which is the whole point of the type.</li>
+</ul>
+</div>
+
+<!-- ============================================ -->
+<h2 id="sec-design" class="section-anchor">4 &mdash; Design judgment</h2>
+
+<div class="drill">
+<h3>Drill 13 &mdash; Operator, method, or neither? (no code)</h3>
+<div class="meta-row"><span class="tag time">10 min</span><span class="tag topic">design</span></div>
+<div class="section-label">Goal</div>
+<p>For each, decide: operator, named method, or don't do it at all &mdash; and say why in one sentence:</p>
+<ol>
+  <li><code class="il">date1 - date2</code> returning a TimeSpan.</li>
+  <li><code class="il">order + orderLine</code> adding a line to an order.</li>
+  <li><code class="il">implicit operator string(CustomerId id)</code> on a strongly-typed ID.</li>
+  <li><code class="il">implicit operator Money(decimal amount)</code>.</li>
+  <li>Your PersonBuilder's <code class="il">implicit operator Person(PersonBuilder)</code>.</li>
+</ol>
+<details><summary>Hint &mdash; my picks</summary>
+<ol>
+  <li>Operator &mdash; .NET itself does this; the math meaning is obvious to any stranger.</li>
+  <li>Method (<code class="il">AddLine</code>) &mdash; <code class="il">+</code> implies a pure, symmetric value operation; adding to an order is a stateful domain action.</li>
+  <li>Tempting but dangerous &mdash; the entire point of a typed ID is that it does NOT silently become a string; you'd reopen the door to passing it where any string goes.</li>
+  <li>Risky &mdash; which currency does <code class="il">Money m = 50m;</code> have? A conversion that must guess is a bug factory. Prefer <code class="il">Money.Eur(50)</code>.</li>
+  <li>Defensible &mdash; safe, lossless, cheap. But note your demo actually calls <code class="il">.Build()</code>; when both exist, the named method is what people reach for, because it works with <code class="il">var</code> and announces itself.</li>
+</ol>
+<p>Rule: operators are for types that behave like <em>values</em> with meanings a stranger already knows (math, units, money, versions). Everything else gets a name.</p>
+</details>
+</div>
+
+<div class="drill">
+<h3>Drill 14 &mdash; Under the hood: op_Implicit</h3>
+<div class="meta-row"><span class="tag time">8 min</span><span class="tag topic">what the compiler emits</span></div>
+<div class="section-label">Goal</div>
+<p>Operators are just static methods with magic names. Prove it with reflection on your drill 1 &amp; 6 types:</p>
+<pre><code><span class="kw">foreach</span> (<span class="kw">var</span> m <span class="kw">in</span> <span class="kw">typeof</span>(<span class="type">Money</span>).GetMethods().Where(m =&gt; m.IsSpecialName))
+    <span class="type">Console</span>.WriteLine(m.Name);</code></pre>
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I found <code class="il">op_Addition</code>, <code class="il">op_Implicit</code> (on PizzaBuilder), <code class="il">op_Equality</code>...</li>
+  <li>So &ldquo;operator magic&rdquo; is compile-time sugar over ordinary static method calls &mdash; nothing happens at runtime that I couldn't write myself.</li>
+  <li>Bonus: I know this is why some languages without operator syntax (older VB interop scenarios) can still call these as methods.</li>
+</ul>
+</div>
+
+<h2 id="after">After these</h2>
+
+<p>You can now: read and write conversion operators in both directions, state exactly when they fire (typed targets, never <code class="il">var</code>, never <code class="il">is</code>/<code class="il">as</code>), pick implicit vs explicit by the lossless-and-safe rule, overload symbols with correct pairing (<code class="il">==</code>/<code class="il">!=</code>, <code class="il">&lt;</code>/<code class="il">&gt;</code>), avoid the <code class="il">== null</code> recursion trap, and &mdash; most importantly &mdash; recognise when an operator is the wrong tool and a named method is kinder to the next reader.</p>
+
+</div>
+</body>
+</html>

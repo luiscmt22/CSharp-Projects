@@ -22,7 +22,7 @@ app.UseHttpsRedirection();
 // Endpoints
 app.AddLoginEndpoints();
 app.AddDeckEndpoints();
-app.AddUsersEndpoints();
+app.AddUserEndpoints();
 app.AddCardEndpoints();
 app.MapGet("/tea", () => Results.StatusCode(StatusCodes.Status418ImATeapot));
 app.MapGet("/", () => Results.Ok("Hello World! Are you good?"));

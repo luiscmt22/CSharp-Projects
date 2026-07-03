@@ -1,5 +1,4 @@
 //@BaseUrl = http://localhost:5180
-@auth_token = ""
 
 ### 418 I'm a Teapot demo
 GET {{BaseUrl}}/tea
@@ -11,6 +10,7 @@ GET {{BaseUrl}}/
 POST {{BaseUrl}}/cards
 Content-Type: application/json
 Authorization: Bearer {{auth_token}}
+
 {
 "type": "Action",
 "name": "Just win the game already",
@@ -18,4 +18,13 @@ Authorization: Bearer {{auth_token}}
 "imagePath": "Winning.png",
 "effect": "Automatically wins the game",
 "cost": 1
+}
+
+###Login
+POST {{BaseUrl}}/login
+Content-Type: application/json
+
+{
+    "username": "admin",
+    "password": "1234"
 }

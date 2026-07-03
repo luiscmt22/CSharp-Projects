@@ -1,8 +1,35 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace CardTrackerWebApi.Endpoints;
 
 public static class LoginEndpoints
 {
-    public static void AddLoginEndpoints(this WebApplication app) {
-        
+    public static void AddLoginEndpoints(this WebApplication app) 
+    {
+        app.MapPost("/login", HandleLogin)
+            .WithName("Login")
+            .WithDescription("Login a user")
+            .AllowAnonymous()
+            .Produces<LoginResponse>()
+            .Produces(StatusCodes.Status401Unauthorized);
+    }
+
+    private static async Task<IResult> HandleLogin(LoginRequest request, CardsDbContext db, IHashingService hasher, ITokenGenerationService tokenGenerator)
+    {
+        request.Username = request.Username.ToLowerInvariant();
+        User? user = await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Username.Equals(request.Username));
+
+        if (user == null)
+            return Results.BadRequest("Invalid username or password.");
+
+        byte[] hash = hasher.ComputeHash(request.Password, user.Salt);
+        if (!user.PasswordHash.SequenceEqual(hash))
+            return Results.BadRequest("Invalid username or password.");
+
+        // Generate and return a signed JWT
+        string role = user.IsAdmin ? "Admin" : "User";
+        string jwt = tokenGenerator.GenerateToken(request.Username, role);
+
+        return Results.Ok(new LoginResponse(jwt));
     }
 }
