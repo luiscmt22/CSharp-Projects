@@ -1,0 +1,769 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Nested Collections, Aliasing &amp; out var &mdash; Blank-Page Drills</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root {
+  --bg: #0b1220;
+  --surface: #111a2e;
+  --surface-2: #16223c;
+  --border: #243352;
+  --text: #e6ecf5;
+  --text-dim: #9aa7c0;
+  --accent: #6aa6ff;
+  --accent-2: #b06aff;
+  --code-bg: #0a1120;
+  --ok: #4ade80;
+  --warn: #fbbf24;
+  --bad: #f87171;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg); color: var(--text);
+  font: 16px/1.65 -apple-system, "Segoe UI", system-ui, sans-serif;
+}
+.wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 80px; }
+header.doc-head {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px; margin-bottom: 28px;
+}
+header.doc-head .crumbs { color: var(--text-dim); font-size: 13px; }
+header.doc-head h1 { margin: 6px 0 4px; font-size: 28px; line-height: 1.2; }
+header.doc-head .meta { color: var(--text-dim); font-size: 13px; }
+h1, h2, h3, h4 { color: var(--text); margin-top: 1.6em; }
+h2 { border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+a { color: var(--accent); }
+code, pre, code.il { font-family: "JetBrains Mono", "Cascadia Code", Consolas, monospace; }
+code.il { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; border: 1px solid var(--border); }
+pre {
+  background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55;
+}
+pre code { background: transparent; border: 0; padding: 0; }
+blockquote {
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+  padding: 10px 16px; margin: 12px 0;
+  color: var(--text-dim);
+  border-radius: 0 6px 6px 0;
+}
+.diagram-box {
+  background: #1e293b; border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px; overflow-x: auto;
+}
+.diagram-box pre { background: transparent; border: 0; padding: 0; color: #e6ecf5; }
+.tbl-wrap { overflow-x: auto; margin: 14px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+th { background: var(--surface-2); }
+tr:nth-child(even) td { background: var(--surface); }
+.callout {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-2);
+  padding: 12px 16px;
+  margin: 14px 0;
+  border-radius: 0 6px 6px 0;
+}
+.callout.warn { border-left-color: var(--warn); }
+.callout.ok   { border-left-color: var(--ok); }
+.callout.bad  { border-left-color: var(--bad); }
+.kw   { color: #c792ea; }
+.type { color: #82aaff; }
+.str  { color: #c3e88d; }
+.num  { color: #f78c6c; }
+.cmt  { color: #6c7a96; font-style: italic; }
+
+.drill {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin: 20px 0;
+}
+.drill h3 { margin-top: 0; font-size: 17px; }
+.drill .meta-row {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  font-size: 12px; color: var(--text-dim);
+  margin-bottom: 8px;
+}
+.drill .meta-row span.tag {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 2px 8px; border-radius: 4px;
+}
+.drill .meta-row span.tag.time { color: var(--accent); }
+.drill .meta-row span.tag.topic { color: var(--accent-2); }
+.section-label {
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin: 14px 0 4px;
+  font-weight: 600;
+}
+.checklist { list-style: none; padding-left: 0; margin: 4px 0; }
+.checklist li {
+  padding: 3px 0 3px 26px;
+  position: relative;
+  font-size: 14px;
+}
+.checklist li::before {
+  content: "";
+  position: absolute; left: 0; top: 8px;
+  width: 13px; height: 13px;
+  border: 1.5px solid var(--text-dim);
+  border-radius: 3px;
+  background: var(--code-bg);
+}
+details {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin: 10px 0;
+}
+details > summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-weight: 500;
+  user-select: none;
+  font-size: 13px;
+}
+details[open] > summary { margin-bottom: 8px; }
+.toc {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 18px;
+  margin: 18px 0 28px;
+  font-size: 14px;
+}
+.toc ol { margin: 6px 0; padding-left: 22px; }
+.toc li { margin: 2px 0; }
+.toc a { text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+.section-anchor { padding-top: 12px; }
+.protocol {
+  background: #1a1230;
+  border: 1px solid #3a2e5a;
+  border-left: 4px solid var(--accent-2);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 20px 0;
+}
+.protocol h3 { margin-top: 0; color: var(--accent-2); }
+.stretch {
+  background: rgba(106, 166, 255, 0.06);
+  border-left: 3px solid var(--accent);
+  padding: 8px 12px;
+  margin: 10px 0;
+  border-radius: 0 4px 4px 0;
+  font-size: 13px;
+}
+.stretch strong { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc-head">
+  <div class="crumbs">GeneralExercises &rsaquo; Nested collections</div>
+  <h1>Nested collections, aliasing &amp; <code class="il">out var</code> &mdash; blank-page drills</h1>
+  <div class="meta">15 drills on what happens <em>inside</em> a <code class="il">Dictionary&lt;K, Dictionary&lt;K, V&gt;&gt;</code>: how many objects you actually allocated, who else holds a reference to them, and the three different ways to write a key. Companion to <a href="Collections_And_Equality_Drills.html">Collections &amp; Equality</a> &mdash; that doc covers the equality contract, this one covers <em>mutation and identity</em>.</div>
+</header>
+
+<p class="callout"><strong>Read first:</strong> the concept guide for this topic is <code class="il">_Curated / CORE / language / csharp-nested-collections-and-identity.html</code>. It covers allocation counting, aliasing, the three writes, <code class="il">out var</code> + <code class="il">[MaybeNullWhen(false)]</code>, and the get-or-create idiom. Read it, then drill this. Then re-read it.</p>
+
+<h2 id="why">Why this</h2>
+
+<p>You wrote <code class="il">Dictionary&lt;int, Dictionary&lt;int, Dictionary&lt;int, string&gt;&gt;&gt;</code> into a controller to test a hypothesis, and three separate things bit you in a row: you couldn't say how many dictionaries existed, you didn't notice that two variables pointed at the same object, and <code class="il">Add</code> threw on a key you'd forgotten was already there. None of those are knowledge gaps &mdash; you know what a dictionary is. They're <strong>identity</strong> gaps: losing track of which object is which once the objects stop having their own variable names.</p>
+
+<p>That's the whole subject here. Nested collections are the cheapest place to practise it, because the aliasing is invisible until you mutate something and watch it change somewhere else.</p>
+
+<blockquote>The one question every drill in this doc is secretly asking: <strong>&ldquo;who else holds a reference to this object, and do I want them to see my writes?&rdquo;</strong> When the answer is &ldquo;nobody&rdquo; you're safe. When it's &ldquo;someone, and yes&rdquo; that's the get-or-create idiom. When it's &ldquo;someone, and no&rdquo; that's a bug.</blockquote>
+
+<div class="protocol">
+<h3>The no-AI protocol</h3>
+<p>Same rules as every drill doc in this folder. Re-read them.</p>
+<ol>
+  <li><strong>No AI during the drill.</strong> Disable Copilot completions before you start.</li>
+  <li><strong>Only <a href="https://learn.microsoft.com">learn.microsoft.com</a></strong> as a reference.</li>
+  <li><strong>10-minute timer.</strong> When it rings, write down the question you'd ask me &mdash; <em>then</em> open the hint.</li>
+  <li><strong>Type, don't paste.</strong></li>
+  <li><strong>Ask for review, never solutions.</strong></li>
+</ol>
+<p class="callout warn"><strong>Doc-specific rule:</strong> several drills say &ldquo;predict, then verify&rdquo;. Predicting is the drill. If you run the code first and read the answer off the console, you've done nothing &mdash; write your prediction in a comment <em>before</em> you press F5.</p>
+</div>
+
+<div class="toc">
+  <strong>Drill index</strong>
+  <ol>
+    <li><a href="#sec-alloc">Allocation &amp; aliasing (drills 1&ndash;4)</a></li>
+    <li><a href="#sec-writes">The three writes: Add / indexer / TryAdd (drills 5&ndash;9)</a></li>
+    <li><a href="#sec-outvar"><code class="il">out var</code> &amp; definite assignment (drills 10&ndash;12)</a></li>
+    <li><a href="#sec-getorcreate">Get-or-create &amp; design judgment (drills 13&ndash;15)</a></li>
+  </ol>
+</div>
+
+<!-- ============================================ -->
+<!-- ============ ALLOCATION & ALIASING ========= -->
+<!-- ============================================ -->
+<h2 id="sec-alloc" class="section-anchor">1 &mdash; Allocation &amp; aliasing</h2>
+
+<p>Before you can reason about mutation you have to be able to count objects. These four are about seeing the heap, not the syntax.</p>
+
+<div class="drill" id="d1">
+<h3>Drill 1 &mdash; Count the allocations (no code &mdash; predict)</h3>
+<div class="meta-row">
+  <span class="tag time">5 min</span>
+  <span class="tag topic">type args vs objects</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>For each snippet, write down how many <code class="il">Dictionary</code> objects exist on the heap immediately after the statement, and what <code class="il">Count</code> returns on the outermost one. Then verify in the debugger.</p>
+
+<pre><code><span class="cmt">// A</span>
+<span class="kw">var</span> a = <span class="kw">new</span> <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="kw">string</span>&gt;&gt;();
+
+<span class="cmt">// B</span>
+<span class="kw">var</span> b = <span class="kw">new</span> <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="kw">string</span>&gt;&gt;
+{
+    { <span class="num">1</span>, <span class="kw">new</span>() { { <span class="num">1</span>, <span class="str">"x"</span> } } },
+    { <span class="num">2</span>, <span class="kw">new</span>() { { <span class="num">2</span>, <span class="str">"y"</span> } } }
+};
+
+<span class="cmt">// C</span>
+<span class="kw">var</span> inner = <span class="kw">new</span> <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="kw">string</span>&gt; { { <span class="num">1</span>, <span class="str">"x"</span> } };
+<span class="kw">var</span> c = <span class="kw">new</span> <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="kw">string</span>&gt;&gt;
+{
+    { <span class="num">1</span>, inner },
+    { <span class="num">2</span>, inner }
+};</code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I can state the rule in one sentence, without using the word &ldquo;dictionary&rdquo;.</li>
+  <li>I got C right &mdash; and I can explain why C's answer differs from B's.</li>
+  <li>I know what <code class="il">c[1].Count</code> becomes after <code class="il">c[2].Add(9, "z")</code>.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>Count the <code class="il">new</code> keywords, not the type arguments. A generic type argument describes the <em>shape of a slot</em>; it never allocates. So A is one object with <code class="il">Count == 0</code> &mdash; the inner dictionaries do not exist yet and won't until something is added.</p>
+<p>C is the interesting one: two keys, but only <strong>two</strong> objects total, because keys <code class="il">1</code> and <code class="il">2</code> hold the <em>same</em> inner dictionary. That's the aliasing the rest of this doc is about.</p>
+</details>
+</div>
+
+<div class="drill" id="d2">
+<h3>Drill 2 &mdash; The spooky write (predict, then verify)</h3>
+<div class="meta-row">
+  <span class="tag time">8 min</span>
+  <span class="tag topic">reference semantics</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>From a blank file, type this out and predict every <code class="il">Console.WriteLine</code> before running it.</p>
+
+<pre><code><span class="kw">var</span> makes = <span class="kw">new</span> <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="kw">string</span>&gt; { { <span class="num">1</span>, <span class="str">"Toyota"</span> } };
+<span class="kw">var</span> byYear = <span class="kw">new</span> <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="kw">string</span>&gt;&gt;();
+
+byYear.Add(<span class="num">1990</span>, makes);
+byYear.Add(<span class="num">2000</span>, makes);
+
+byYear[<span class="num">1990</span>].Add(<span class="num">2</span>, <span class="str">"Honda"</span>);
+
+<span class="type">Console</span>.WriteLine(byYear[<span class="num">2000</span>].Count);              <span class="cmt">// ?</span>
+<span class="type">Console</span>.WriteLine(makes.Count);                      <span class="cmt">// ?</span>
+<span class="type">Console</span>.WriteLine(<span class="type">ReferenceEquals</span>(byYear[<span class="num">1990</span>], makes)); <span class="cmt">// ?</span>
+
+makes = <span class="kw">new</span> <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="kw">string</span>&gt;();               <span class="cmt">// reassign the variable</span>
+<span class="type">Console</span>.WriteLine(byYear[<span class="num">1990</span>].Count);              <span class="cmt">// ?</span></code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I predicted all four correctly, in a comment, before running.</li>
+  <li>I can explain why the <em>last</em> line is unaffected by the reassignment.</li>
+  <li>I can name the distinction: reassigning a variable vs mutating the object it points to.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p><code class="il">Add</code> copies the <em>reference</em>, not the object. After the two <code class="il">Add</code> calls there is still exactly one inner dictionary, now reachable by three names: <code class="il">makes</code>, <code class="il">byYear[1990]</code>, and <code class="il">byYear[2000]</code>.</p>
+<p>The last line is the key insight. <code class="il">makes = new(...)</code> repoints the <em>variable</em> at a fresh object; it does nothing to the object the dictionary is still holding. A variable is a label, not a container.</p>
+</details>
+
+<div class="stretch"><strong>Stretch:</strong> add a fourth alias via <code class="il">var alias = byYear[2000];</code> and mutate through <em>that</em>. Convince yourself the count is still 1 object.</div>
+</div>
+
+<div class="drill" id="d3">
+<h3>Drill 3 &mdash; DeepCopy</h3>
+<div class="meta-row">
+  <span class="tag time">12 min</span>
+  <span class="tag topic">shallow vs deep</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Write a method that returns a copy of a nested map where mutating the copy can <strong>never</strong> be observed through the original, at any level. Then write <code class="il">ShallowCopy</code> next to it (one line) and demonstrate the difference.</p>
+
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="kw">string</span>&gt;&gt; DeepCopy(
+    <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="kw">string</span>&gt;&gt; source)</code></pre>
+
+<div class="section-label">Examples</div>
+<pre><code><span class="kw">var</span> copy = DeepCopy(original);
+copy[<span class="num">1990</span>].Add(<span class="num">99</span>, <span class="str">"New"</span>);
+original[<span class="num">1990</span>].ContainsKey(<span class="num">99</span>)   <span class="cmt">// false  &lt;- deep</span>
+
+<span class="kw">var</span> shallow = <span class="kw">new</span> <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="kw">string</span>&gt;&gt;(original);
+shallow[<span class="num">1990</span>].Add(<span class="num">99</span>, <span class="str">"New"</span>);
+original[<span class="num">1990</span>].ContainsKey(<span class="num">99</span>)   <span class="cmt">// true   &lt;- shallow!</span></code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I did not use LINQ <code class="il">.ToDictionary()</code> on the first attempt &mdash; I wrote the loop.</li>
+  <li>My deep copy allocates exactly <code class="il">1 + source.Count</code> dictionaries. I can prove it.</li>
+  <li>I can say why the copy constructor <code class="il">new Dictionary&lt;,&gt;(original)</code> is shallow, and why that's the correct default for the BCL.</li>
+  <li>I know whether the <code class="il">string</code> values needed copying too, and why.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>Deep means: new outer dictionary, <em>and</em> a new inner dictionary per entry. Loop the source, and for each pair put <code class="il">new Dictionary&lt;int, string&gt;(pair.Value)</code> into the result &mdash; the inner copy can be shallow because its values are <code class="il">string</code>, which is immutable. Nobody can mutate a string out from under you, so sharing it is safe.</p>
+<p>That's the general rule: you stop deep-copying at the first immutable layer. If the values were <code class="il">List&lt;T&gt;</code> you'd have to keep going.</p>
+</details>
+
+<div class="stretch"><strong>Stretch:</strong> write it a second time as a one-liner with <code class="il">ToDictionary</code>. Which version would you rather debug at 2am? Note your answer.</div>
+</div>
+
+<div class="drill" id="d4">
+<h3>Drill 4 &mdash; CountDistinctInnerMaps</h3>
+<div class="meta-row">
+  <span class="tag time">10 min</span>
+  <span class="tag topic">reference identity</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Given a nested map, return how many <strong>distinct inner dictionary objects</strong> it holds &mdash; not how many keys. Drill 1's snippet C has 2 keys but only 1 distinct inner map; the answer for C is <code class="il">1</code>.</p>
+
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="kw">int</span> CountDistinctInnerMaps(
+    <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="kw">string</span>&gt;&gt; source)</code></pre>
+
+<div class="section-label">Examples</div>
+<pre><code><span class="cmt">// { 1 -&gt; inner, 2 -&gt; inner, 3 -&gt; other }</span>
+CountDistinctInnerMaps(map)   <span class="cmt">// 2</span></code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>My answer does not change if two distinct inner maps happen to hold identical contents.</li>
+  <li>I know why a plain <code class="il">HashSet&lt;Dictionary&lt;int,string&gt;&gt;</code> already works here &mdash; and why relying on that default is fragile.</li>
+  <li>I can name the BCL type that makes the intent explicit.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p><code class="il">Dictionary&lt;K,V&gt;</code> does not override <code class="il">Equals</code>, so a <code class="il">HashSet</code> of them already compares by reference &mdash; you'd get the right answer by accident. Make it deliberate with <code class="il">new HashSet&lt;object&gt;(ReferenceEqualityComparer.Instance)</code> (.NET 5+), which says &ldquo;I mean identity, not equality&rdquo; out loud.</p>
+<p>This is the exact inverse of the <code class="il">IEqualityComparer</code> drills in the Collections doc: there you taught a collection to treat different objects as the same; here you're insisting that same-looking objects stay different.</p>
+</details>
+
+<div class="stretch"><strong>Stretch:</strong> extend it to the three-level map and count distinct dictionaries at <em>every</em> depth. Watch out for the same leaf appearing under two different makes.</div>
+</div>
+
+<!-- ============================================ -->
+<!-- ============== THE THREE WRITES ============ -->
+<!-- ============================================ -->
+<h2 id="sec-writes" class="section-anchor">2 &mdash; The three writes: <code class="il">Add</code> / indexer / <code class="il">TryAdd</code></h2>
+
+<p>Three ways to put a key in a dictionary, three different behaviours on collision. Picking one is a design decision about what a duplicate <em>means</em> in your domain &mdash; not a style preference.</p>
+
+<div class="drill" id="d5">
+<h3>Drill 5 &mdash; The three writes (no code &mdash; explain it)</h3>
+<div class="meta-row">
+  <span class="tag time">6 min</span>
+  <span class="tag topic">semantics</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>In a scratch file, write out &mdash; in prose, no code &mdash; what each of these does when key <code class="il">1</code> is <em>already present</em>, and what it does when it is <em>absent</em>. Six answers total. Then add a one-line description of the <em>intent</em> each expresses.</p>
+
+<pre><code>d[<span class="num">1</span>] = <span class="str">"B"</span>;
+d.Add(<span class="num">1</span>, <span class="str">"B"</span>);
+d.TryAdd(<span class="num">1</span>, <span class="str">"B"</span>);</code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I know which one throws, which exception type, and what the message contains.</li>
+  <li>I know which one returns a value, and what it returns in each case.</li>
+  <li>I wrote the <em>intent</em> for each, not just the mechanics.</li>
+  <li>I can answer: &ldquo;which of these must never touch a key that came from user input, and why?&rdquo;</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>Mechanics: indexer = upsert, never throws. <code class="il">Add</code> = throws <code class="il">ArgumentException</code> on collision. <code class="il">TryAdd</code> = adds only if absent, returns <code class="il">bool</code>, never throws.</p>
+<p>Intent is the part that matters. The indexer says &ldquo;later data wins&rdquo;. <code class="il">Add</code> says &ldquo;a duplicate here is a bug in <em>my</em> logic &mdash; fail loudly&rdquo;; it's a runtime assertion, not a protection. <code class="il">TryAdd</code> says &ldquo;first write wins, and tell me which happened&rdquo;.</p>
+<p>So <code class="il">Add</code> on a user-supplied key hands users a way to throw exceptions in your process on demand.</p>
+</details>
+</div>
+
+<div class="drill" id="d6">
+<h3>Drill 6 &mdash; RegisterOnce</h3>
+<div class="meta-row">
+  <span class="tag time">8 min</span>
+  <span class="tag topic">TryAdd</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>A registry where the <strong>first</strong> registration of a name wins and later ones are silently ignored. Return whether this call was the one that registered.</p>
+
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="kw">bool</span> RegisterOnce(<span class="type">Dictionary</span>&lt;<span class="kw">string</span>, <span class="kw">int</span>&gt; registry, <span class="kw">string</span> name, <span class="kw">int</span> id)</code></pre>
+
+<div class="section-label">Examples</div>
+<pre><code>RegisterOnce(r, <span class="str">"alpha"</span>, <span class="num">1</span>)   <span class="cmt">// true,  r["alpha"] == 1</span>
+RegisterOnce(r, <span class="str">"alpha"</span>, <span class="num">2</span>)   <span class="cmt">// false, r["alpha"] still 1</span></code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>My method body is one line.</li>
+  <li>I did not write <code class="il">ContainsKey</code> followed by <code class="il">Add</code> &mdash; and I know how many hash lookups that version costs versus mine.</li>
+  <li>I can state what would break if I'd used the indexer instead.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p><code class="il">TryAdd</code> returns exactly the bool you need, so the body is <code class="il">return registry.TryAdd(name, id);</code>. The <code class="il">ContainsKey</code>-then-<code class="il">Add</code> version hashes the key twice and is racy if the dictionary is ever shared across threads &mdash; <code class="il">TryAdd</code> is a single operation.</p>
+</details>
+
+<div class="stretch"><strong>Stretch:</strong> two xUnit tests &mdash; first call returns true and stores, second returns false and leaves the original value intact.</div>
+</div>
+
+<div class="drill" id="d7">
+<h3>Drill 7 &mdash; FirstWins vs LastWins</h3>
+<div class="meta-row">
+  <span class="tag time">10 min</span>
+  <span class="tag topic">indexer vs TryAdd</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Two methods, same input, deliberately different collision policy. Each folds a sequence of pairs into one dictionary.</p>
+
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">Dictionary</span>&lt;<span class="kw">string</span>, <span class="kw">int</span>&gt; FirstWins(<span class="type">List</span>&lt;(<span class="kw">string</span> Key, <span class="kw">int</span> Value)&gt; pairs)
+<span class="kw">public static</span> <span class="type">Dictionary</span>&lt;<span class="kw">string</span>, <span class="kw">int</span>&gt; LastWins (<span class="type">List</span>&lt;(<span class="kw">string</span> Key, <span class="kw">int</span> Value)&gt; pairs)</code></pre>
+
+<div class="section-label">Examples</div>
+<pre><code><span class="kw">var</span> input = [(<span class="str">"a"</span>, <span class="num">1</span>), (<span class="str">"b"</span>, <span class="num">2</span>), (<span class="str">"a"</span>, <span class="num">3</span>)];
+FirstWins(input)   <span class="cmt">// { a: 1, b: 2 }</span>
+LastWins(input)    <span class="cmt">// { a: 3, b: 2 }</span></code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Each method body differs by exactly one line &mdash; the write.</li>
+  <li>Neither method uses <code class="il">ContainsKey</code>.</li>
+  <li>I can name a real scenario for each policy (config layering, event replay, caching&hellip;).</li>
+  <li>I know which one <code class="il">ToDictionary()</code> gives you, and what it does on a duplicate key.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>The only difference is <code class="il">result.TryAdd(k, v)</code> versus <code class="il">result[k] = v</code>. That's the payoff of drill 5: once you know the three intents, the implementation stops being a decision.</p>
+<p>LINQ's <code class="il">ToDictionary()</code> uses <code class="il">Add</code> semantics &mdash; it <em>throws</em> on a duplicate key rather than picking a winner. That surprises people constantly.</p>
+</details>
+</div>
+
+<div class="drill" id="d8">
+<h3>Drill 8 &mdash; The initializer trap (predict)</h3>
+<div class="meta-row">
+  <span class="tag time">6 min</span>
+  <span class="tag topic">collection initializers</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>One of these compiles and runs. One compiles and throws. Predict which is which, and the exception type &mdash; <em>before</em> running.</p>
+
+<pre><code><span class="cmt">// A</span>
+<span class="kw">var</span> a = <span class="kw">new</span> <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="kw">string</span>&gt; { { <span class="num">1</span>, <span class="str">"A"</span> }, { <span class="num">1</span>, <span class="str">"B"</span> } };
+
+<span class="cmt">// B</span>
+<span class="kw">var</span> b = <span class="kw">new</span> <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="kw">string</span>&gt; { [<span class="num">1</span>] = <span class="str">"A"</span>, [<span class="num">1</span>] = <span class="str">"B"</span> };</code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I predicted correctly and can explain the mechanism, not just the outcome.</li>
+  <li>I know what <code class="il">b[1]</code> ends up as.</li>
+  <li>I understand why this is a <em>runtime</em> failure and not a compile error, even though both keys are literal constants.</li>
+  <li>I checked which form my own nested map in <code class="il">SearchController</code> was using.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>Collection-initializer syntax <code class="il">{ k, v }</code> is pure sugar for repeated <code class="il">.Add(k, v)</code> calls &mdash; so A inherits <code class="il">Add</code>'s throw-on-collision behaviour. Object-initializer syntax <code class="il">[k] = v</code> compiles to indexer assignments, so B is upsert and <code class="il">b[1] == "B"</code>.</p>
+<p>The compiler doesn't constant-fold dictionary keys to check for duplicates, so both forms compile cleanly. You find out at runtime.</p>
+</details>
+</div>
+
+<div class="drill" id="d9">
+<h3>Drill 9 &mdash; BuildIndex, where duplicates are a bug</h3>
+<div class="meta-row">
+  <span class="tag time">10 min</span>
+  <span class="tag topic">Add as an assertion</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Index a list of records by their id, where the ids are guaranteed unique by an upstream invariant. If that guarantee is ever violated you want to know immediately &mdash; with a message naming the offending id, not the BCL's generic one.</p>
+
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="type">Item</span>&gt; BuildIndex(<span class="type">List</span>&lt;<span class="type">Item</span>&gt; items)
+<span class="cmt">// record Item(int Id, string Name);</span></code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I chose deliberately between letting <code class="il">Add</code> throw and detecting the collision myself &mdash; and I can defend the choice.</li>
+  <li>My exception message contains the duplicate id and the type being indexed.</li>
+  <li>I did not silently pick a winner. Silently picking a winner is how this class of bug hides for months.</li>
+  <li>I can say why <code class="il">TryAdd</code> would be the <em>wrong</em> tool here despite being the "safe" one.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>&ldquo;Safe&rdquo; is the wrong axis. If uniqueness is an invariant, a duplicate means an upstream bug, and swallowing it with <code class="il">TryAdd</code> produces a quietly incomplete index &mdash; the worst outcome. You want to fail.</p>
+<p>The choice is only <em>how</em>: bare <code class="il">Add</code> gives you &ldquo;An item with the same key has already been added. Key: 7&rdquo; with no type context, whereas <code class="il">if (!dict.TryAdd(...)) throw new InvalidOperationException($"Duplicate Item id {item.Id}");</code> gives you a message you can act on from a log line alone.</p>
+</details>
+
+<div class="stretch"><strong>Stretch:</strong> a test asserting the exception <em>message</em> contains the duplicate id. Asserting on messages is usually a smell &mdash; decide whether it's justified here.</div>
+</div>
+
+<!-- ============================================ -->
+<!-- ================= OUT VAR ================== -->
+<!-- ============================================ -->
+<h2 id="sec-outvar" class="section-anchor">3 &mdash; <code class="il">out var</code> &amp; definite assignment</h2>
+
+<p><code class="il">TryGetValue</code> is the most-typed method in this whole topic and almost nobody can state its scoping rules. These three fix that.</p>
+
+<div class="drill" id="d10">
+<h3>Drill 10 &mdash; Scope quiz (predict)</h3>
+<div class="meta-row">
+  <span class="tag time">6 min</span>
+  <span class="tag topic">out variable scope</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Mark each numbered line: <strong>compiles</strong> or <strong>compile error</strong>. Predict all five first, then let the compiler grade you.</p>
+
+<pre><code><span class="kw">void</span> Demo(<span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="kw">string</span>&gt; map)
+{
+    <span class="kw">if</span> (map.TryGetValue(<span class="num">1</span>, <span class="kw">out var</span> found))
+        <span class="type">Console</span>.WriteLine(found);        <span class="cmt">// 1</span>
+
+    <span class="type">Console</span>.WriteLine(found);            <span class="cmt">// 2</span>
+
+    <span class="kw">if</span> (<span class="kw">true</span>)
+    {
+        <span class="kw">if</span> (map.TryGetValue(<span class="num">2</span>, <span class="kw">out var</span> inner)) { }
+        <span class="type">Console</span>.WriteLine(inner);        <span class="cmt">// 3</span>
+    }
+    <span class="type">Console</span>.WriteLine(inner);            <span class="cmt">// 4</span>
+
+    <span class="kw">if</span> (map.TryGetValue(<span class="num">3</span>, <span class="kw">out var</span> found)) { }   <span class="cmt">// 5</span>
+}</code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I can state the scoping rule in one sentence.</li>
+  <li>I know what value line 2 prints when key 1 was <em>absent</em>.</li>
+  <li>I can explain line 5's error without looking it up.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>The rule: an <code class="il">out var</code> declaration is scoped to the <strong>enclosing block</strong> &mdash; exactly as if you'd declared it on the line above the <code class="il">if</code>. Not to the <code class="il">if</code> body, and not beyond the block.</p>
+<p>So 1, 2, 3 compile; 4 fails with CS0103 (<code class="il">inner</code>'s block has closed); 5 fails because <code class="il">found</code> is already declared in that same scope. Line 2 prints empty &mdash; on a <code class="il">false</code> return the out parameter is set to <code class="il">default</code>, which for <code class="il">string</code> is <code class="il">null</code>.</p>
+</details>
+</div>
+
+<div class="drill" id="d11">
+<h3>Drill 11 &mdash; Write your own Try-method</h3>
+<div class="meta-row">
+  <span class="tag time">12 min</span>
+  <span class="tag topic">out parameters</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Stop consuming the pattern and produce it. Look up the model of the year with the highest key, following the BCL's Try-convention exactly.</p>
+
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static</span> <span class="kw">bool</span> TryGetNewestModel(
+    <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="kw">string</span>&gt;&gt; byYear,
+    <span class="kw">out</span> <span class="kw">string</span> model)</code></pre>
+
+<div class="section-label">Examples</div>
+<pre><code><span class="cmt">// byYear = { 1990: {1:"A"}, 2010: {1:"Z"} }</span>
+TryGetNewestModel(byYear, <span class="kw">out var</span> m)   <span class="cmt">// true,  m == "Z"</span>
+TryGetNewestModel(empty,  <span class="kw">out var</span> m)   <span class="cmt">// false, m == null</span></code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Every <code class="il">return</code> path assigns <code class="il">model</code> &mdash; I know the compiler enforces this and I know the error number if I forget.</li>
+  <li>I never throw. A Try-method that throws has broken its contract.</li>
+  <li>I assigned <code class="il">model</code> before the early return, not after.</li>
+  <li>I looked up how to annotate the parameter so callers get correct nullable warnings.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>Definite assignment for <code class="il">out</code> is enforced on <em>every</em> exit path &mdash; miss one and you get CS0177. The idiomatic shape is to assign the default first thing, then overwrite on success.</p>
+<p>The annotation is <code class="il">[MaybeNullWhen(false)] out string model</code> from <code class="il">System.Diagnostics.CodeAnalysis</code>. That's the attribute that makes <code class="il">out var</code> behave correctly at the call site &mdash; it's exactly what <code class="il">Dictionary.TryGetValue</code> itself carries. Read its source on learn.microsoft.com.</p>
+</details>
+
+<div class="stretch"><strong>Stretch:</strong> add the annotation, then call your method from a file with nullable enabled and confirm the warning behaviour changes.</div>
+</div>
+
+<div class="drill" id="d12">
+<h3>Drill 12 &mdash; out var vs pre-declared (experiment)</h3>
+<div class="meta-row">
+  <span class="tag time">10 min</span>
+  <span class="tag topic">nullable analysis</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>In a file with <code class="il">&lt;Nullable&gt;enable&lt;/Nullable&gt;</code>, type both forms and record every warning the compiler emits. They are <em>not</em> equivalent.</p>
+
+<pre><code><span class="cmt">// A</span>
+<span class="kw">if</span> (!map.TryGetValue(<span class="num">2010</span>, <span class="kw">out var</span> makesA))
+    makesA = map[<span class="num">2010</span>] = <span class="kw">new</span>();
+
+<span class="cmt">// B</span>
+<span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="kw">string</span>&gt; makesB;
+<span class="kw">if</span> (!map.TryGetValue(<span class="num">2020</span>, <span class="kw">out</span> makesB))
+    makesB = map[<span class="num">2020</span>] = <span class="kw">new</span>();</code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I recorded the exact warning code and which form produced it.</li>
+  <li>I can explain <em>why</em> that form warns, in terms of an attribute on <code class="il">TryGetValue</code>.</li>
+  <li>I found the one-character change that silences it, and I know what that change costs in readability.</li>
+  <li>I can now list three concrete differences between the two forms, not just &ldquo;one's shorter&rdquo;.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>Form B warns; form A doesn't. Because <code class="il">TryGetValue</code>'s out parameter is <code class="il">[MaybeNullWhen(false)]</code>, it genuinely <em>can</em> be null after the call &mdash; and B's explicit non-nullable declaration asserts otherwise. <code class="il">var</code> in form A infers the null-aware type and stays honest.</p>
+<p>The three differences: nullable analysis (above), scope start point (A's variable doesn't exist before the <code class="il">if</code>), and type inference (A doesn't make you retype a long generic type). Semantically identical otherwise &mdash; same IL.</p>
+</details>
+</div>
+
+<!-- ============================================ -->
+<!-- ============== GET OR CREATE =============== -->
+<!-- ============================================ -->
+<h2 id="sec-getorcreate" class="section-anchor">4 &mdash; Get-or-create &amp; design judgment</h2>
+
+<p>Everything above assembles into one idiom you'll write for the rest of your career &mdash; and one question about whether you should have nested the dictionaries at all.</p>
+
+<div class="drill" id="d13">
+<h3>Drill 13 &mdash; AddModel</h3>
+<div class="meta-row">
+  <span class="tag time">12 min</span>
+  <span class="tag topic">get-or-create</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Insert a model into a three-level map, creating whichever levels don't exist yet. Must work when the year is new, when the year exists but the make doesn't, and when both exist. Never throws.</p>
+
+<div class="section-label">Signature</div>
+<pre><code><span class="kw">public static void</span> AddModel(
+    <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="kw">string</span>&gt;&gt;&gt; map,
+    <span class="kw">int</span> year, <span class="kw">int</span> makeId, <span class="kw">int</span> modelId, <span class="kw">string</span> modelName)</code></pre>
+
+<div class="section-label">Examples</div>
+<pre><code><span class="kw">var</span> map = <span class="kw">new</span> <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="kw">string</span>&gt;&gt;&gt;();
+AddModel(map, <span class="num">2010</span>, <span class="num">3</span>, <span class="num">7</span>, <span class="str">"Corolla"</span>);   <span class="cmt">// builds all three levels</span>
+AddModel(map, <span class="num">2010</span>, <span class="num">3</span>, <span class="num">8</span>, <span class="str">"Camry"</span>);     <span class="cmt">// reuses both</span>
+map[<span class="num">2010</span>][<span class="num">3</span>].Count                          <span class="cmt">// 2</span></code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>Calling it twice with the same year+make does <strong>not</strong> replace the existing inner map &mdash; I have a test proving the first model survives.</li>
+  <li>I used <code class="il">TryGetValue</code>, not <code class="il">ContainsKey</code>. I can state the lookup-count difference.</li>
+  <li>I understand why the chained assignment <code class="il">level = map[k] = new()</code> creates one object and not two.</li>
+  <li>Nothing in my method can throw <code class="il">KeyNotFoundException</code>, including on the reads.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>Two get-or-create blocks stacked, then one leaf write. Per level: <code class="il">if (!parent.TryGetValue(key, out var child)) child = parent[key] = new();</code></p>
+<p>Assignment in C# is an <em>expression</em> that evaluates to the value assigned, and it's right-associative &mdash; so <code class="il">child = (parent[key] = new())</code> allocates once, stores that reference in the parent, and hands the same reference to <code class="il">child</code>. The aliasing from drill 2 is the mechanism this idiom deliberately relies on: writes through <code class="il">child</code> land inside <code class="il">parent</code> because it's the same object.</p>
+<p>Use the indexer for the writes, never <code class="il">Add</code> &mdash; you only reach that line when the key is known absent, and the indexer can't throw.</p>
+</details>
+
+<div class="stretch"><strong>Stretch:</strong> three xUnit tests, one per branch (new year / new make / both exist). The third is the one that catches the accidental-replace bug.</div>
+</div>
+
+<div class="drill" id="d14">
+<h3>Drill 14 &mdash; Count the hash lookups (no code &mdash; analyse)</h3>
+<div class="meta-row">
+  <span class="tag time">8 min</span>
+  <span class="tag topic">cost model</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>Three ways to write one get-or-create level. For each, count how many times the key gets hashed and probed, in both the hit and miss cases. Write the numbers down.</p>
+
+<pre><code><span class="cmt">// A</span>
+<span class="kw">if</span> (!map.ContainsKey(k)) map[k] = <span class="kw">new</span>();
+<span class="kw">var</span> child = map[k];
+
+<span class="cmt">// B</span>
+<span class="kw">if</span> (!map.TryGetValue(k, <span class="kw">out var</span> child)) child = map[k] = <span class="kw">new</span>();
+
+<span class="cmt">// C</span>
+<span class="kw">ref var</span> slot = <span class="kw">ref</span> <span class="type">CollectionsMarshal</span>.GetValueRefOrAddDefault(map, k, <span class="kw">out bool</span> existed);
+slot ??= <span class="kw">new</span>();</code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I have six numbers written down, not three.</li>
+  <li>I can say which one I'd write by default, and I did <em>not</em> pick the fastest.</li>
+  <li>I know what a <code class="il">ref</code> local is and why C can skip a lookup that B cannot.</li>
+  <li>I can name the rule that makes C dangerous (hint: what must you not do to <code class="il">map</code> while <code class="il">slot</code> is alive?).</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>A costs 2 lookups on a hit and 3 on a miss. B costs 1 and 2. C costs exactly 1 either way, because it hands you a <code class="il">ref</code> directly into the dictionary's internal bucket array &mdash; you write through the reference instead of doing a second lookup to find the slot again.</p>
+<p>That reference is invalidated by any insert that resizes the dictionary, so you must not touch <code class="il">map</code> while holding <code class="il">slot</code>. B is the right default: one extra lookup is nothing next to code your team can read without a comment. C is for measured hot paths.</p>
+</details>
+</div>
+
+<div class="drill" id="d15">
+<h3>Drill 15 &mdash; When nesting is the wrong shape (no code &mdash; design)</h3>
+<div class="meta-row">
+  <span class="tag time">12 min</span>
+  <span class="tag topic">design judgment</span>
+</div>
+
+<div class="section-label">Goal</div>
+<p>You now have <code class="il">Dictionary&lt;int, Dictionary&lt;int, Dictionary&lt;int, string&gt;&gt;&gt;</code> working. Argue the case <em>against</em> it. In a scratch file, write a short comparison of these three designs for the same year/make/model lookup, then commit to one and justify it.</p>
+
+<pre><code><span class="cmt">// A  nested</span>
+<span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="type">Dictionary</span>&lt;<span class="kw">int</span>, <span class="kw">string</span>&gt;&gt;&gt;
+
+<span class="cmt">// B  composite key</span>
+<span class="type">Dictionary</span>&lt;(<span class="kw">int</span> Year, <span class="kw">int</span> Make, <span class="kw">int</span> Model), <span class="kw">string</span>&gt;
+
+<span class="cmt">// C  a list of records</span>
+<span class="type">List</span>&lt;<span class="type">Vehicle</span>&gt;  <span class="cmt">// record Vehicle(int Year, int Make, int Model, string Name);</span></code></pre>
+
+<div class="section-label">Self-check</div>
+<ul class="checklist">
+  <li>I addressed each of: point lookup, &ldquo;all models for a year&rdquo;, insertion code, memory, and debugger readability.</li>
+  <li>I know why the tuple key in B works as a dictionary key at all &mdash; which contract it satisfies for free.</li>
+  <li>I identified the single question that decides between A and B, and it isn't performance.</li>
+  <li>I can say when C beats both.</li>
+</ul>
+
+<details><summary>Hint</summary>
+<p>The deciding question is: <strong>do you ever need a whole level on its own?</strong> If &ldquo;give me every make in 1990&rdquo; is a real operation, A gives it to you as one indexer call while B forces a full scan. If you only ever do exact three-part lookups, B is dramatically simpler &mdash; one flat dictionary, no get-or-create ladder, no aliasing, no partially-built levels, and it prints readably in the debugger.</p>
+<p>B works because <code class="il">ValueTuple</code> implements structural <code class="il">Equals</code>/<code class="il">GetHashCode</code> over its fields &mdash; the same contract the Collections &amp; Equality drills made you implement by hand. A <code class="il">record</code> key would work identically.</p>
+<p>C wins when the data is small, or when you query it by many different shapes (by name, by range, sorted) &mdash; at which point you're really asking for a database, and LINQ over a list is the honest small version of that.</p>
+</details>
+</div>
+
+<h2 id="done">When you're done</h2>
+
+<p>Come back to <code class="il">SearchController.cs</code> and delete the experiment. Then answer, without re-reading this doc: how many dictionaries did those lines allocate per request, which two variables pointed at the same object, and which of the three writes did each line use? If all three come back instantly, the topic is closed.</p>
+
+<p class="callout"><strong>Next in this vein:</strong> the natural sequel is <em>mutable state &amp; defensive copying</em> &mdash; returning collections from methods, <code class="il">IReadOnlyDictionary</code>, <code class="il">FrozenDictionary</code>, and why exposing a <code class="il">List&lt;T&gt;</code> property is a leak. Ask when you want it.</p>
+
+</div>
+</body>
+</html>
